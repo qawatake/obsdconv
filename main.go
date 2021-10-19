@@ -67,33 +67,16 @@ func removeTags(content []rune) []rune {
 }
 
 func getH1(content []rune) string {
-	if !(len(content) >= 2 && content[0] == '#' && content[1] == ' ') {
+	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+	if !scanner.Scan() {
 		return ""
 	}
-
-	c := content[2:]
-	// 冒頭の空白をスキップ
-	for len(c) > 0 {
-		if !(c[0] == ' ' || c[0] == '\t') {
-			break
-		}
-		c = c[1:]
+	line := strings.Trim(scanner.Text(), " \t")
+	runes := []rune(line)
+	if !(len(runes) >= 3 && string(runes[:2]) == "# ") {
+		return ""
 	}
-
-	// タイトルを取得
-	titleEnd := 0
-	id := 0
-	for id < len(c) {
-		if c[id] == '\r' || c[id] == '\n' {
-			break
-		}
-		id++
-		if unicode.IsPrint(c[id-1]) && !unicode.IsSpace(c[id-1]) {
-			titleEnd = id
-		}
-	}
-	title := string(c[:titleEnd])
-	return title
+	return strings.TrimLeft(line, "# \t")
 }
 
 // yaml front matter と本文を切り離す
