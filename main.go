@@ -31,13 +31,14 @@ func main() {
 	}
 
 	newContent := removeTags([]rune(string(content)))
+	title := getH1(newContent)
+	fmt.Println(title)
 
 	newFile, err := os.Create("new." + filename)
 	if err != nil {
 		log.Fatalf("os.Create failed: %v", err)
 	}
 	defer newFile.Close()
-	fmt.Println(string(newContent))
 	newFile.Write([]byte(string(newContent)))
 }
 
@@ -59,4 +60,34 @@ func removeTags(content []rune) []rune {
 		id++
 	}
 	return newContent
+}
+
+func getH1(content []rune) string {
+	if !(len(content) >= 2 && content[0] == '#' && content[1] == ' ') {
+		return ""
+	}
+
+	c := content[2:]
+	// 冒頭の空白をスキップ
+	for len(c) > 0 {
+		if !(c[0] == ' ' || c[0] == '\t') {
+			break
+		}
+		c = c[1:]
+	}
+
+	// タイトルを取得
+	titleEnd := 0
+	id := 0
+	for id < len(c) {
+		if c[id] == '\r' || c[id] == '\n' {
+			break
+		}
+		id++
+		if unicode.IsPrint(c[id-1]) && !unicode.IsSpace(c[id-1]) {
+			titleEnd = id
+		}
+	}
+	title := string(c[:titleEnd])
+	return title
 }
