@@ -47,21 +47,29 @@ func main() {
 }
 
 func removeTags(content []rune) []rune {
-	newContent := make([]rune, 0, len(content))
+	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 
-	id := 0
-	for id < len(content) {
-		if content[id] == '#' && id < len(content)-1 && content[id+1] != '#' && (unicode.IsLetter(content[id+1]) || unicode.IsNumber(content[id+1])) {
-			p := id
-			for p < len(content) && !unicode.IsSpace(rune(content[p])) {
-				p++
+	newContent := make([]rune, 0)
+	for scanner.Scan() {
+		newLine := make([]rune, 0)
+		line := scanner.Text()
+		runes := []rune(line)
+		id := 0
+		for id < len(runes) {
+			if runes[id] == '#' && id < len(runes)-1 && runes[id+1] != '#' && (unicode.IsLetter(runes[id+1]) || unicode.IsNumber(runes[id+1])) && !(id > 0 && runes[id-1] == '\\') {
+				p := id
+				for p < len(runes) && !unicode.IsSpace(runes[p]) {
+					p++
+				}
+				id = p
+				continue
 			}
-			id = p
-			continue
-		}
 
-		newContent = append(newContent, content[id])
-		id++
+			newLine = append(newLine, runes[id])
+			id++
+		}
+		newContent = append(newContent, newLine...)
+		newContent = append(newContent, '\n')
 	}
 	return newContent
 }
