@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"unicode"
 )
 
@@ -96,53 +98,41 @@ func getH1(content []rune) string {
 
 // yaml front matter と本文を切り離す
 func splitMarkdown(content []rune) ([]rune, []rune) {
-	c := content
+	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 
-	// --- の前の改行をスキップ
-	for len(c) > 0 {
-		if len(c) >= 2 && string(c[:2]) == "\r\n" {
-			c = c[2:]
-		} else if c[0] == '\n' {
-			c = c[1:]
+	// 冒頭の改行をスキップ
+	for scanner.Scan() {
+		if scanner.Text() != "" {
+			break
+		}
+	}
+
+	// --- が見つからなかったら front matter なし
+	if scanner.Text() != "---" {
+		return nil, content
+	}
+
+	// --- が見つかるまで front matter に追加していく
+	frontMatter := make([]rune, 0)
+	endFound := false
+	for scanner.Scan() {
+		if scanner.Text() == "---" {
+			endFound = true
+			break
 		} else {
-			break
+			frontMatter = append(frontMatter, []rune(scanner.Text())...)
+			frontMatter = append(frontMatter, '\n')
 		}
 	}
 
-	// --- をスキップ
-	if len(c) < 3 || string(c[:3]) != "---" {
-		return c[:0], c
-	}
-	c = c[3:]
-
-	// 改行をスキップ
-	if len(c) >= 2 && string(c[:2]) == "\r\n" {
-		c = c[2:]
-	} else if len(c) >= 1 && c[0] == '\n' {
-		c = c[1:]
-	} else {
-		return nil, nil
+	if !endFound {
+		return nil, content
 	}
 
-	// 次の --- までスキップ
-	id := 0
-	for id < len(c) {
-		if c[id] == '-' && len(c[id:]) >= 3 && string(c[id:id+3]) == "---" {
-			break
-		}
-		id++
+	body := make([]rune, 0)
+	for scanner.Scan() {
+		body = append(body, []rune(scanner.Text())...)
 	}
-	frontMatter := c[:id]
-	c = c[id+3:]
-
-	// 改行をスキップ
-	if len(c) >= 2 && string(c[:2]) == "\r\n" {
-		c = c[2:]
-	} else if len(c) >= 1 && c[0] == '\n' {
-		c = c[1:]
-	} else {
-		return nil, nil
-	}
-
-	return frontMatter, c
+	body = append(body, '\n')
+	return frontMatter, body
 }

@@ -50,6 +50,21 @@ func TestSplitMarkdown(t *testing.T) {
 			wantFrontMatter: "title: \"This is a test\"\n",
 			wantBody:        "# This is a test\n",
 		},
+		{
+			input:           "---\ntitle: \"This is a test\"\n # This is a test.\n",
+			wantFrontMatter: "",
+			wantBody:        "---\ntitle: \"This is a test\"\n # This is a test.\n",
+		},
+		{
+			input:           "---\ntitle: \"This is a test ---\"\n---\n# This is a test.\n",
+			wantFrontMatter: "title: \"This is a test ---\"\n",
+			wantBody:        "# This is a test.\n",
+		},
+		{
+			input:           "---\n---\n# This is a test\n",
+			wantFrontMatter: "",
+			wantBody:        "# This is a test\n",
+		},
 	}
 
 	for _, tt := range cases {
