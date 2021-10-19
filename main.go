@@ -30,9 +30,11 @@ func main() {
 		log.Fatalf("file.Write failed: %v", err)
 	}
 
-	newContent := removeTags([]rune(string(content)))
+	frontMatter, body := splitMarkdown([]rune(string(content)))
+	newContent := removeTags(body)
 	title := getH1(newContent)
-	fmt.Println(title)
+	fmt.Printf("Title: %v\n", title)
+	fmt.Printf("Front Matter: <<\n%v>>\n", string(frontMatter))
 
 	newFile, err := os.Create("new." + filename)
 	if err != nil {
@@ -90,4 +92,57 @@ func getH1(content []rune) string {
 	}
 	title := string(c[:titleEnd])
 	return title
+}
+
+// yaml front matter と本文を切り離す
+func splitMarkdown(content []rune) ([]rune, []rune) {
+	c := content
+
+	// --- の前の改行をスキップ
+	for len(c) > 0 {
+		if len(c) >= 2 && string(c[:2]) == "\r\n" {
+			c = c[2:]
+		} else if c[0] == '\n' {
+			c = c[1:]
+		} else {
+			break
+		}
+	}
+
+	// --- をスキップ
+	if len(c) < 3 || string(c[:3]) != "---" {
+		return c[:0], c
+	}
+	c = c[3:]
+
+	// 改行をスキップ
+	if len(c) >= 2 && string(c[:2]) == "\r\n" {
+		c = c[2:]
+	} else if len(c) >= 1 && c[0] == '\n' {
+		c = c[1:]
+	} else {
+		return nil, nil
+	}
+
+	// 次の --- までスキップ
+	id := 0
+	for id < len(c) {
+		if c[id] == '-' && len(c[id:]) >= 3 && string(c[id:id+3]) == "---" {
+			break
+		}
+		id++
+	}
+	frontMatter := c[:id]
+	c = c[id+3:]
+
+	// 改行をスキップ
+	if len(c) >= 2 && string(c[:2]) == "\r\n" {
+		c = c[2:]
+	} else if len(c) >= 1 && c[0] == '\n' {
+		c = c[1:]
+	} else {
+		return nil, nil
+	}
+
+	return frontMatter, c
 }
