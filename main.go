@@ -33,7 +33,7 @@ func main() {
 	}
 
 	frontMatter, body := splitMarkdown([]rune(string(content)))
-	newContent := removeTags(body)
+	newContent := replace(body)
 	title := getH1(newContent)
 	fmt.Printf("Title: %v\n", title)
 	fmt.Printf("Front Matter: <<\n%v>>\n", string(frontMatter))
@@ -44,34 +44,6 @@ func main() {
 	}
 	defer newFile.Close()
 	newFile.Write([]byte(string(newContent)))
-}
-
-func removeTags(content []rune) []rune {
-	scanner := bufio.NewScanner(strings.NewReader(string(content)))
-
-	newContent := make([]rune, 0)
-	for scanner.Scan() {
-		newLine := make([]rune, 0)
-		line := scanner.Text()
-		runes := []rune(line)
-		id := 0
-		for id < len(runes) {
-			if runes[id] == '#' && id < len(runes)-1 && runes[id+1] != '#' && (unicode.IsLetter(runes[id+1]) || unicode.IsNumber(runes[id+1])) && !(id > 0 && runes[id-1] == '\\') {
-				p := id
-				for p < len(runes) && !unicode.IsSpace(runes[p]) {
-					p++
-				}
-				id = p
-				continue
-			}
-
-			newLine = append(newLine, runes[id])
-			id++
-		}
-		newContent = append(newContent, newLine...)
-		newContent = append(newContent, '\n')
-	}
-	return newContent
 }
 
 func replace(content []rune) []rune {
@@ -212,7 +184,7 @@ func splitMarkdown(content []rune) ([]rune, []rune) {
 	body := make([]rune, 0)
 	for scanner.Scan() {
 		body = append(body, []rune(scanner.Text())...)
+		body = append(body, '\n')
 	}
-	body = append(body, '\n')
 	return frontMatter, body
 }
