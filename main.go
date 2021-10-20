@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"unicode"
 )
 
 const (
@@ -99,8 +98,6 @@ func replace(content []rune) []rune {
 
 		id := 0
 		inline := false
-		inlineMath := false
-		var inlineMathfrom int
 		for id < len(line) {
 			// インラインブロック内
 			if inline {
@@ -120,29 +117,10 @@ func replace(content []rune) []rune {
 				continue
 			}
 
-			// inline math ブロック内
-			if inlineMath {
-				if line[id] == RuneDollar && id > 0 && !unicode.IsSpace(line[id-1]) {
-					inlineMath = false
-					newLine = append(newLine, line[inlineMathfrom:id+1]...)
-					id++
-					continue
-				} else if id >= len(line)-1 {
-					id = inlineMathfrom
-					inlineMath = false
-					newLine = append(newLine, RuneDollar)
-					id++
-					continue
-				}
-				id++
-				continue
-			}
-
-			// inline math ブロックに入る
-			if line[id] == RuneDollar && id+1 < len(line) && !unicode.IsSpace(line[id+1]) {
-				inlineMath = true
-				inlineMathfrom = id
-				id++
+			// inline math
+			if advance := consumeInlineMath(line[id:]); advance > 0 {
+				newLine = append(newLine, line[id:id+advance]...)
+				id += advance
 				continue
 			}
 

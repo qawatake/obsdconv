@@ -5,6 +5,21 @@ import (
 	"unicode"
 )
 
+func consumeInlineMath(line []rune) (advance int) {
+	if !(line[0] == RuneDollar && 1 < len(line) && !unicode.IsSpace(line[1])) {
+		return 0
+	}
+
+	cur := 1
+	for cur < len(line) && line[cur] != RuneDollar {
+		cur++
+	}
+	if cur == len(line) {
+		return 0
+	}
+	return cur + 1
+}
+
 func consumeEscaped(line []rune) (advance int, escaped []rune) {
 	if line[0] == '\\' && 1 < len(line) {
 		switch line[1] {
