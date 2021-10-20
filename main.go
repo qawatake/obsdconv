@@ -55,13 +55,14 @@ func replace(content []rune) []rune {
 
 	newContent := make([]rune, 0)
 	inCodeBlock := false
+	inMathBlock := false
 	for scanner.Scan() {
 		newLine := make([]rune, 0)
 		line := []rune(scanner.Text())
 
 		// コードブロック内
 		if inCodeBlock {
-			if string(line) == "```" {
+			if strings.Trim(string(line), " \t") == "```" {
 				inCodeBlock = false
 			}
 			newContent = append(newContent, line...)
@@ -70,8 +71,26 @@ func replace(content []rune) []rune {
 		}
 
 		// コードブロックに入る
-		if string(line) == "```" {
+		if strings.Trim(string(line), " \t") == "```" {
 			inCodeBlock = true
+			newContent = append(newContent, line...)
+			newContent = append(newContent, '\n')
+			continue
+		}
+
+		// math ブロック内
+		if inMathBlock {
+			if strings.Trim(string(line), " \t") == "$$" {
+				inMathBlock = false
+			}
+			newContent = append(newContent, line...)
+			newContent = append(newContent, '\n')
+			continue
+		}
+
+		// math ブロックに入る
+		if strings.Trim(string(line), " \t") == "$$" {
+			inMathBlock = true
 			newContent = append(newContent, line...)
 			newContent = append(newContent, '\n')
 			continue
