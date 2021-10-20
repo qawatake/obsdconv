@@ -9,6 +9,10 @@ import (
 	"unicode"
 )
 
+const (
+	RuneDollar = 0x24 // $
+)
+
 func main() {
 	if len(os.Args) != 2 {
 		log.Fatal("引数の個数が不正です")
@@ -75,6 +79,8 @@ func replace(content []rune) []rune {
 
 		id := 0
 		inline := false
+		inlineMath := false
+		var inlineMathfrom int
 		for id < len(line) {
 			// インラインブロック内
 			if inline {
@@ -90,6 +96,32 @@ func replace(content []rune) []rune {
 			if line[id] == '`' {
 				inline = true
 				newLine = append(newLine, line[id])
+				id++
+				continue
+			}
+
+			// inline math ブロック内
+			if inlineMath {
+				if line[id] == RuneDollar && id > 0 && !unicode.IsSpace(line[id-1]) {
+					inlineMath = false
+					newLine = append(newLine, line[inlineMathfrom:id+1]...)
+					id++
+					continue
+				} else if id >= len(line)-1 {
+					id = inlineMathfrom
+					inlineMath = false
+					newLine = append(newLine, RuneDollar)
+					id++
+					continue
+				}
+				id++
+				continue
+			}
+
+			// inline math ブロックに入る
+			if line[id] == RuneDollar && id+1 < len(line) && !unicode.IsSpace(line[id+1]) {
+				inlineMath = true
+				inlineMathfrom = id
 				id++
 				continue
 			}
@@ -115,8 +147,8 @@ func replace(content []rune) []rune {
 					id = p
 					continue
 				} else {
-					p := id
-					for p < len(line) && !unicode.IsSpace(line[p]) {
+					p := id + 1
+					for p < len(line) && (unicode.IsLetter(line[p]) || unicode.IsNumber(line[p])) {
 						p++
 					}
 					id = p
