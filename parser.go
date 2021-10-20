@@ -5,6 +5,21 @@ import (
 	"unicode"
 )
 
+func consumeInlineBlock(line []rune) (advance int) {
+	if line[0] != '`' {
+		return 0
+	}
+
+	cur := 1
+	for cur < len(line) && line[cur] != '`' {
+		cur++
+	}
+	if cur == len(line) {
+		return 0
+	}
+	return cur + 1
+}
+
 func consumeInlineMath(line []rune) (advance int) {
 	if !(line[0] == RuneDollar && 1 < len(line) && !unicode.IsSpace(line[1])) {
 		return 0

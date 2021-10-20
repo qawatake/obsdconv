@@ -97,23 +97,12 @@ func replace(content []rune) []rune {
 		}
 
 		id := 0
-		inline := false
 		for id < len(line) {
-			// インラインブロック内
-			if inline {
-				if line[id] == '`' {
-					inline = false
-				}
-				newLine = append(newLine, line[id])
-				id++
-				continue
-			}
 
-			// インラインブロックに入る
-			if line[id] == '`' {
-				inline = true
-				newLine = append(newLine, line[id])
-				id++
+			// inline ブロック
+			if advance := consumeInlineBlock(line[id:]); advance > 0 {
+				newLine = append(newLine, line[id:id+advance]...)
+				id += advance
 				continue
 			}
 
