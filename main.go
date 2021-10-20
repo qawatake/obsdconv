@@ -178,7 +178,7 @@ func replace(content []rune) []rune {
 			}
 
 			// [[]]
-			if len(line[id:]) >= 5 && string(line[id:id+2]) == "[[" {
+			if len(line[id:]) >= 4 && string(line[id:id+2]) == "[[" {
 				position := strings.Index(string(line[id+2:]), "]]")
 				if position < 0 {
 					newLine = append(newLine, line[id:id+2]...)
@@ -191,13 +191,14 @@ func replace(content []rune) []rune {
 					id += 4
 					continue
 				}
-
 				name := strings.Trim(string(string(line[id+2:])[:position]), " \t")
-				id +=  2 + len([]rune(string(string(line[id+2:])[:position]))) + 2
+				id += 2 + len([]rune(string(string(line[id+2:])[:position]))) + 2
 				if name != "" {
-					path := findPath(name)
-					newLine = append(newLine, []rune(fmt.Sprintf("[%s]({{< ref %s >}})", name, path))...)
+					identifier, displayname := splitName(name)
+					path := findPath(identifier)
+					newLine = append(newLine, []rune(fmt.Sprintf("[%s]({{< ref %s >}})", displayname, path))...)
 				}
+				continue
 			}
 
 			// 普通の文字
@@ -273,4 +274,16 @@ func findPath(name string) string {
 		filename = name
 	}
 	return filename
+}
+
+func splitName(fullname string) (identifier string, displayname string) {
+	position := strings.Index(fullname, "|")
+	if position < 0 {
+		return fullname, fullname
+	} else {
+		identifier := strings.Trim(string(fullname[:position]), " \t")
+		displayname := strings.TrimLeft(string(fullname[position:]), "|")
+		displayname = strings.Trim(displayname, " \t")
+		return identifier, displayname
+	}
 }
