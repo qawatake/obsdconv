@@ -156,24 +156,14 @@ func replace(content []rune) []rune {
 				}
 			}
 
-			// タグ
-			if line[id] == '#' && id+1 < len(line) && unicode.IsGraphic(line[id+1]) && !unicode.IsSpace(line[id+1]) {
-				if line[id+1] == '#' { // ###todo はそのまま ###todo として扱われる
-					p := id
-					for p < len(line) && line[p] == '#' {
-						p++
-					}
-					newLine = append(newLine, line[id:p]...)
-					id = p
-					continue
-				} else {
-					p := id + 1
-					for p < len(line) && (unicode.IsLetter(line[p]) || unicode.IsNumber(line[p])) {
-						p++
-					}
-					id = p
-					continue
-				}
+			if advance := consumeRepeat(line[id:], "#"); advance > 1 {
+				newLine = append(newLine, line[id:id+advance]...)
+				id += advance
+				continue
+			}
+
+			if advance, _ := consumeTag(line[id:]); advance > 0 {
+				id += advance
 				continue
 			}
 
