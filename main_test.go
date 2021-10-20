@@ -110,7 +110,7 @@ func TestReplace(t *testing.T) {
 		},
 		{
 			input: "# This is a markdown file for test.\n [[211020-142030]] \n##  h2\n### h3\n#### h4\n",
-			want:  "# This is a markdown file for test.\n [211020-142030]({{< ref 211020-142030.md >}}) \n##  h2\n### h3\n#### h4\n",
+			want:  "# This is a markdown file for test.\n [211020-142030]({{< ref \"211020-142030.md\" >}}) \n##  h2\n### h3\n#### h4\n",
 		},
 		{
 			input: "# This is a markdown file for test.\n [[]] \n##  h2\n### h3\n#### h4\n",
@@ -122,7 +122,15 @@ func TestReplace(t *testing.T) {
 		},
 		{
 			input: "# This is a markdown file for test.\n [[211020-142030 | This is a test | yes | ]] \n##  h2\n### h3\n#### h4\n",
-			want:  "# This is a markdown file for test.\n [This is a test | yes |]({{< ref 211020-142030.md >}}) \n##  h2\n### h3\n#### h4\n",
+			want:  "# This is a markdown file for test.\n [This is a test | yes |]({{< ref \"211020-142030.md\" >}}) \n##  h2\n### h3\n#### h4\n",
+		},
+		{
+			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n [[211020-165952#fragment]]\n",
+			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n [211020-165952 > fragment]({{< ref \"211020-165952.md#fragment\" >}})\n",
+		},
+		{
+			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n [[211020-165952#fragment | This is a test]]",
+			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n [This is a test]({{< ref \"211020-165952.md#fragment\" >}})\n",
 		},
 	}
 

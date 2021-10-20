@@ -194,9 +194,26 @@ func replace(content []rune) []rune {
 				name := strings.Trim(string(string(line[id+2:])[:position]), " \t")
 				id += 2 + len([]rune(string(string(line[id+2:])[:position]))) + 2
 				if name != "" {
-					identifier, displayname := splitName(name)
-					path := findPath(identifier)
-					newLine = append(newLine, []rune(fmt.Sprintf("[%s]({{< ref %s >}})", displayname, path))...)
+					identifier, hasDisplayName := splitDisplayName(name)
+					fileId, fragment := splitFragment(identifier)
+					var displayName string
+					if hasDisplayName == "" {
+						if fragment == "" {
+							displayName = fileId
+						} else {
+							displayName = fmt.Sprintf("%s > %s", fileId, fragment)
+						}
+					} else {
+						displayName = hasDisplayName
+					}
+					var path string
+					p := findPath(fileId)
+					if fragment == "" {
+						path = p
+					} else {
+						path = fmt.Sprintf("%s#%s", p, fragment)
+					}
+					newLine = append(newLine, []rune(fmt.Sprintf("[%s]({{< ref \"%s\" >}})", displayName, path))...)
 				}
 				continue
 			}
@@ -276,14 +293,26 @@ func findPath(name string) string {
 	return filename
 }
 
-func splitName(fullname string) (identifier string, displayname string) {
+func splitDisplayName(fullname string) (identifier string, displayname string) {
 	position := strings.Index(fullname, "|")
 	if position < 0 {
-		return fullname, fullname
+		return fullname, ""
 	} else {
 		identifier := strings.Trim(string(fullname[:position]), " \t")
 		displayname := strings.TrimLeft(string(fullname[position:]), "|")
 		displayname = strings.Trim(displayname, " \t")
 		return identifier, displayname
+	}
+}
+
+func splitFragment(identifier string) (fileId string, fragment string) {
+	position := strings.Index(identifier, "#")
+	if position < 0 {
+		return identifier, ""
+	} else {
+		fileId := strings.Trim(string(identifier[:position]), " \t")
+		fragment := strings.TrimLeft(string(identifier[position:]), "#")
+		fragment = strings.Trim(fragment, " \t")
+		return fileId, fragment
 	}
 }
