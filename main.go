@@ -78,9 +78,29 @@ func replace(content []rune) []rune {
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 
 	newContent := make([]rune, 0)
+	inCodeBlock := false
 	for scanner.Scan() {
 		newLine := make([]rune, 0)
 		line := []rune(scanner.Text())
+
+		// コードブロック内
+		if inCodeBlock {
+			if string(line) == "```" {
+				inCodeBlock = false
+			}
+			newContent = append(newContent, line...)
+			newContent = append(newContent, '\n')
+			continue
+		}
+
+		// コードブロックに入る
+		if string(line) == "```" {
+			inCodeBlock = true
+			newContent = append(newContent, line...)
+			newContent = append(newContent, '\n')
+			continue
+		}
+
 		id := 0
 		inline := false
 		for id < len(line) {
@@ -89,6 +109,14 @@ func replace(content []rune) []rune {
 				if line[id] == '`' {
 					inline = false
 				}
+				newLine = append(newLine, line[id])
+				id++
+				continue
+			}
+
+			// インラインブロックに入る
+			if line[id] == '`' {
+				inline = true
 				newLine = append(newLine, line[id])
 				id++
 				continue
@@ -122,14 +150,6 @@ func replace(content []rune) []rune {
 					id = p
 					continue
 				}
-				continue
-			}
-
-			// インラインブロックに入る
-			if line[id] == '`' {
-				inline = true
-				newLine = append(newLine, line[id])
-				id++
 				continue
 			}
 
