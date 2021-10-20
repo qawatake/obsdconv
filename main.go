@@ -131,44 +131,15 @@ func replace(content []rune) []rune {
 				continue
 			}
 
-			// [[]]
-			if len(line[id:]) >= 4 && string(line[id:id+2]) == "[[" {
-				position := strings.Index(string(line[id+2:]), "]]")
-				if position < 0 {
-					newLine = append(newLine, line[id:id+2]...)
-					id += 2
+			// internl link [[]]
+			if advance, content := consumeInternalLink(line[id:]); advance > 0 {
+				if content == "" { // [[ ]] はスキップ
+					id += advance
 					continue
 				}
-
-				if string(line[id:id+4]) == "[[]]" {
-					newLine = append(newLine, line[id:id+4]...)
-					id += 4
-					continue
-				}
-				name := strings.Trim(string(string(line[id+2:])[:position]), " \t")
-				id += 2 + len([]rune(string(string(line[id+2:])[:position]))) + 2
-				if name != "" {
-					identifier, hasDisplayName := splitDisplayName(name)
-					fileId, fragment := splitFragment(identifier)
-					var displayName string
-					if hasDisplayName == "" {
-						if fragment == "" {
-							displayName = fileId
-						} else {
-							displayName = fmt.Sprintf("%s > %s", fileId, fragment)
-						}
-					} else {
-						displayName = hasDisplayName
-					}
-					var path string
-					p := findPath(fileId)
-					if fragment == "" {
-						path = p
-					} else {
-						path = fmt.Sprintf("%s#%s", p, fragment)
-					}
-					newLine = append(newLine, []rune(fmt.Sprintf("[%s]({{< ref \"%s\" >}})", displayName, path))...)
-				}
+				link := genHugoLink(content)
+				newLine = append(newLine, []rune(link)...)
+				id += advance
 				continue
 			}
 
@@ -269,4 +240,27 @@ func splitFragment(identifier string) (fileId string, fragment string) {
 		fragment = strings.Trim(fragment, " \t")
 		return fileId, fragment
 	}
+}
+
+func genHugoLink(content string) (link string) {
+	identifier, displayName := splitDisplayName(content)
+	fileId, fragment := splitFragment(identifier)
+	path := findPath(fileId)
+
+	if displayName == "" {
+		if fragment == "" {
+			displayName = fileId
+		} else {
+			displayName = fmt.Sprintf("%s > %s", fileId, fragment)
+		}
+	}
+
+	var ref string
+	if fragment != "" {
+		ref = fmt.Sprintf("%s#%s", path, fragment)
+	} else {
+		ref = path
+	}
+
+	return fmt.Sprintf("[%s]({{< ref \"%s\" >}})", displayName, ref)
 }

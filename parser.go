@@ -71,3 +71,17 @@ func consumeTag(line []rune) (advance int, tag string) {
 	}
 	return cur, string(line[1:cur])
 }
+
+func consumeInternalLink(line []rune) (advance int, content string) {
+	if !(len(line) >= 5 && string(line[:2]) == "[[") {
+		return 0, ""
+	}
+
+	position := strings.Index(string(line[2:]), "]]")
+	if position <= 0 {
+		return 0, ""
+	}
+	advance = 2 + len([]rune(string(string(line[2:])[:position]))) + 2
+	content = strings.Trim(string(string(line[2:])[:position]), " \t")
+	return advance, content
+}
