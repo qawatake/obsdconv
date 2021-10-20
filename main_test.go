@@ -108,6 +108,18 @@ func TestReplace(t *testing.T) {
 			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n$$\n #todo #123\n$$\n",
 			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n$$\n #todo #123\n$$\n",
 		},
+		{
+			input: "# This is a markdown file for test.\n [[211020-142030]] \n##  h2\n### h3\n#### h4\n",
+			want: "# This is a markdown file for test.\n [211020-142030]({{< ref 211020-142030.md >}}) \n##  h2\n### h3\n#### h4\n",
+		},
+		{
+			input: "# This is a markdown file for test.\n [[]] \n##  h2\n### h3\n#### h4\n",
+			want: "# This is a markdown file for test.\n [[]] \n##  h2\n### h3\n#### h4\n",
+		},
+		{
+			input: "# This is a markdown file for test.\n [[ ]] \n##  h2\n### h3\n#### h4\n",
+			want: "# This is a markdown file for test.\n  \n##  h2\n### h3\n#### h4\n",
+		},
 	}
 
 	for _, tt := range cases {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 	"unicode"
 )
@@ -176,6 +177,29 @@ func replace(content []rune) []rune {
 				continue
 			}
 
+			// [[]]
+			if len(line[id:]) >= 5 && string(line[id:id+2]) == "[[" {
+				position := strings.Index(string(line[id+2:]), "]]")
+				if position < 0 {
+					newLine = append(newLine, line[id:id+2]...)
+					id += 2
+					continue
+				}
+
+				if string(line[id:id+4]) == "[[]]" {
+					newLine = append(newLine, line[id:id+4]...)
+					id += 4
+					continue
+				}
+
+				name := strings.Trim(string(string(line[id+2:])[:position]), " \t")
+				id +=  2 + len([]rune(string(string(line[id+2:])[:position]))) + 2
+				if name != "" {
+					path := findPath(name)
+					newLine = append(newLine, []rune(fmt.Sprintf("[%s]({{< ref %s >}})", name, path))...)
+				}
+			}
+
 			// 普通の文字
 			newLine = append(newLine, line[id])
 			id++
@@ -238,4 +262,15 @@ func splitMarkdown(content []rune) ([]rune, []rune) {
 		body = append(body, '\n')
 	}
 	return frontMatter, body
+}
+
+func findPath(name string) string {
+	var filename string
+	switch filepath.Ext(name) {
+	case "":
+		filename = name + ".md"
+	case ".md":
+		filename = name
+	}
+	return filename
 }
