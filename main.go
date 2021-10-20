@@ -147,13 +147,10 @@ func replace(content []rune) []rune {
 			}
 
 			// エスケープ
-			if line[id] == '\\' && id+1 < len(line) {
-				switch line[id+1] {
-				case '#':
-					newLine = append(newLine, '#')
-					id += 2
-					continue
-				}
+			if advance, escaped := consumeEscaped(line[id:]); advance > 0 {
+				newLine = append(newLine, escaped...)
+				id += advance
+				continue
 			}
 
 			if advance := consumeRepeat(line[id:], "#"); advance > 1 {

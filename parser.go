@@ -5,6 +5,18 @@ import (
 	"unicode"
 )
 
+func consumeEscaped(line []rune) (advance int, escaped []rune) {
+	if line[0] == '\\' && 1 < len(line) {
+		switch line[1] {
+		case '#':
+			advance = 2
+			escaped = []rune("#")
+			return advance, escaped
+		}
+	}
+	return 0, nil
+}
+
 func consumeRepeat(line []rune, substr string) (advance int) {
 	cur := 0
 	length := len([]rune(substr))
