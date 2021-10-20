@@ -82,7 +82,18 @@ func replace(content []rune) []rune {
 		newLine := make([]rune, 0)
 		line := []rune(scanner.Text())
 		id := 0
+		inline := false
 		for id < len(line) {
+			// インラインブロック内
+			if inline {
+				if line[id] == '`' {
+					inline = false
+				}
+				newLine = append(newLine, line[id])
+				id++
+				continue
+			}
+
 			// エスケープ
 			if line[id] == '\\' && id+1 < len(line) {
 				switch line[id+1] {
@@ -94,7 +105,7 @@ func replace(content []rune) []rune {
 			}
 
 			// タグ
-			if line[id] == '#' && id+1 < len(line) && unicode.IsGraphic(line[id+1]) && !unicode.IsSpace(line[id+1]){
+			if line[id] == '#' && id+1 < len(line) && unicode.IsGraphic(line[id+1]) && !unicode.IsSpace(line[id+1]) {
 				if line[id+1] == '#' { // ###todo はそのまま ###todo として扱われる
 					p := id
 					for p < len(line) && line[p] == '#' {
@@ -111,6 +122,14 @@ func replace(content []rune) []rune {
 					id = p
 					continue
 				}
+				continue
+			}
+
+			// インラインブロックに入る
+			if line[id] == '`' {
+				inline = true
+				newLine = append(newLine, line[id])
+				id++
 				continue
 			}
 
