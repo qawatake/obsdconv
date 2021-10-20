@@ -90,3 +90,29 @@ func TestSplitMarkdown(t *testing.T) {
 		}
 	}
 }
+
+func TestReplace(t *testing.T) {
+	cases := []struct {
+		input string
+		want  string
+	}{
+		{
+			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n",
+			want: "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n",
+		},
+		{
+			input: "# This is a markdown file for test.\n \\#todo #123 \n## h2\n",
+			want: "# This is a markdown file for test.\n #todo  \n## h2\n",
+		},
+		{
+			input: "# This is a markdown file for test.\n##todo #123 ###456\n",
+			want: "# This is a markdown file for test.\n##todo  ###456\n",
+		},
+	}
+
+	for _, tt := range cases {
+		if got := replace([]rune(tt.input)); string(got) != tt.want {
+			t.Errorf("[ERROR] got: %q, want: %q", string(got), tt.want)
+		}
+	}
+}

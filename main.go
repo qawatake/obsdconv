@@ -74,6 +74,56 @@ func removeTags(content []rune) []rune {
 	return newContent
 }
 
+func replace(content []rune) []rune {
+	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+
+	newContent := make([]rune, 0)
+	for scanner.Scan() {
+		newLine := make([]rune, 0)
+		line := []rune(scanner.Text())
+		id := 0
+		for id < len(line) {
+			// エスケープ
+			if line[id] == '\\' && id+1 < len(line) {
+				switch line[id+1] {
+				case '#':
+					newLine = append(newLine, '#')
+					id += 2
+					continue
+				}
+			}
+
+			// タグ
+			if line[id] == '#' && id+1 < len(line) && unicode.IsGraphic(line[id+1]) && !unicode.IsSpace(line[id+1]){
+				if line[id+1] == '#' { // ###todo はそのまま ###todo として扱われる
+					p := id
+					for p < len(line) && line[p] == '#' {
+						p++
+					}
+					newLine = append(newLine, line[id:p]...)
+					id = p
+					continue
+				} else {
+					p := id
+					for p < len(line) && !unicode.IsSpace(line[p]) {
+						p++
+					}
+					id = p
+					continue
+				}
+				continue
+			}
+
+			// 普通の文字
+			newLine = append(newLine, line[id])
+			id++
+		}
+		newContent = append(newContent, newLine...)
+		newContent = append(newContent, '\n')
+	}
+	return newContent
+}
+
 func getH1(content []rune) string {
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 	if !scanner.Scan() {
