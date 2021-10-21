@@ -87,3 +87,55 @@ func TestConsumeRepeat(t *testing.T) {
 		}
 	}
 }
+
+func TestConsumeInlineMath(t *testing.T) {
+	cases := []struct {
+		name   string
+		argRaw []rune
+		argPtr int
+		want   int
+	}{
+		{
+			name:   "simple",
+			argRaw: []rune("$x$"),
+			argPtr: 0,
+			want:   3,
+		},
+		{
+			name:   "followed by space",
+			argRaw: []rune("$ x$"),
+			argPtr: 0,
+			want:   0,
+		},
+		{
+			name:   "preceded by space",
+			argRaw: []rune("$x $"),
+			argPtr: 0,
+			want:   0,
+		},
+		{
+			name:   "preceded \\n",
+			argRaw: []rune("$x\n$"),
+			argPtr: 0,
+			want:   4,
+		},
+		{
+			name:   "preceded \\n\\n",
+			argRaw: []rune("$x\n\n$"),
+			argPtr: 0,
+			want:   0,
+		},
+		{
+			name:   "escaped",
+			argRaw: []rune("\\$x$"),
+			argPtr: 1,
+			want:   0,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := consumeInlineMath(tt.argRaw, tt.argPtr); got != tt.want {
+			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, got, tt.want)
+		}
+	}
+}

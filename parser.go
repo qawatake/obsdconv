@@ -70,6 +70,28 @@ func scanInlineMath(line []rune) (advance int) {
 	return cur + 1
 }
 
+func consumeInlineMath(raw []rune, ptr int) (advance int) {
+	if !(unescaped(raw, ptr, "$") && !followedBy(raw, ptr, []string{" ", "\t"})) {
+		return 0
+	}
+
+	cur := ptr + 1
+	for cur < len(raw) && !unescaped(raw, cur, "$") {
+		pos := strings.IndexRune(string(raw[cur:]), RuneDollar)
+		adv := len([]rune(string(string(raw[cur:])[:pos])))
+		cur += adv
+	}
+	if cur >= len(raw) {
+		return 0
+	}
+	if precededBy(raw, cur, []string{"\n\n", "\r\n\r\n", " ", "\t"}) {
+		return 0
+	} else if unescaped(raw, cur, "$") {
+		return cur - ptr + 1
+	}
+	return 0
+}
+
 func scanEscaped(line []rune) (advance int, escaped []rune) {
 	if line[0] == '\\' && 1 < len(line) {
 		switch line[1] {
