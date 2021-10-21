@@ -7,13 +7,13 @@ import (
 func TestUnescaped(t *testing.T) {
 	cases := []struct {
 		name      string
-		argRaw    []byte
+		argRaw    []rune
 		argSubstr string
 		want      bool
 	}{
-		{name: "\\ x 1", argRaw: []byte("\\$"), argSubstr: "$", want: false},
-		{name: "\\ x 2", argRaw: []byte("\\\\$"), argSubstr: "$", want: true},
-		{name: "\\ x 3", argRaw: []byte("\\\\\\$"), argSubstr: "$", want: false},
+		{name: "\\ x 1", argRaw: []rune("\\$"), argSubstr: "$", want: false},
+		{name: "\\ x 2", argRaw: []rune("\\\\$"), argSubstr: "$", want: true},
+		{name: "\\ x 3", argRaw: []rune("\\\\\\$"), argSubstr: "$", want: false},
 	}
 
 	for _, tt := range cases {
@@ -25,42 +25,42 @@ func TestUnescaped(t *testing.T) {
 
 func TestPrecededBy(t *testing.T) {
 	cases := []struct {
-		argRaw []byte
+		argRaw []rune
 		argSs  []string
 		want   bool
 	}{
 		{
-			argRaw: []byte("######"),
+			argRaw: []rune("######"),
 			argSs:  []string{"##"},
 			want:   true,
 		},
 		{
-			argRaw: []byte("\\#"),
+			argRaw: []rune("\\#"),
 			argSs:  []string{"\\"},
 			want:   true,
 		},
 		{
-			argRaw: []byte("x $"),
+			argRaw: []rune("x $"),
 			argSs:  []string{" ", "\t"},
 			want:   true,
 		},
 		{
-			argRaw: []byte("x\t$"),
+			argRaw: []rune("x\t$"),
 			argSs:  []string{" ", "\t"},
 			want:   true,
 		},
 		{
-			argRaw: []byte("x$"),
+			argRaw: []rune("x$"),
 			argSs:  []string{" ", "\t"},
 			want:   false,
 		},
 		{
-			argRaw: []byte("x\n\n$"),
+			argRaw: []rune("x\n\n$"),
 			argSs:  []string{" ", "\t", "\n\n", "\r\n\r\n"},
 			want:   true,
 		},
 		{
-			argRaw: []byte("x\r\n\r\n$"),
+			argRaw: []rune("x\r\n\r\n$"),
 			argSs:  []string{" ", "\t", "\n\n", "\r\n\r\n"},
 			want:   true,
 		},
@@ -75,32 +75,32 @@ func TestPrecededBy(t *testing.T) {
 
 func TestFollowedBy(t *testing.T) {
 	cases := []struct {
-		argRaw []byte
+		argRaw []rune
 		argSs  []string
 		want   bool
 	}{
 		{
-			argRaw: []byte("$ x"),
+			argRaw: []rune("$ x"),
 			argSs:  []string{" ", "\t"},
 			want:   true,
 		},
 		{
-			argRaw: []byte("$\tx"),
+			argRaw: []rune("$\tx"),
 			argSs:  []string{" ", "\t"},
 			want:   true,
 		},
 		{
-			argRaw: []byte("$x"),
+			argRaw: []rune("$x"),
 			argSs:  []string{" ", "\t"},
 			want:   false,
 		},
 		{
-			argRaw: []byte("$\n\nx"),
+			argRaw: []rune("$\n\nx"),
 			argSs:  []string{" ", "\t", "\n\n", "\r\n\r\n"},
 			want:   true,
 		},
 		{
-			argRaw: []byte("$\r\n\r\nx"),
+			argRaw: []rune("$\r\n\r\nx"),
 			argSs:  []string{" ", "\t", "\n\n", "\r\n\r\n"},
 			want:   true,
 		},

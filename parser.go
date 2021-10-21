@@ -8,8 +8,8 @@ import (
 	"unicode"
 )
 
-func unescaped(raw []byte, cur int, substr string) bool {
-	length := len(substr)
+func unescaped(raw []rune, cur int, substr string) bool {
+	length := len([]rune(substr))
 	if len(raw[cur:]) < length {
 		return false
 	}
@@ -22,18 +22,18 @@ func unescaped(raw []byte, cur int, substr string) bool {
 	return true
 }
 
-func precededBy(raw []byte, cur int, ss []string) bool {
+func precededBy(raw []rune, cur int, ss []string) bool {
 	for _, substr := range ss {
-		if cur >= len(substr) && string(raw[cur-len(substr):cur]) == substr {
+		if cur >= len(substr) && string(raw[cur-len([]rune(substr)):cur]) == substr {
 			return true
 		}
 	}
 	return false
 }
 
-func followedBy(raw []byte, cur int, ss []string) bool {
+func followedBy(raw []rune, cur int, ss []string) bool {
 	for _, substr := range ss {
-		if len(raw[cur+1:]) >= len(substr) && string(raw[cur+1:cur+1+len(substr)]) == substr {
+		if len(raw[cur+1:]) >= len(substr) && string(raw[cur+1:cur+1+len([]rune(substr))]) == substr {
 			return true
 		}
 	}
