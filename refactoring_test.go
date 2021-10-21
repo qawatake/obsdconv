@@ -131,6 +131,18 @@ func TestConsumeInlineMath(t *testing.T) {
 			argPtr: 1,
 			want:   0,
 		},
+		{
+			name:   "no closing",
+			argRaw: []rune("$x"),
+			argPtr: 0,
+			want:   0,
+		},
+		{
+			name:   "include escaped $",
+			argRaw: []rune("$#todo\\$$"),
+			argPtr: 0,
+			want:   9,
+		},
 	}
 
 	for _, tt := range cases {
@@ -174,6 +186,12 @@ func TestConsumeInlineCode(t *testing.T) {
 		{
 			name:   "preceded by \\n\\n",
 			argRaw: []rune("`x\n\n`"),
+			argPtr: 0,
+			want:   0,
+		},
+		{
+			name:   "no closing",
+			argRaw: []rune("`x"),
 			argPtr: 0,
 			want:   0,
 		},

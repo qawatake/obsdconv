@@ -61,6 +61,9 @@ func consumeInlineCode(raw []rune, ptr int) (advance int) {
 	}
 
 	pos := strings.IndexRune(string(raw[ptr+1:]), '`')
+	if pos < 0 {
+		return 0
+	}
 	cur := ptr + 1 + len([]rune(string(raw[ptr+1:])[:pos]))
 	if precededBy(raw, cur, []string{"\n\n", "\r\n\r\n"}) {
 		return 0
@@ -90,9 +93,12 @@ func consumeInlineMath(raw []rune, ptr int) (advance int) {
 	}
 
 	cur := ptr + 1
-	for cur < len(raw) && !unescaped(raw, cur, "$") {
-		pos := strings.IndexRune(string(raw[cur:]), RuneDollar)
-		adv := len([]rune(string(string(raw[cur:])[:pos])))
+	for cur < len(raw)-1 && !unescaped(raw, cur, "$") {
+		pos := strings.IndexRune(string(raw[cur+1:]), RuneDollar)
+		if pos < 0 {
+			return 0
+		}
+		adv := 1 + len([]rune(string(string(raw[cur:])[:pos])))
 		cur += adv
 	}
 	if cur >= len(raw) {
