@@ -8,6 +8,17 @@ import (
 	"unicode"
 )
 
+func unescaped(raw []byte, cur int, substr string) bool {
+	length := len(substr)
+	if len(raw[cur:]) < length {
+		return false
+	}
+	if cur > 0 && raw[cur - 1] == '\\' {
+		return false
+	}
+	return string(raw[cur:cur+length]) == substr
+}
+
 func consumeInlineBlock(line []rune) (advance int) {
 	if line[0] != '`' {
 		return 0
