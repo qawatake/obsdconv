@@ -208,6 +208,10 @@ func consumeInternalLink(raw []rune, ptr int) (advance int, content string) {
 	return advance, content
 }
 
+func validURI(uri string) bool {
+	return !strings.ContainsAny(uri, " \t\r\n")
+}
+
 func scanExternalLink(line []rune) (advance int, displayName string, ref string) {
 	if !(line[0] == '[' && len(line) >= 4) {
 		return 0, "", ""
@@ -226,6 +230,46 @@ func scanExternalLink(line []rune) (advance int, displayName string, ref string)
 	displayName = string(line[1:midPosition])
 	ref = string(line[midPosition+3 : midPosition+endPosition+3])
 	return advance, displayName, ref
+}
+
+func consumeExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {
+	if !(unescaped(raw, ptr, "[") && len(raw[ptr:]) >= 5) {
+		return 0, "", ""
+	}
+	cur := ptr + 1 // "[" の次
+	midpos := strings.Index(string(raw[cur:]), "](")
+	if midpos < 0 || midpos+1 >= len(string(raw[cur:]))-1 {
+		return 0, "", ""
+	}
+	next := cur + len([]rune(string(string(raw[cur:])[:midpos]))) // "](" の "["
+	displayName = strings.Trim(string(raw[cur:next]), " \t")
+	cur = next
+	if strings.Contains(displayName, "\r\n\r\n") || strings.Contains(displayName, "\n\n") {
+		return 0, "", ""
+	} else if !unescaped(raw, cur, "](") {
+		return 0, "", ""
+	}
+	displayName = strings.Trim(displayName, "\r\n") // \r\n や \n 一つを削除
+	next += 2                                       // "](" の次
+	cur = next
+	endpos := strings.IndexRune(string(raw[cur:]), ')')
+	if endpos < 0 {
+		return 0, "", ""
+	}
+	next = cur + len([]rune(string(string(raw[cur:])[:endpos]))) // ")"
+	ref = strings.Trim(string(raw[cur:next]), " \t")
+	cur = next
+	if strings.Contains(ref, "\r\n\r\n") || strings.Contains(ref, "\n\n") {
+		return 0, "", ""
+	} else if !unescaped(raw, cur, ")") {
+		return 0, "", ""
+	}
+	ref = strings.Trim(ref, "\r\n") // \r\n や \n 一つを削除
+	if !validURI(ref) {
+		return 0, "", ""
+	}
+	advance = next + 1 - ptr
+	return
 }
 
 func getH1(content []rune) string {
