@@ -4,6 +4,25 @@ import (
 	"testing"
 )
 
+func TestUnescaped(t *testing.T) {
+	cases := []struct {
+		name      string
+		argRaw    []byte
+		argSubstr string
+		want      bool
+	}{
+		{name: "\\ x 1", argRaw: []byte("\\$"), argSubstr: "$", want: false},
+		{name: "\\ x 2", argRaw: []byte("\\\\$"), argSubstr: "$", want: true},
+		{name: "\\ x 3", argRaw: []byte("\\\\\\$"), argSubstr: "$", want: false},
+	}
+
+	for _, tt := range cases {
+		if got := unescaped(tt.argRaw, len(tt.argRaw)-1, tt.argSubstr); got != tt.want {
+			t.Errorf("[ERROR | %s] got: %v, want: %v", tt.name, got, tt.want)
+		}
+	}
+}
+
 func TestPrecededBy(t *testing.T) {
 	cases := []struct {
 		argRaw []byte
