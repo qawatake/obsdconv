@@ -53,6 +53,7 @@ func replace(content []rune) []rune {
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 
 	newContent := make([]rune, 0)
+	lineLenCodeBlock := 0
 	inCodeBlock := false
 	inMathBlock := false
 	for scanner.Scan() {
@@ -61,7 +62,7 @@ func replace(content []rune) []rune {
 
 		// コードブロック内
 		if inCodeBlock {
-			if strings.Trim(string(line), " \t") == "```" {
+			if advance := consumeRepeat(line, "`"); advance >= lineLenCodeBlock {
 				inCodeBlock = false
 			}
 			newContent = append(newContent, line...)
@@ -70,8 +71,9 @@ func replace(content []rune) []rune {
 		}
 
 		// コードブロックに入る
-		if strings.Trim(string(line), " \t") == "```" {
+		if advance := consumeRepeat(line, "`"); advance >= 3 {
 			inCodeBlock = true
+			lineLenCodeBlock = advance
 			newContent = append(newContent, line...)
 			newContent = append(newContent, '\n')
 			continue
@@ -79,7 +81,7 @@ func replace(content []rune) []rune {
 
 		// math ブロック内
 		if inMathBlock {
-			if strings.Trim(string(line), " \t") == "$$" {
+			if advance := consumeRepeat(line, "$"); advance == 2 {
 				inMathBlock = false
 			}
 			newContent = append(newContent, line...)
@@ -88,7 +90,7 @@ func replace(content []rune) []rune {
 		}
 
 		// math ブロックに入る
-		if strings.Trim(string(line), " \t") == "$$" {
+		if advance := consumeRepeat(line, "$"); advance == 2 {
 			inMathBlock = true
 			newContent = append(newContent, line...)
 			newContent = append(newContent, '\n')

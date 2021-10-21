@@ -103,6 +103,16 @@ func TestReplace(t *testing.T) {
 			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n```\n#todo #123\n```\n",
 		},
 		{
+			name:  "tag: code block with specified lang",
+			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n```python\n#todo #123\n```\n",
+			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n```python\n#todo #123\n```\n",
+		},
+		{
+			name:  "tag: code block with long line",
+			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n````\n```\n#todo #123\n````\n",
+			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n````\n```\n#todo #123\n````\n",
+		},
+		{
 			name:  "tag: inline math",
 			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n $#todo$\n",
 			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n $#todo$\n",
