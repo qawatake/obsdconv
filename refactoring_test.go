@@ -203,3 +203,59 @@ func TestConsumeInlineCode(t *testing.T) {
 		}
 	}
 }
+
+func TestConsumeInternalLink(t *testing.T) {
+	cases := []struct {
+		name        string
+		argRaw      []rune
+		argPtr      int
+		wantAdvance int
+		wantContent string
+	}{
+		{
+			name:        "simple",
+			argRaw:      []rune("[[ #todo ]]"),
+			argPtr:      0,
+			wantAdvance: 11,
+			wantContent: "#todo",
+		},
+		{
+			name:        "empty",
+			argRaw:      []rune("[[]]"),
+			argPtr:      0,
+			wantAdvance: 0,
+			wantContent: "",
+		},
+		{
+			name:        "only spaces",
+			argRaw:      []rune("[[ \t]]"),
+			argPtr:      0,
+			wantAdvance: 6,
+			wantContent: "",
+		},
+		{
+			name:        "include \\n",
+			argRaw:      []rune("[[x\n]]"),
+			argPtr:      0,
+			wantAdvance: 0,
+			wantContent: "",
+		},
+		{
+			name:        "escaped",
+			argRaw:      []rune("\\[[x]]"),
+			argPtr:      1,
+			wantAdvance: 0,
+			wantContent: "",
+		},
+	}
+
+	for _, tt := range cases {
+		gotAdvance, gotContent := consumeInternalLink(tt.argRaw, tt.argPtr)
+		if gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
+		}
+		if gotContent != tt.wantContent {
+			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotContent, tt.wantContent)
+		}
+	}
+}

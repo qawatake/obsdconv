@@ -191,6 +191,23 @@ func scanInternalLink(line []rune) (advance int, content string) {
 	return advance, content
 }
 
+func consumeInternalLink(raw []rune, ptr int) (advance int, content string) {
+	if !(unescaped(raw, ptr, "[[") && len(raw[ptr:]) >= 5) {
+		return 0, ""
+	}
+
+	pos := strings.Index(string(raw[ptr+2:]), "]]")
+	if pos <= 0 {
+		return 0, ""
+	}
+	content = strings.Trim(string(string(raw[ptr+2:])[:pos]), " \t")
+	if strings.ContainsAny(content, "\r\n") {
+		return 0, ""
+	}
+	advance = 2 + len([]rune(string(string(raw[ptr+2:])[:pos]))) + 2
+	return advance, content
+}
+
 func scanExternalLink(line []rune) (advance int, displayName string, ref string) {
 	if !(line[0] == '[' && len(line) >= 4) {
 		return 0, "", ""
