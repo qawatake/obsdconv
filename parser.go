@@ -13,10 +13,13 @@ func unescaped(raw []byte, cur int, substr string) bool {
 	if len(raw[cur:]) < length {
 		return false
 	}
+	if string(raw[cur:cur+length]) != substr {
+		return false
+	}
 	if cur > 0 && unescaped(raw, cur-1, "\\") {
 		return false
 	}
-	return string(raw[cur:cur+length]) == substr
+	return true
 }
 
 func precededBy(raw []byte, cur int, ss []string) bool {
