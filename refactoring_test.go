@@ -57,3 +57,33 @@ func TestConsumeTag(t *testing.T) {
 		}
 	}
 }
+
+func TestConsumeRepeat(t *testing.T) {
+	cases := []struct {
+		argRaw    []rune
+		argSubstr string
+		want      int
+	}{
+		{
+			argRaw:    []rune("###x"),
+			argSubstr: "#",
+			want:      3,
+		},
+		{
+			argRaw:    []rune("----"),
+			argSubstr: "-",
+			want:      4,
+		},
+		{
+			argRaw:    []rune("$$x$$"),
+			argSubstr: "$",
+			want:      2,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := consumeRepeat(tt.argRaw, 0, tt.argSubstr); got != tt.want {
+			t.Errorf("[ERROR] got: %v, want: %v", got, tt.want)
+		}
+	}
+}

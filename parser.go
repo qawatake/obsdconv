@@ -91,6 +91,17 @@ func scanRepeat(line []rune, substr string) (advance int) {
 	return cur
 }
 
+func consumeRepeat(raw []rune, ptr int, substr string) (advance int) {
+	length := len([]rune(substr))
+	cur := ptr
+	next := cur + length
+	for len(raw[cur:]) >= length && string(raw[cur:next]) == substr {
+		cur = next
+		next += length
+	}
+	return cur - ptr
+}
+
 func scanTag(line []rune) (advance int, tag string) {
 	if !(line[0] == '#' && 1 < len(line) && unicode.IsGraphic(line[1]) && !unicode.IsSpace(line[1])) {
 		return 0, ""
