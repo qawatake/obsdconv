@@ -4,6 +4,96 @@ import (
 	"testing"
 )
 
+func TestPrecededBy(t *testing.T) {
+	cases := []struct {
+		argRaw []byte
+		argSs  []string
+		want   bool
+	}{
+		{
+			argRaw: []byte("######"),
+			argSs:  []string{"##"},
+			want:   true,
+		},
+		{
+			argRaw: []byte("\\#"),
+			argSs:  []string{"\\"},
+			want:   true,
+		},
+		{
+			argRaw: []byte("x $"),
+			argSs:  []string{" ", "\t"},
+			want:   true,
+		},
+		{
+			argRaw: []byte("x\t$"),
+			argSs:  []string{" ", "\t"},
+			want:   true,
+		},
+		{
+			argRaw: []byte("x$"),
+			argSs:  []string{" ", "\t"},
+			want:   false,
+		},
+		{
+			argRaw: []byte("x\n\n$"),
+			argSs:  []string{" ", "\t", "\n\n", "\r\n\r\n"},
+			want:   true,
+		},
+		{
+			argRaw: []byte("x\r\n\r\n$"),
+			argSs:  []string{" ", "\t", "\n\n", "\r\n\r\n"},
+			want:   true,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := precededBy(tt.argRaw, len(tt.argRaw)-1, tt.argSs); got != tt.want {
+			t.Errorf("[ERROR] got: %v, want: %v", got, tt.want)
+		}
+	}
+}
+
+func TestFollowedBy(t *testing.T) {
+	cases := []struct {
+		argRaw []byte
+		argSs  []string
+		want   bool
+	}{
+		{
+			argRaw: []byte("$ x"),
+			argSs:  []string{" ", "\t"},
+			want:   true,
+		},
+		{
+			argRaw: []byte("$\tx"),
+			argSs:  []string{" ", "\t"},
+			want:   true,
+		},
+		{
+			argRaw: []byte("$x"),
+			argSs:  []string{" ", "\t"},
+			want:   false,
+		},
+		{
+			argRaw: []byte("$\n\nx"),
+			argSs:  []string{" ", "\t", "\n\n", "\r\n\r\n"},
+			want:   true,
+		},
+		{
+			argRaw: []byte("$\r\n\r\nx"),
+			argSs:  []string{" ", "\t", "\n\n", "\r\n\r\n"},
+			want:   true,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := followedBy(tt.argRaw, 0, tt.argSs); got != tt.want {
+			t.Errorf("[ERROR] got: %v, want: %v", got, tt.want)
+		}
+	}
+}
+
 func TestGetH1(t *testing.T) {
 	cases := []struct {
 		input string

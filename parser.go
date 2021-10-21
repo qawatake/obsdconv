@@ -13,10 +13,28 @@ func unescaped(raw []byte, cur int, substr string) bool {
 	if len(raw[cur:]) < length {
 		return false
 	}
-	if cur > 0 && raw[cur - 1] == '\\' {
+	if cur > 0 && raw[cur-1] == '\\' {
 		return false
 	}
 	return string(raw[cur:cur+length]) == substr
+}
+
+func precededBy(raw []byte, cur int, ss []string) bool {
+	for _, substr := range ss {
+		if cur >= len(substr) && string(raw[cur-len(substr):cur]) == substr {
+			return true
+		}
+	}
+	return false
+}
+
+func followedBy(raw []byte, cur int, ss []string) bool {
+	for _, substr := range ss {
+		if len(raw[cur+1:]) >= len(substr) && string(raw[cur+1:cur+1+len(substr)]) == substr {
+			return true
+		}
+	}
+	return false
 }
 
 func consumeInlineBlock(line []rune) (advance int) {
