@@ -8,32 +8,32 @@ import (
 	"unicode"
 )
 
-func unescaped(raw []rune, cur int, substr string) bool {
+func unescaped(raw []rune, ptr int, substr string) bool {
 	length := len([]rune(substr))
-	if len(raw[cur:]) < length {
+	if len(raw[ptr:]) < length {
 		return false
 	}
-	if string(raw[cur:cur+length]) != substr {
+	if string(raw[ptr:ptr+length]) != substr {
 		return false
 	}
-	if cur > 0 && unescaped(raw, cur-1, "\\") {
+	if ptr > 0 && unescaped(raw, ptr-1, "\\") {
 		return false
 	}
 	return true
 }
 
-func precededBy(raw []rune, cur int, ss []string) bool {
+func precededBy(raw []rune, ptr int, ss []string) bool {
 	for _, substr := range ss {
-		if cur >= len(substr) && string(raw[cur-len([]rune(substr)):cur]) == substr {
+		if ptr >= len(substr) && string(raw[ptr-len([]rune(substr)):ptr]) == substr {
 			return true
 		}
 	}
 	return false
 }
 
-func followedBy(raw []rune, cur int, ss []string) bool {
+func followedBy(raw []rune, ptr int, ss []string) bool {
 	for _, substr := range ss {
-		if len(raw[cur+1:]) >= len(substr) && string(raw[cur+1:cur+1+len([]rune(substr))]) == substr {
+		if len(raw[ptr+1:]) >= len(substr) && string(raw[ptr+1:ptr+1+len([]rune(substr))]) == substr {
 			return true
 		}
 	}
@@ -118,21 +118,21 @@ func scanTag(line []rune) (advance int, tag string) {
 	return cur, string(line[1:cur])
 }
 
-func consumeTag(raw []rune, cur int) (advance int, tag string) {
-	if !(unescaped(raw, cur, "#") && len(raw[cur:]) > 1) {
+func consumeTag(raw []rune, ptr int) (advance int, tag string) {
+	if !(unescaped(raw, ptr, "#") && len(raw[ptr:]) > 1) {
 		return 0, ""
 	}
 
-	if !(unicode.IsLetter(raw[cur+1]) || unicode.IsNumber(raw[cur+1]) || raw[cur+1] == '_') {
+	if !(unicode.IsLetter(raw[ptr+1]) || unicode.IsNumber(raw[ptr+1]) || raw[ptr+1] == '_') {
 		return 0, ""
 	}
 
-	p := cur + 1
-	for p < len(raw) && (unicode.IsLetter(raw[p]) || unicode.IsNumber(raw[p]) || strings.ContainsRune("-_/", raw[p])) {
-		p++
+	cur := ptr + 1
+	for cur < len(raw) && (unicode.IsLetter(raw[cur]) || unicode.IsNumber(raw[cur]) || strings.ContainsRune("-_/", raw[cur])) {
+		cur++
 	}
 
-	return p - cur, string(raw[cur+1 : p])
+	return cur - ptr, string(raw[ptr+1 : cur])
 }
 
 func scanInternalLink(line []rune) (advance int, content string) {
