@@ -139,3 +139,49 @@ func TestConsumeInlineMath(t *testing.T) {
 		}
 	}
 }
+
+func TestConsumeInlineCode(t *testing.T) {
+	cases := []struct {
+		name   string
+		argRaw []rune
+		argPtr int
+		want   int
+	}{
+		{
+			name:   "simple",
+			argRaw: []rune("`#todo`"),
+			argPtr: 0,
+			want:   7,
+		},
+		{
+			name:   "backslashed closing",
+			argRaw: []rune("`#todo\\`"),
+			argPtr: 0,
+			want:   8,
+		},
+		{
+			name:   "escaped opening",
+			argRaw: []rune("\\`#todo`"),
+			argPtr: 1,
+			want:   0,
+		},
+		{
+			name:   "preceded by \\n",
+			argRaw: []rune("`\nx\n`"),
+			argPtr: 0,
+			want:   5,
+		},
+		{
+			name:   "preceded by \\n\\n",
+			argRaw: []rune("`x\n\n`"),
+			argPtr: 0,
+			want:   0,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := consumeInlineCode(tt.argRaw, tt.argPtr); got != tt.want {
+			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, got, tt.want)
+		}
+	}
+}

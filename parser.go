@@ -55,6 +55,20 @@ func scanInlineBlock(line []rune) (advance int) {
 	return cur + 1
 }
 
+func consumeInlineCode(raw []rune, ptr int) (advance int) {
+	if !(unescaped(raw, ptr, "`") && len(raw[ptr:]) > 1) {
+		return 0
+	}
+
+	pos := strings.IndexRune(string(raw[ptr+1:]), '`')
+	cur := ptr + 1 + len([]rune(string(raw[ptr+1:])[:pos]))
+	if precededBy(raw, cur, []string{"\n\n", "\r\n\r\n"}) {
+		return 0
+	} else {
+		return cur - ptr + 1
+	}
+}
+
 func scanInlineMath(line []rune) (advance int) {
 	if !(line[0] == RuneDollar && 1 < len(line) && !unicode.IsSpace(line[1])) {
 		return 0
