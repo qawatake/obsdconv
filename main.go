@@ -119,6 +119,12 @@ func replace(content []rune) []rune {
 				continue
 			}
 
+			if advance, _, _ := consumeExternalLink(line[id:]); advance > 0 {
+				newLine = append(newLine, line[id:id+advance]...)
+				id += advance
+				continue
+			}
+
 			if advance := consumeRepeat(line[id:], "#"); advance > 1 {
 				newLine = append(newLine, line[id:id+advance]...)
 				id += advance

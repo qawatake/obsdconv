@@ -118,6 +118,11 @@ func TestReplace(t *testing.T) {
 			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n$$\n #todo #123\n$$\n",
 		},
 		{
+			name:  "tag: href",
+			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n [#test](https://google.com#fragment)\n",
+			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n [#test](https://google.com#fragment)\n",
+		},
+		{
 			name:  "internal link: simple",
 			input: "# This is a markdown file for test.\n [[211020-142030]] \n##  h2\n### h3\n#### h4\n",
 			want:  "# This is a markdown file for test.\n [211020-142030]({{< ref \"211020-142030.md\" >}}) \n##  h2\n### h3\n#### h4\n",

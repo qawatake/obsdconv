@@ -89,6 +89,26 @@ func consumeInternalLink(line []rune) (advance int, content string) {
 	return advance, content
 }
 
+func consumeExternalLink(line []rune) (advance int, displayName string, ref string) {
+	if !(line[0] == '[' && len(line) >= 4) {
+		return 0, "", ""
+	}
+	midPosition := strings.Index(string(line[1:]), "](")
+	if midPosition < 0 || midPosition == len(line[1:]) {
+		return 0, "", ""
+	}
+
+	endPosition := strings.Index(string(string(line[1:])[midPosition+2:]), ")")
+	if endPosition < 0 {
+		return 0, "", ""
+	}
+
+	advance = 1 + midPosition + 2 + endPosition + 1
+	displayName = string(line[1:midPosition])
+	ref = string(line[midPosition+3 : midPosition+endPosition+3])
+	return advance, displayName, ref
+}
+
 func getH1(content []rune) string {
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 	if !scanner.Scan() {
