@@ -37,7 +37,7 @@ func followedBy(raw []byte, cur int, ss []string) bool {
 	return false
 }
 
-func consumeInlineBlock(line []rune) (advance int) {
+func scanInlineBlock(line []rune) (advance int) {
 	if line[0] != '`' {
 		return 0
 	}
@@ -52,7 +52,7 @@ func consumeInlineBlock(line []rune) (advance int) {
 	return cur + 1
 }
 
-func consumeInlineMath(line []rune) (advance int) {
+func scanInlineMath(line []rune) (advance int) {
 	if !(line[0] == RuneDollar && 1 < len(line) && !unicode.IsSpace(line[1])) {
 		return 0
 	}
@@ -67,7 +67,7 @@ func consumeInlineMath(line []rune) (advance int) {
 	return cur + 1
 }
 
-func consumeEscaped(line []rune) (advance int, escaped []rune) {
+func scanEscaped(line []rune) (advance int, escaped []rune) {
 	if line[0] == '\\' && 1 < len(line) {
 		switch line[1] {
 		case '#':
@@ -79,7 +79,7 @@ func consumeEscaped(line []rune) (advance int, escaped []rune) {
 	return 0, nil
 }
 
-func consumeRepeat(line []rune, substr string) (advance int) {
+func scanRepeat(line []rune, substr string) (advance int) {
 	cur := 0
 	length := len([]rune(substr))
 	for len(line[cur:]) >= length && string(line[cur:cur+length]) == substr {
@@ -88,7 +88,7 @@ func consumeRepeat(line []rune, substr string) (advance int) {
 	return cur
 }
 
-func consumeTag(line []rune) (advance int, tag string) {
+func scanTag(line []rune) (advance int, tag string) {
 	if !(line[0] == '#' && 1 < len(line) && unicode.IsGraphic(line[1]) && !unicode.IsSpace(line[1])) {
 		return 0, ""
 	}
@@ -104,7 +104,7 @@ func consumeTag(line []rune) (advance int, tag string) {
 	return cur, string(line[1:cur])
 }
 
-func consumeInternalLink(line []rune) (advance int, content string) {
+func scanInternalLink(line []rune) (advance int, content string) {
 	if !(len(line) >= 5 && string(line[:2]) == "[[") {
 		return 0, ""
 	}
@@ -118,7 +118,7 @@ func consumeInternalLink(line []rune) (advance int, content string) {
 	return advance, content
 }
 
-func consumeExternalLink(line []rune) (advance int, displayName string, ref string) {
+func scanExternalLink(line []rune) (advance int, displayName string, ref string) {
 	if !(line[0] == '[' && len(line) >= 4) {
 		return 0, "", ""
 	}

@@ -62,7 +62,7 @@ func replace(content []rune) []rune {
 
 		// コードブロック内
 		if inCodeBlock {
-			if advance := consumeRepeat(line, "`"); advance >= lineLenCodeBlock {
+			if advance := scanRepeat(line, "`"); advance >= lineLenCodeBlock {
 				inCodeBlock = false
 			}
 			newContent = append(newContent, line...)
@@ -71,7 +71,7 @@ func replace(content []rune) []rune {
 		}
 
 		// コードブロックに入る
-		if advance := consumeRepeat(line, "`"); advance >= 3 {
+		if advance := scanRepeat(line, "`"); advance >= 3 {
 			inCodeBlock = true
 			lineLenCodeBlock = advance
 			newContent = append(newContent, line...)
@@ -81,7 +81,7 @@ func replace(content []rune) []rune {
 
 		// math ブロック内
 		if inMathBlock {
-			if advance := consumeRepeat(line, "$"); advance == 2 {
+			if advance := scanRepeat(line, "$"); advance == 2 {
 				inMathBlock = false
 			}
 			newContent = append(newContent, line...)
@@ -90,7 +90,7 @@ func replace(content []rune) []rune {
 		}
 
 		// math ブロックに入る
-		if advance := consumeRepeat(line, "$"); advance == 2 {
+		if advance := scanRepeat(line, "$"); advance == 2 {
 			inMathBlock = true
 			newContent = append(newContent, line...)
 			newContent = append(newContent, '\n')
@@ -101,45 +101,45 @@ func replace(content []rune) []rune {
 		for id < len(line) {
 
 			// inline ブロック
-			if advance := consumeInlineBlock(line[id:]); advance > 0 {
+			if advance := scanInlineBlock(line[id:]); advance > 0 {
 				newLine = append(newLine, line[id:id+advance]...)
 				id += advance
 				continue
 			}
 
 			// inline math
-			if advance := consumeInlineMath(line[id:]); advance > 0 {
+			if advance := scanInlineMath(line[id:]); advance > 0 {
 				newLine = append(newLine, line[id:id+advance]...)
 				id += advance
 				continue
 			}
 
 			// エスケープ
-			if advance, escaped := consumeEscaped(line[id:]); advance > 0 {
+			if advance, escaped := scanEscaped(line[id:]); advance > 0 {
 				newLine = append(newLine, escaped...)
 				id += advance
 				continue
 			}
 
-			if advance, _, _ := consumeExternalLink(line[id:]); advance > 0 {
+			if advance, _, _ := scanExternalLink(line[id:]); advance > 0 {
 				newLine = append(newLine, line[id:id+advance]...)
 				id += advance
 				continue
 			}
 
-			if advance := consumeRepeat(line[id:], "#"); advance > 1 {
+			if advance := scanRepeat(line[id:], "#"); advance > 1 {
 				newLine = append(newLine, line[id:id+advance]...)
 				id += advance
 				continue
 			}
 
-			if advance, _ := consumeTag(line[id:]); advance > 0 {
+			if advance, _ := scanTag(line[id:]); advance > 0 {
 				id += advance
 				continue
 			}
 
 			// internl link [[]]
-			if advance, content := consumeInternalLink(line[id:]); advance > 0 {
+			if advance, content := scanInternalLink(line[id:]); advance > 0 {
 				if content == "" { // [[ ]] はスキップ
 					id += advance
 					continue
