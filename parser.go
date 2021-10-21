@@ -107,6 +107,23 @@ func scanTag(line []rune) (advance int, tag string) {
 	return cur, string(line[1:cur])
 }
 
+func consumeTag(raw []rune, cur int) (advance int, tag string) {
+	if !(unescaped(raw, cur, "#") && len(raw[cur:]) > 1) {
+		return 0, ""
+	}
+
+	if !(unicode.IsLetter(raw[cur+1]) || unicode.IsNumber(raw[cur+1]) || raw[cur+1] == '_') {
+		return 0, ""
+	}
+
+	p := cur + 1
+	for p < len(raw) && (unicode.IsLetter(raw[p]) || unicode.IsNumber(raw[p]) || strings.ContainsRune("-_/", raw[p])) {
+		p++
+	}
+
+	return p - cur, string(raw[cur+1 : p])
+}
+
 func scanInternalLink(line []rune) (advance int, content string) {
 	if !(len(line) >= 5 && string(line[:2]) == "[[") {
 		return 0, ""

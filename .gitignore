@@ -4,3 +4,4 @@
 !main.go
 !parser.go
 !main_test.go
+!refactoring_test.go
