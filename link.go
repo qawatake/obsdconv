@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/fs"
 	"path/filepath"
 	"strings"
 )
@@ -32,15 +33,66 @@ func newErr(kind errKind) *Err {
 	return &Err{kind: kind}
 }
 
-func findPath(name string) string {
-	var filename string
-	switch filepath.Ext(name) {
+func findPath(fileId string) (path string) {
+	var basename string
+	switch filepath.Ext(fileId) {
 	case "":
-		filename = name + ".md"
+		basename = fileId + ".md"
 	case ".md":
-		filename = name
+		basename = fileId
 	}
-	return filename
+	return basename
+}
+
+func pathMatchScore(path string, filename string) int {
+	pp := strings.Split(path, "/")
+	ff := strings.Split(filename, "/")
+	lpp := len(pp)
+	lff := len(ff)
+	if lpp < lff {
+		return -1
+	}
+	cur := 0
+	for ; cur < lff; cur++ {
+		if pp[lpp-1-cur] != ff[lff-1-cur] {
+			return -1
+		}
+	}
+	return lpp - cur
+}
+
+func FindPath(fileId string, root string) (path string, err error) {
+	var filename string
+	if filepath.Ext(fileId) == "" {
+		filename = fileId + ".md"
+	} else {
+		filename = fileId
+	}
+
+	bestscore := -1
+	bestmatch := ""
+
+	err = filepath.Walk(root, func(pth string, info fs.FileInfo, err error) error {
+		if score := pathMatchScore(pth, filename); score < 0 {
+			return nil
+		} else if bestscore < 0 || score < bestscore || (score == bestscore && strings.Compare(pth, bestmatch) < 0) {
+			bestscore = score
+			bestmatch = pth
+			return nil
+		}
+		return nil
+	})
+	if err != nil {
+		return "", fmt.Errorf("filepath.Walk failed: %w", err)
+	}
+	if bestscore < 0 {
+		return "", nil
+	}
+	path, err = filepath.Rel(root, bestmatch)
+	if err != nil {
+		return "", fmt.Errorf("filepath.Rel failed: %w", err)
+	}
+	return path, nil
 }
 
 func splitDisplayName(fullname string) (identifier string, displayname string) {

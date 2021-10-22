@@ -76,3 +76,54 @@ func TestSplitFragments(t *testing.T) {
 		}
 	}
 }
+
+func TestPathMatchScore(t *testing.T) {
+	cases := []struct {
+		path     string
+		filename string
+		want     int
+	}{
+		{path: "test.md", filename: "test.md", want: 0},
+		{path: "a/test.md", filename: "test.md", want: 1},
+		{path: "a/test.md", filename: "a/test.md", want: 0},
+		{path: "test.md", filename: "a/test.md", want: -1},
+	}
+
+	for _, tt := range cases {
+		if got := pathMatchScore(tt.path, tt.filename); got != tt.want {
+			t.Errorf("[ERROR] got: %v, want: %v with %v -> %v", got, tt.want, tt.path, tt.filename)
+		}
+	}
+}
+
+func TestFindPath(t *testing.T) {
+	const (
+		TEST_MD_FILE_NAME       = "test.md"
+		TEST_FIND_PATH_ROOT_DIR = "testdata/findpath/"
+	)
+	cases := []struct {
+		name   string
+		root   string // テストで設定する vault のプロジェクトディレクトリ
+		fileId string
+		want   string
+	}{
+		{name: "in cur dir", root: "simple", fileId: TEST_MD_FILE_NAME, want: TEST_MD_FILE_NAME},
+		{name: "in subdir", root: "subdir", fileId: TEST_MD_FILE_NAME, want: "a/" + TEST_MD_FILE_NAME},
+		{name: "in subdir specified", root: "specified_subdir", fileId: "a/" + TEST_MD_FILE_NAME, want: "a/" + TEST_MD_FILE_NAME},
+		{name: "in cur dir and subdir", root: "cur_subdir", fileId: TEST_MD_FILE_NAME, want: TEST_MD_FILE_NAME},
+		{name: "in cur dir and specified subdir", root: "cur_specified_subdir", fileId: "a/" + TEST_MD_FILE_NAME, want: "a/" + TEST_MD_FILE_NAME},
+		{name: "in multiple subdirs", root: "subdir_x2", fileId: TEST_MD_FILE_NAME, want: "a/" + TEST_MD_FILE_NAME},
+		{name: "not found", root: "simple", fileId: "not_found.md", want: ""},
+	}
+
+	for _, tt := range cases {
+		got, err := FindPath(tt.fileId, TEST_FIND_PATH_ROOT_DIR+tt.root)
+		if err != nil {
+			t.Errorf("[FAIL | %v] %v", tt.name, err)
+			continue
+		}
+		if got != tt.want {
+			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
+		}
+	}
+}
