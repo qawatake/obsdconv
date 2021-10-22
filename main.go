@@ -51,35 +51,35 @@ func replace(raw []rune) (output []rune) {
 	output = make([]rune, 0)
 	cur := 0
 	for cur < len(raw) {
-		if advance := consumeCodeBlock(raw, cur); advance > 0 {
+		if advance := scanCodeBlock(raw, cur); advance > 0 {
 			next := cur + advance
 			output = append(output, raw[cur:next]...)
 			cur = next
 			continue
 		}
 
-		if advance := consumeComment(raw, cur); advance > 0 {
+		if advance := scanComment(raw, cur); advance > 0 {
 			next := cur + advance
 			output = append(output, raw[cur:next]...)
 			cur = next
 			continue
 		}
 
-		if advance := consumeMathBlock(raw, cur); advance > 0 {
+		if advance := scanMathBlock(raw, cur); advance > 0 {
 			next := cur + advance
 			output = append(output, raw[cur:next]...)
 			cur = next
 			continue
 		}
 
-		if advance, _, _ := consumeExternalLink(raw, cur); advance > 0 {
+		if advance, _, _ := scanExternalLink(raw, cur); advance > 0 {
 			next := cur + advance
 			output = append(output, raw[cur:next]...)
 			cur = next
 			continue
 		}
 
-		if advance, content := consumeInternalLink(raw, cur); advance > 0 {
+		if advance, content := scanInternalLink(raw, cur); advance > 0 {
 			if content == "" { // [[ ]] はスキップ
 				cur += advance
 				continue
@@ -90,28 +90,28 @@ func replace(raw []rune) (output []rune) {
 			continue
 		}
 
-		if advance := consumeInlineCode(raw, cur); advance > 0 {
+		if advance := scanInlineCode(raw, cur); advance > 0 {
 			next := cur + advance
 			output = append(output, raw[cur:next]...)
 			cur = next
 			continue
 		}
 
-		if advance := consumeInlineMath(raw, cur); advance > 0 {
+		if advance := scanInlineMath(raw, cur); advance > 0 {
 			next := cur + advance
 			output = append(output, raw[cur:next]...)
 			cur = next
 			continue
 		}
 
-		if advance := consumeRepeat(raw, cur, "#"); advance > 1 {
+		if advance := scanRepeat(raw, cur, "#"); advance > 1 {
 			next := cur + advance
 			output = append(output, raw[cur:next]...)
 			cur = next
 			continue
 		}
 
-		if advance, _ := consumeTag(raw, cur); advance > 0 {
+		if advance, _ := scanTag(raw, cur); advance > 0 {
 			next := cur + advance
 			cur = next
 			continue

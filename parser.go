@@ -40,7 +40,7 @@ func followedBy(raw []rune, ptr int, ss []string) bool {
 	return false
 }
 
-func consumeInlineCode(raw []rune, ptr int) (advance int) {
+func scanInlineCode(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "`") && len(raw[ptr:]) > 1) {
 		return 0
 	}
@@ -57,7 +57,7 @@ func consumeInlineCode(raw []rune, ptr int) (advance int) {
 	}
 }
 
-func consumeInlineMath(raw []rune, ptr int) (advance int) {
+func scanInlineMath(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "$") && !followedBy(raw, ptr, []string{" ", "\t"})) {
 		return 0
 	}
@@ -86,7 +86,7 @@ func consumeInlineMath(raw []rune, ptr int) (advance int) {
 	return 0
 }
 
-func consumeRepeat(raw []rune, ptr int, substr string) (advance int) {
+func scanRepeat(raw []rune, ptr int, substr string) (advance int) {
 	length := len([]rune(substr))
 	cur := ptr
 	next := cur + length
@@ -97,7 +97,7 @@ func consumeRepeat(raw []rune, ptr int, substr string) (advance int) {
 	return cur - ptr
 }
 
-func consumeTag(raw []rune, ptr int) (advance int, tag string) {
+func scanTag(raw []rune, ptr int) (advance int, tag string) {
 	if !(unescaped(raw, ptr, "#") && len(raw[ptr:]) > 1) {
 		return 0, ""
 	}
@@ -114,7 +114,7 @@ func consumeTag(raw []rune, ptr int) (advance int, tag string) {
 	return cur - ptr, string(raw[ptr+1 : cur])
 }
 
-func consumeInternalLink(raw []rune, ptr int) (advance int, content string) {
+func scanInternalLink(raw []rune, ptr int) (advance int, content string) {
 	if !(unescaped(raw, ptr, "[[") && len(raw[ptr:]) >= 5) {
 		return 0, ""
 	}
@@ -135,7 +135,7 @@ func validURI(uri string) bool {
 	return !strings.ContainsAny(uri, " \t\r\n")
 }
 
-func consumeExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {
+func scanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {
 	if !(unescaped(raw, ptr, "[") && len(raw[ptr:]) >= 5) {
 		return 0, "", ""
 	}
@@ -175,7 +175,7 @@ func consumeExternalLink(raw []rune, ptr int) (advance int, displayName string, 
 	return
 }
 
-func consumeComment(raw []rune, ptr int) (advance int) {
+func scanComment(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "%%") && len(raw) >= 2) {
 		return 0
 	}
@@ -213,7 +213,7 @@ func validMathBlockClosing(raw []rune, openPtr int, closingPtr int) bool {
 	return remaining == ""
 }
 
-func consumeMathBlock(raw []rune, ptr int) (advance int) {
+func scanMathBlock(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "$$") && len(raw) >= 3) {
 		return 0
 	}
@@ -237,7 +237,7 @@ func consumeMathBlock(raw []rune, ptr int) (advance int) {
 	}
 }
 
-func consumeCodeBlock(raw []rune, ptr int) (advance int) {
+func scanCodeBlock(raw []rune, ptr int) (advance int) {
 	if !unescaped(raw, ptr, "```") {
 		return 0
 	}

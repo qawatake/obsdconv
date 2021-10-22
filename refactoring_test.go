@@ -2,7 +2,7 @@ package main
 
 import "testing"
 
-func TestConsumeTag(t *testing.T) {
+func TestScanTag(t *testing.T) {
 	cases := []struct {
 		argRaw      []rune
 		argPtr      int
@@ -48,7 +48,7 @@ func TestConsumeTag(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotTag := consumeTag(tt.argRaw, tt.argPtr)
+		gotAdvance, gotTag := scanTag(tt.argRaw, tt.argPtr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR] got: %v, want: %v", gotAdvance, tt.wantAdvance)
 		}
@@ -58,7 +58,7 @@ func TestConsumeTag(t *testing.T) {
 	}
 }
 
-func TestConsumeRepeat(t *testing.T) {
+func TestScanRepeat(t *testing.T) {
 	cases := []struct {
 		argRaw    []rune
 		argSubstr string
@@ -82,13 +82,13 @@ func TestConsumeRepeat(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := consumeRepeat(tt.argRaw, 0, tt.argSubstr); got != tt.want {
+		if got := scanRepeat(tt.argRaw, 0, tt.argSubstr); got != tt.want {
 			t.Errorf("[ERROR] got: %v, want: %v", got, tt.want)
 		}
 	}
 }
 
-func TestConsumeInlineMath(t *testing.T) {
+func TestScanInlineMath(t *testing.T) {
 	cases := []struct {
 		name   string
 		argRaw []rune
@@ -152,13 +152,13 @@ func TestConsumeInlineMath(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := consumeInlineMath(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := scanInlineMath(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
 }
 
-func TestConsumeInlineCode(t *testing.T) {
+func TestScanInlineCode(t *testing.T) {
 	cases := []struct {
 		name   string
 		argRaw []rune
@@ -204,13 +204,13 @@ func TestConsumeInlineCode(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := consumeInlineCode(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := scanInlineCode(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
 }
 
-func TestConsumeInternalLink(t *testing.T) {
+func TestScanInternalLink(t *testing.T) {
 	cases := []struct {
 		name        string
 		argRaw      []rune
@@ -256,7 +256,7 @@ func TestConsumeInternalLink(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotContent := consumeInternalLink(tt.argRaw, tt.argPtr)
+		gotAdvance, gotContent := scanInternalLink(tt.argRaw, tt.argPtr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
 		}
@@ -285,7 +285,7 @@ func TestValidURI(t *testing.T) {
 	}
 }
 
-func TestConsumeExternalLink(t *testing.T) {
+func TestScanExternalLink(t *testing.T) {
 	cases := []struct {
 		name            string
 		argRaw          []rune
@@ -385,7 +385,7 @@ func TestConsumeExternalLink(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotDisplayName, gotRef := consumeExternalLink(tt.argRaw, tt.argPtr)
+		gotAdvance, gotDisplayName, gotRef := scanExternalLink(tt.argRaw, tt.argPtr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
 		}
@@ -398,7 +398,7 @@ func TestConsumeExternalLink(t *testing.T) {
 	}
 }
 
-func TestConsumeComment(t *testing.T) {
+func TestScanComment(t *testing.T) {
 	cases := []struct {
 		name   string
 		argRaw []rune
@@ -444,7 +444,7 @@ func TestConsumeComment(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := consumeComment(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := scanComment(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -502,7 +502,7 @@ func TestValidMathBlockClosing(t *testing.T) {
 	}
 }
 
-func TestConsumeMathBlock(t *testing.T) {
+func TestScanMathBlock(t *testing.T) {
 	cases := []struct {
 		name   string
 		argRaw []rune
@@ -560,13 +560,13 @@ func TestConsumeMathBlock(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := consumeMathBlock(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := scanMathBlock(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
 }
 
-func TestConsumeCodeBlock(t *testing.T) {
+func TestScanCodeBlock(t *testing.T) {
 	cases := []struct {
 		name   string
 		argRaw []rune
@@ -630,7 +630,7 @@ func TestConsumeCodeBlock(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := consumeCodeBlock(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := scanCodeBlock(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
