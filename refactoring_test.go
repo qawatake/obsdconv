@@ -565,3 +565,67 @@ func TestConsumeMathBlock(t *testing.T) {
 		}
 	}
 }
+
+func TestConsumeCodeBlock(t *testing.T) {
+	cases := []struct {
+		name   string
+		argRaw []rune
+		argPtr int
+		want   int
+	}{
+		{
+			name:   "simple",
+			argRaw: []rune("```\nf(x)=x\n```"),
+			argPtr: 0,
+			want:   14,
+		},
+		{
+			name:   "long bracket",
+			argRaw: []rune("````\nf(x)=x\n````"),
+			argPtr: 0,
+			want:   16,
+		},
+		{
+			name:   "longer closing",
+			argRaw: []rune("```\nf(x)=x\n````"),
+			argPtr: 0,
+			want:   15,
+		},
+		{
+			name:   "no closing",
+			argRaw: []rune("```\nf(x)=x\n"),
+			argPtr: 0,
+			want:   11,
+		},
+		{
+			name:   "inline with matched brackets",
+			argRaw: []rune("````f(x)=x````"),
+			argPtr: 0,
+			want:   14,
+		},
+		{
+			name:   "inline with longer closing brackets",
+			argRaw: []rune("```f(x)=x````"),
+			argPtr: 0,
+			want:   0,
+		},
+		{
+			name:   "inline with longer opening brackets",
+			argRaw: []rune("````f(x)=x```"),
+			argPtr: 0,
+			want:   0,
+		},
+		{
+			name:   "escaped",
+			argRaw: []rune("\\```\nf(x)=x\n```"),
+			argPtr: 0,
+			want:   0,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := consumeCodeBlock(tt.argRaw, tt.argPtr); got != tt.want {
+			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
+		}
+	}
+}

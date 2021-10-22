@@ -338,6 +338,27 @@ func consumeMathBlock(raw []rune, ptr int) (advance int) {
 	}
 }
 
+func consumeCodeBlock(raw []rune, ptr int) (advance int) {
+	if !unescaped(raw, ptr, "```") {
+		return 0
+	}
+	length := len(raw[ptr:]) - len([]rune(strings.TrimLeft(string(raw[ptr:]), "`")))
+	cur := ptr + length
+	pos := strings.Index(string(raw[cur:]), "```")
+	if pos < 0 {
+		return len(raw) - ptr
+	}
+	cur += len([]rune(string(string(raw[cur:])[:pos]))) // closing の "```" の最初の "`"
+	closingLength := len(raw[cur:]) - len([]rune(strings.TrimLeft(string(raw[cur:]), "`")))
+	cur += closingLength
+
+	// inline の場合は opening bracket と closing bracket は同じ長さでなければならない
+	if !strings.ContainsRune(string(raw[ptr:cur]), '\n') && length != closingLength {
+		return 0
+	}
+	return cur - ptr
+}
+
 func getH1(content []rune) string {
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 	if !scanner.Scan() {
