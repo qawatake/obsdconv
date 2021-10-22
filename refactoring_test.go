@@ -435,6 +435,12 @@ func TestConsumeComment(t *testing.T) {
 			argPtr: 1,
 			want:   0,
 		},
+		{
+			name:   "no closing",
+			argRaw: []rune("%%x"),
+			argPtr: 0,
+			want:   3,
+		},
 	}
 
 	for _, tt := range cases {

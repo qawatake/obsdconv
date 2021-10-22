@@ -277,7 +277,7 @@ func consumeExternalLink(raw []rune, ptr int) (advance int, displayName string, 
 }
 
 func consumeComment(raw []rune, ptr int) (advance int) {
-	if !(unescaped(raw, ptr, "%%") && len(raw) >= 4) {
+	if !(unescaped(raw, ptr, "%%") && len(raw) >= 2) {
 		return 0
 	}
 	length := len(raw[ptr:]) - len([]rune(strings.TrimLeft(string(raw[ptr:]), "%")))
