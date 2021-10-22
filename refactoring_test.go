@@ -391,3 +391,49 @@ func TestConsumeExternalLink(t *testing.T) {
 		}
 	}
 }
+
+func TestConsumeComment(t *testing.T) {
+	cases := []struct {
+		name   string
+		argRaw []rune
+		argPtr int
+		want   int
+	}{
+		{
+			name:   "simple",
+			argRaw: []rune("%%x%%"),
+			argPtr: 0,
+			want:   5,
+		},
+		{
+			name:   "long bracket",
+			argRaw: []rune("%%%x%%%"),
+			argPtr: 0,
+			want:   7,
+		},
+		{
+			name:   "longer closing",
+			argRaw: []rune("%%x%%%"),
+			argPtr: 0,
+			want:   5,
+		},
+		{
+			name:   "escaped closing",
+			argRaw: []rune("%%x\\%%"),
+			argPtr: 0,
+			want:   6,
+		},
+		{
+			name:   "escaped opening",
+			argRaw: []rune("\\%%x%%"),
+			argPtr: 1,
+			want:   0,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := consumeComment(tt.argRaw, tt.argPtr); got != tt.want {
+			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
+		}
+	}
+}

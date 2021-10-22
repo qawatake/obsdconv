@@ -272,6 +272,19 @@ func consumeExternalLink(raw []rune, ptr int) (advance int, displayName string, 
 	return
 }
 
+func consumeComment(raw []rune, ptr int) (advance int) {
+	if !(unescaped(raw, ptr, "%%") && len(raw) >= 4) {
+		return 0
+	}
+	length := len(raw[ptr:]) - len([]rune(strings.TrimLeft(string(raw[ptr:]), "%")))
+	cur := ptr + length
+	pos := strings.Index(string(raw[cur:]), strings.Repeat("%", length))
+	if pos < 0 {
+		return len(raw[ptr:]) - ptr
+	}
+	return cur + len([]rune(string(string(raw[cur:])[:pos]))) + length
+}
+
 func getH1(content []rune) string {
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 	if !scanner.Scan() {
