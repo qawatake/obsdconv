@@ -449,3 +449,67 @@ func TestConsumeComment(t *testing.T) {
 		}
 	}
 }
+
+func TestConsumeMathBlock(t *testing.T) {
+	cases := []struct {
+		name   string
+		argRaw []rune
+		argPtr int
+		want   int
+	}{
+		{
+			name:   "simple",
+			argRaw: []rune("$$\nx\n$$"),
+			argPtr: 0,
+			want:   7,
+		},
+		{
+			name:   "inline",
+			argRaw: []rune("$$x$$"),
+			argPtr: 0,
+			want:   5,
+		},
+		{
+			name:   "escaped opening",
+			argRaw: []rune("\\$$x$$"),
+			argPtr: 1,
+			want:   0,
+		},
+		{
+			name:   "escaped closing",
+			argRaw: []rune("$$x\\$$"),
+			argPtr: 0,
+			want:   0,
+		},
+		// {
+		// 	name:   "preceded by \\n and followed by other than space or \\n",
+		// 	argRaw: []rune("$$x\n$$\t$$"),
+		// 	argPtr: 0,
+		// 	want:   9,
+		// },
+		{
+			name:   "inline and followed by other than space or \\n",
+			argRaw: []rune("$$x$$x"),
+			argPtr: 0,
+			want:   5,
+		},
+		{
+			name:   "no closing but ended with \\n",
+			argRaw: []rune("$$x\n"),
+			argPtr: 0,
+			want:   4,
+		},
+		{
+			name:   "no closing and ended with other than \\n",
+			argRaw: []rune("$$x"),
+			argPtr: 0,
+			want:   0,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := consumeMathBlock(tt.argRaw, tt.argPtr); got != tt.want {
+			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
+		}
+	}
+}

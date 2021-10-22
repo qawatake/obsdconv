@@ -289,6 +289,30 @@ func consumeComment(raw []rune, ptr int) (advance int) {
 	return cur + len([]rune(string(string(raw[cur:])[:pos]))) + length
 }
 
+func consumeMathBlock(raw []rune, ptr int) (advance int) {
+	if !(unescaped(raw, ptr, "$$") && len(raw) >= 3) {
+		return 0
+	}
+
+	cur := ptr + 2
+	for {
+		pos := strings.Index(string(raw[cur:]), "$$")
+		if pos < 0 {
+			if raw[len(raw)-1] == '\n' {
+				return len(raw) - ptr
+			} else {
+				return 0
+			}
+		}
+		cur += len([]rune(string(string(raw[cur:])[:pos])))
+		if unescaped(raw, cur, "$$") {
+			break
+		}
+		cur += 2
+	}
+	return cur + 2 - ptr
+}
+
 func getH1(content []rune) string {
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 	if !scanner.Scan() {
