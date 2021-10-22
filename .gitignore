@@ -5,6 +5,7 @@
 !scan.go
 !link.go
 !preprocess.go
-!scan_test.go
-!preprocess_test.go
 !main_test.go
+!scan_test.go
+!link_test.go
+!preprocess_test.go

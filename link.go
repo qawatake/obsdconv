@@ -6,6 +6,32 @@ import (
 	"strings"
 )
 
+type errKind int
+
+const (
+	ErrKindInvalidInternalLinkContent errKind = iota
+)
+
+type Err struct {
+	kind errKind
+}
+
+type ErrInvalidInternalLinkContent interface {
+	IsErrInvalidInternalLinkContent() bool
+}
+
+func (e *Err) Error() string {
+	return "invalid internal link content"
+}
+
+func (e *Err) IsErrInvalidInternalLinkContent() bool {
+	return e.kind == ErrKindInvalidInternalLinkContent
+}
+
+func newErr(kind errKind) *Err {
+	return &Err{kind: kind}
+}
+
 func findPath(name string) string {
 	var filename string
 	switch filepath.Ext(name) {
@@ -39,6 +65,24 @@ func splitFragment(identifier string) (fileId string, fragment string) {
 		fragment = strings.Trim(fragment, " \t")
 		return fileId, fragment
 	}
+}
+
+func splitFragments(identifier string) (fileId string, fragments []string, err error) {
+	strs := strings.Split(identifier, "#")
+	if len(strs) == 1 {
+		return strs[0], nil, nil
+	}
+	fileId = strs[0]
+	if len(strings.TrimRight(fileId, " \t")) != len(fileId) {
+		return "", nil, newErr(ErrKindInvalidInternalLinkContent)
+	}
+
+	fragments = make([]string, len(strs)-1)
+	for id, f := range strs[1:] {
+		f := strings.Trim(f, " \t")
+		fragments[id] = f
+	}
+	return fileId, fragments, nil
 }
 
 func genHugoLink(content string) (link string) {
