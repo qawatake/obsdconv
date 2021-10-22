@@ -106,7 +106,11 @@ func consumeInlineMath(raw []rune, ptr int) (advance int) {
 	}
 	if precededBy(raw, cur, []string{"\n\n", "\r\n\r\n", " ", "\t"}) {
 		return 0
-	} else if unescaped(raw, cur, "$") {
+	}
+	if cur == ptr+1 {
+		return 0
+	}
+	if unescaped(raw, cur, "$") {
 		return cur - ptr + 1
 	}
 	return 0

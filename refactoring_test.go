@@ -143,6 +143,12 @@ func TestConsumeInlineMath(t *testing.T) {
 			argPtr: 0,
 			want:   9,
 		},
+		{
+			name:   "empty",
+			argRaw: []rune("$$"),
+			argPtr: 0,
+			want:   0,
+		},
 	}
 
 	for _, tt := range cases {
