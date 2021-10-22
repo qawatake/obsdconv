@@ -40,21 +40,6 @@ func followedBy(raw []rune, ptr int, ss []string) bool {
 	return false
 }
 
-func scanInlineBlock(line []rune) (advance int) {
-	if line[0] != '`' {
-		return 0
-	}
-
-	cur := 1
-	for cur < len(line) && line[cur] != '`' {
-		cur++
-	}
-	if cur == len(line) {
-		return 0
-	}
-	return cur + 1
-}
-
 func consumeInlineCode(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "`") && len(raw[ptr:]) > 1) {
 		return 0
@@ -70,21 +55,6 @@ func consumeInlineCode(raw []rune, ptr int) (advance int) {
 	} else {
 		return cur - ptr + 1
 	}
-}
-
-func scanInlineMath(line []rune) (advance int) {
-	if !(line[0] == RuneDollar && 1 < len(line) && !unicode.IsSpace(line[1])) {
-		return 0
-	}
-
-	cur := 1
-	for cur < len(line) && line[cur] != RuneDollar {
-		cur++
-	}
-	if cur == len(line) {
-		return 0
-	}
-	return cur + 1
 }
 
 func consumeInlineMath(raw []rune, ptr int) (advance int) {
@@ -116,27 +86,6 @@ func consumeInlineMath(raw []rune, ptr int) (advance int) {
 	return 0
 }
 
-func scanEscaped(line []rune) (advance int, escaped []rune) {
-	if line[0] == '\\' && 1 < len(line) {
-		switch line[1] {
-		case '#':
-			advance = 2
-			escaped = []rune("#")
-			return advance, escaped
-		}
-	}
-	return 0, nil
-}
-
-func scanRepeat(line []rune, substr string) (advance int) {
-	cur := 0
-	length := len([]rune(substr))
-	for len(line[cur:]) >= length && string(line[cur:cur+length]) == substr {
-		cur += length
-	}
-	return cur
-}
-
 func consumeRepeat(raw []rune, ptr int, substr string) (advance int) {
 	length := len([]rune(substr))
 	cur := ptr
@@ -146,22 +95,6 @@ func consumeRepeat(raw []rune, ptr int, substr string) (advance int) {
 		next += length
 	}
 	return cur - ptr
-}
-
-func scanTag(line []rune) (advance int, tag string) {
-	if !(line[0] == '#' && 1 < len(line) && unicode.IsGraphic(line[1]) && !unicode.IsSpace(line[1])) {
-		return 0, ""
-	}
-
-	if !(unicode.IsLetter(line[1]) || unicode.IsNumber(line[1]) || strings.ContainsRune("-_/", line[1])) {
-		return 0, ""
-	}
-
-	cur := 1
-	for cur < len(line) && (unicode.IsLetter(line[cur]) || unicode.IsNumber(line[cur]) || strings.ContainsRune("-_/", line[cur])) {
-		cur++
-	}
-	return cur, string(line[1:cur])
 }
 
 func consumeTag(raw []rune, ptr int) (advance int, tag string) {
@@ -179,20 +112,6 @@ func consumeTag(raw []rune, ptr int) (advance int, tag string) {
 	}
 
 	return cur - ptr, string(raw[ptr+1 : cur])
-}
-
-func scanInternalLink(line []rune) (advance int, content string) {
-	if !(len(line) >= 5 && string(line[:2]) == "[[") {
-		return 0, ""
-	}
-
-	position := strings.Index(string(line[2:]), "]]")
-	if position <= 0 {
-		return 0, ""
-	}
-	advance = 2 + len([]rune(string(string(line[2:])[:position]))) + 2
-	content = strings.Trim(string(string(line[2:])[:position]), " \t")
-	return advance, content
 }
 
 func consumeInternalLink(raw []rune, ptr int) (advance int, content string) {
@@ -214,26 +133,6 @@ func consumeInternalLink(raw []rune, ptr int) (advance int, content string) {
 
 func validURI(uri string) bool {
 	return !strings.ContainsAny(uri, " \t\r\n")
-}
-
-func scanExternalLink(line []rune) (advance int, displayName string, ref string) {
-	if !(line[0] == '[' && len(line) >= 4) {
-		return 0, "", ""
-	}
-	midPosition := strings.Index(string(line[1:]), "](")
-	if midPosition < 0 || midPosition == len(line[1:]) {
-		return 0, "", ""
-	}
-
-	endPosition := strings.Index(string(string(line[1:])[midPosition+2:]), ")")
-	if endPosition < 0 {
-		return 0, "", ""
-	}
-
-	advance = 1 + midPosition + 2 + endPosition + 1
-	displayName = string(line[1:midPosition])
-	ref = string(line[midPosition+3 : midPosition+endPosition+3])
-	return advance, displayName, ref
 }
 
 func consumeExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {

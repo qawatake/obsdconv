@@ -194,7 +194,7 @@ func TestReplace(t *testing.T) {
 		{
 			name:  "tag: escaped by \\",
 			input: "# This is a markdown file for test.\n \\#todo #123 \n## h2\n",
-			want:  "# This is a markdown file for test.\n #todo  \n## h2\n",
+			want:  "# This is a markdown file for test.\n \\#todo  \n## h2\n",
 		},
 		{
 			name:  "tag: multiple #'s",
@@ -268,7 +268,7 @@ func TestReplace(t *testing.T) {
 		},
 		{
 			name:  "internal link: fragment with displayname",
-			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n [[211020-165952#fragment | This is a test]]",
+			input: "# This is a markdown file for test.\n#todo #123 \n## h2\n### h3\n#### h4\n [[211020-165952#fragment | This is a test]]\n",
 			want:  "# This is a markdown file for test.\n  \n## h2\n### h3\n#### h4\n [This is a test]({{< ref \"211020-165952.md#fragment\" >}})\n",
 		},
 	}
