@@ -34,7 +34,10 @@ func main() {
 	}
 
 	frontMatter, body := splitMarkdown([]rune(string(content)))
-	newContent := replace(body)
+	newContent, err := replace(body)
+	if err != nil {
+		log.Fatal(err)
+	}
 	title := getH1(newContent)
 	fmt.Printf("Title: %v\n", title)
 	fmt.Printf("Front Matter: <<\n%v>>\n", string(frontMatter))
@@ -47,7 +50,7 @@ func main() {
 	newFile.Write([]byte(string(newContent)))
 }
 
-func replace(raw []rune) (output []rune) {
+func replace(raw []rune) (output []rune, err error) {
 	output = make([]rune, 0)
 	cur := 0
 	for cur < len(raw) {
@@ -84,7 +87,10 @@ func replace(raw []rune) (output []rune) {
 				cur += advance
 				continue
 			}
-			link := genHugoLink(content)
+			link, err := genHugoLink(content)
+			if err != nil {
+				return nil, fmt.Errorf("genHugoLink failed: %w", err)
+			}
 			output = append(output, []rune(link)...)
 			cur += advance
 			continue
@@ -121,5 +127,5 @@ func replace(raw []rune) (output []rune) {
 		output = append(output, raw[cur])
 		cur++
 	}
-	return output
+	return output, nil
 }

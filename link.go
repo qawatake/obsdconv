@@ -55,18 +55,6 @@ func splitDisplayName(fullname string) (identifier string, displayname string) {
 	}
 }
 
-func splitFragment(identifier string) (fileId string, fragment string) {
-	position := strings.Index(identifier, "#")
-	if position < 0 {
-		return identifier, ""
-	} else {
-		fileId := strings.Trim(string(identifier[:position]), " \t")
-		fragment := strings.TrimLeft(string(identifier[position:]), "#")
-		fragment = strings.Trim(fragment, " \t")
-		return fileId, fragment
-	}
-}
-
 func splitFragments(identifier string) (fileId string, fragments []string, err error) {
 	strs := strings.Split(identifier, "#")
 	if len(strs) == 1 {
@@ -85,25 +73,28 @@ func splitFragments(identifier string) (fileId string, fragments []string, err e
 	return fileId, fragments, nil
 }
 
-func genHugoLink(content string) (link string) {
+func genHugoLink(content string) (link string, err error) {
 	identifier, displayName := splitDisplayName(content)
-	fileId, fragment := splitFragment(identifier)
+	fileId, fragments, err := splitFragments(identifier)
+	if err != nil {
+		return "", fmt.Errorf("splitFragments failed: %w", err)
+	}
 	path := findPath(fileId)
 
 	if displayName == "" {
-		if fragment == "" {
+		if fragments == nil {
 			displayName = fileId
 		} else {
-			displayName = fmt.Sprintf("%s > %s", fileId, fragment)
+			displayName = fmt.Sprintf("%s > %s", fileId, fragments[0])
 		}
 	}
 
 	var ref string
-	if fragment != "" {
-		ref = fmt.Sprintf("%s#%s", path, fragment)
+	if fragments != nil {
+		ref = fmt.Sprintf("%s#%s", path, fragments[0])
 	} else {
 		ref = path
 	}
 
-	return fmt.Sprintf("[%s]({{< ref \"%s\" >}})", displayName, ref)
+	return fmt.Sprintf("[%s]({{< ref \"%s\" >}})", displayName, ref), nil
 }

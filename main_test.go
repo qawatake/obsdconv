@@ -98,7 +98,11 @@ func TestReplace(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := replace([]rune(tt.input)); string(got) != tt.want {
+		got, err := replace([]rune(tt.input))
+		if err != nil {
+			t.Errorf("[FAIL] %v", err)
+		}
+		if string(got) != tt.want {
 			t.Errorf("[ERROR] %s\n\tgot:  %q\n\twant: %q", tt.name, string(got), tt.want)
 		}
 	}
