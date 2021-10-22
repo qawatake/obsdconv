@@ -289,6 +289,31 @@ func consumeComment(raw []rune, ptr int) (advance int) {
 	return cur + len([]rune(string(string(raw[cur:])[:pos]))) + length
 }
 
+func validMathBlockClosing(raw []rune, openPtr int, closingPtr int) bool {
+	if !unescaped(raw, closingPtr, "$$") {
+		return false
+	}
+
+	// 後ろに何もなければ OK
+	if strings.Trim(string(raw[closingPtr+2:]), " \r\n") == "" {
+		return true
+	}
+
+	// inline だったら OK
+	if !strings.ContainsRune(string(raw[openPtr:closingPtr]), '\n') {
+		return true
+	}
+
+	posLineFeed := strings.IndexRune(string(raw[closingPtr+2:]), '\n')
+	if posLineFeed < 0 {
+		return false
+	}
+
+	remaining := string(string(raw[closingPtr+2:])[:posLineFeed])
+	remaining = strings.Trim(remaining, " \r\n")
+	return remaining == ""
+}
+
 func consumeMathBlock(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "$$") && len(raw) >= 3) {
 		return 0
@@ -304,13 +329,13 @@ func consumeMathBlock(raw []rune, ptr int) (advance int) {
 				return 0
 			}
 		}
+
 		cur += len([]rune(string(string(raw[cur:])[:pos])))
-		if unescaped(raw, cur, "$$") {
-			break
+		if validMathBlockClosing(raw, ptr, cur) {
+			return cur + 2 - ptr
 		}
 		cur += 2
 	}
-	return cur + 2 - ptr
 }
 
 func getH1(content []rune) string {

@@ -450,6 +450,58 @@ func TestConsumeComment(t *testing.T) {
 	}
 }
 
+func TestValidMathBlockClosing(t *testing.T) {
+	cases := []struct {
+		name          string
+		argRaw        []rune
+		argOpeningPtr int
+		argClosingPtr int
+		want          bool
+	}{
+		{
+			name:          "escaped",
+			argRaw:        []rune("$$\\$$"),
+			argOpeningPtr: 0,
+			argClosingPtr: 3,
+			want:          false,
+		},
+		{
+			name:          "no remaining",
+			argRaw:        []rune("$$x$$"),
+			argOpeningPtr: 0,
+			argClosingPtr: 3,
+			want:          true,
+		},
+		{
+			name:          "only spaces and \\n are remaining",
+			argRaw:        []rune("$$x$$   \n\nxxxx"),
+			argOpeningPtr: 0,
+			argClosingPtr: 3,
+			want:          true,
+		},
+		{
+			name:          "ramaining \\t or letter or number or...",
+			argRaw:        []rune("$$\nx\n$$\t\nx"),
+			argOpeningPtr: 0,
+			argClosingPtr: 3,
+			want:          false,
+		},
+		{
+			name:          "inline",
+			argRaw:        []rune("$$x$$\t"),
+			argOpeningPtr: 0,
+			argClosingPtr: 3,
+			want:          true,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := validMathBlockClosing(tt.argRaw, tt.argOpeningPtr, tt.argClosingPtr); got != tt.want {
+			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
+		}
+	}
+}
+
 func TestConsumeMathBlock(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -481,12 +533,12 @@ func TestConsumeMathBlock(t *testing.T) {
 			argPtr: 0,
 			want:   0,
 		},
-		// {
-		// 	name:   "preceded by \\n and followed by other than space or \\n",
-		// 	argRaw: []rune("$$x\n$$\t$$"),
-		// 	argPtr: 0,
-		// 	want:   9,
-		// },
+		{
+			name:   "preceded by \\n and followed by other than space or \\n",
+			argRaw: []rune("$$x\n$$\t$$"),
+			argPtr: 0,
+			want:   9,
+		},
 		{
 			name:   "inline and followed by other than space or \\n",
 			argRaw: []rune("$$x$$x"),
