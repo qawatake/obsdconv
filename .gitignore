@@ -2,6 +2,9 @@
 !.gitignore
 !go.mod
 !main.go
-!parser.go
+!scan.go
+!link.go
+!preprocess.go
+!scan_test.go
+!preprocess_test.go
 !main_test.go
-!refactoring_test.go
