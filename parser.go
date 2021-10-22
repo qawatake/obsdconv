@@ -350,13 +350,23 @@ func consumeCodeBlock(raw []rune, ptr int) (advance int) {
 	}
 	cur += len([]rune(string(string(raw[cur:])[:pos]))) // closing の "```" の最初の "`"
 	closingLength := len(raw[cur:]) - len([]rune(strings.TrimLeft(string(raw[cur:]), "`")))
-	cur += closingLength
 
 	// inline の場合は opening bracket と closing bracket は同じ長さでなければならない
-	if !strings.ContainsRune(string(raw[ptr:cur]), '\n') && length != closingLength {
-		return 0
+	if !strings.ContainsRune(string(raw[ptr:cur+closingLength]), '\n') {
+		if length != closingLength {
+			return 0
+		} else {
+			return cur + closingLength - ptr
+		}
+	} else { // 複数行の場合は, closing bracket の長さは opening bracket の長さ以上でなければいけない
+		pos := strings.Index(string(raw[cur:]), strings.Repeat("`", length))
+		if pos < 0 {
+			return len(raw) - ptr
+		}
+		cur += len([]rune(string(string(raw[cur:])[:pos])))
+		closingLength := len(raw[cur:]) - len([]rune(strings.TrimLeft(string(raw[cur:]), "`")))
+		return cur + closingLength - ptr
 	}
-	return cur - ptr
 }
 
 func getH1(content []rune) string {

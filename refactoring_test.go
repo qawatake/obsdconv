@@ -621,6 +621,12 @@ func TestConsumeCodeBlock(t *testing.T) {
 			argPtr: 0,
 			want:   0,
 		},
+		{
+			name:   "sandwitch",
+			argRaw: []rune("````\n```\nf(x)=x\n````"),
+			argPtr: 0,
+			want:   20,
+		},
 	}
 
 	for _, tt := range cases {
