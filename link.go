@@ -114,6 +114,18 @@ func splitFragments(identifier string) (fileId string, fragments []string, err e
 	return fileId, fragments, nil
 }
 
+func buildLinkText(displayName string, fileId string, fragments []string) (linktext string) {
+	if displayName != "" {
+		return displayName
+	}
+
+	linktext = fileId
+	for _, f := range fragments {
+		linktext += fmt.Sprintf(" > %s", f)
+	}
+	return linktext
+}
+
 func genHugoLink(root string, content string) (link string, err error) {
 	identifier, displayName := splitDisplayName(content)
 	fileId, fragments, err := splitFragments(identifier)
@@ -125,20 +137,8 @@ func genHugoLink(root string, content string) (link string, err error) {
 		return "", fmt.Errorf("findPath failed: %w", err)
 	}
 
-	if displayName == "" {
-		if fragments == nil {
-			displayName = fileId
-		} else {
-			displayName = fmt.Sprintf("%s > %s", fileId, fragments[0])
-		}
-	}
+	linktext := buildLinkText(displayName, fileId, fragments)
+	ref := path + strings.Join(fragments, "#")
 
-	var ref string
-	if fragments != nil {
-		ref = fmt.Sprintf("%s#%s", path, fragments[0])
-	} else {
-		ref = path
-	}
-
-	return fmt.Sprintf("[%s]({{< ref \"%s\" >}})", displayName, ref), nil
+	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
 }

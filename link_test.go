@@ -127,3 +127,22 @@ func TestFindPath(t *testing.T) {
 		}
 	}
 }
+
+func TestBuildLinkText(t *testing.T) {
+	cases := []struct {
+		displayName string
+		fileId      string
+		fragments   []string
+		want        string
+	}{
+		{displayName: "test", fileId: "211023", fragments: []string{"", ""}, want: "test"},
+		{displayName: "", fileId: "211023", fragments: nil, want: "211023"},
+		{displayName: "", fileId: "211023", fragments: []string{"section", "subsection"}, want: "211023 > section > subsection"},
+	}
+
+	for _, tt := range cases {
+		if got := buildLinkText(tt.displayName, tt.fileId, tt.fragments); got != tt.want {
+			t.Errorf("[ERROR] got: %q, want %q", got, tt.want)
+		}
+	}
+}
