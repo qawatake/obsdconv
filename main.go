@@ -88,9 +88,9 @@ func replace(root string, raw []rune) (output []rune, err error) {
 				cur += advance
 				continue
 			}
-			link, err := genHugoLink(root, content)
+			link, err := genExternalLink(root, content)
 			if err != nil {
-				return nil, fmt.Errorf("genHugoLink failed: %w", err)
+				return nil, fmt.Errorf("genExternalLink failed: %w", err)
 			}
 			output = append(output, []rune(link)...)
 			cur += advance

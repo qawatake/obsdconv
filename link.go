@@ -126,7 +126,7 @@ func buildLinkText(displayName string, fileId string, fragments []string) (linkt
 	return linktext
 }
 
-func genHugoLink(root string, content string) (link string, err error) {
+func genExternalLink(root string, content string) (link string, err error) {
 	identifier, displayName := splitDisplayName(content)
 	fileId, fragments, err := splitFragments(identifier)
 	if err != nil {
