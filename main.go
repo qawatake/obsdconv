@@ -16,6 +16,7 @@ func main() {
 	}
 
 	filename := os.Args[1]
+	root := ""
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -34,7 +35,7 @@ func main() {
 	}
 
 	frontMatter, body := splitMarkdown([]rune(string(content)))
-	newContent, err := replace(body)
+	newContent, err := replace(root, body)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,7 +51,7 @@ func main() {
 	newFile.Write([]byte(string(newContent)))
 }
 
-func replace(raw []rune) (output []rune, err error) {
+func replace(root string, raw []rune) (output []rune, err error) {
 	output = make([]rune, 0)
 	cur := 0
 	for cur < len(raw) {
@@ -87,7 +88,7 @@ func replace(raw []rune) (output []rune, err error) {
 				cur += advance
 				continue
 			}
-			link, err := genHugoLink(content)
+			link, err := genHugoLink(root, content)
 			if err != nil {
 				return nil, fmt.Errorf("genHugoLink failed: %w", err)
 			}

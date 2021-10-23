@@ -33,17 +33,6 @@ func newErr(kind errKind) *Err {
 	return &Err{kind: kind}
 }
 
-func findPath(fileId string) (path string) {
-	var basename string
-	switch filepath.Ext(fileId) {
-	case "":
-		basename = fileId + ".md"
-	case ".md":
-		basename = fileId
-	}
-	return basename
-}
-
 func pathMatchScore(path string, filename string) int {
 	pp := strings.Split(path, "/")
 	ff := strings.Split(filename, "/")
@@ -61,7 +50,7 @@ func pathMatchScore(path string, filename string) int {
 	return lpp - cur
 }
 
-func FindPath(fileId string, root string) (path string, err error) {
+func findPath(fileId string, root string) (path string, err error) {
 	var filename string
 	if filepath.Ext(fileId) == "" {
 		filename = fileId + ".md"
@@ -125,13 +114,16 @@ func splitFragments(identifier string) (fileId string, fragments []string, err e
 	return fileId, fragments, nil
 }
 
-func genHugoLink(content string) (link string, err error) {
+func genHugoLink(root string, content string) (link string, err error) {
 	identifier, displayName := splitDisplayName(content)
 	fileId, fragments, err := splitFragments(identifier)
 	if err != nil {
 		return "", fmt.Errorf("splitFragments failed: %w", err)
 	}
-	path := findPath(fileId)
+	path, err := findPath(root, fileId)
+	if err != nil {
+		return "", fmt.Errorf("findPath failed: %w", err)
+	}
 
 	if displayName == "" {
 		if fragments == nil {
