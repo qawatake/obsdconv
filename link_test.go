@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestSplitDisplayName(t *testing.T) {
 	cases := []struct {
@@ -117,7 +119,7 @@ func TestFindPath(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		got, err := findPath(tt.fileId, TEST_FIND_PATH_ROOT_DIR+tt.root)
+		got, err := findPath(TEST_FIND_PATH_ROOT_DIR+tt.root, tt.fileId)
 		if err != nil {
 			t.Errorf("[FAIL | %v] %v", tt.name, err)
 			continue

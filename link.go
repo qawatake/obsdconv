@@ -50,7 +50,7 @@ func pathMatchScore(path string, filename string) int {
 	return lpp - cur
 }
 
-func findPath(fileId string, root string) (path string, err error) {
+func findPath(root string, fileId string) (path string, err error) {
 	var filename string
 	if filepath.Ext(fileId) == "" {
 		filename = fileId + ".md"
