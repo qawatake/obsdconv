@@ -138,7 +138,12 @@ func genHugoLink(root string, content string) (link string, err error) {
 	}
 
 	linktext := buildLinkText(displayName, fileId, fragments)
-	ref := path + strings.Join(fragments, "#")
+	var ref string
+	if fragments == nil {
+		ref = path
+	} else {
+		ref = path + "#" + strings.Join(fragments, "#")
+	}
 
 	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
 }
