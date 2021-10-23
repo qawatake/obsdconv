@@ -9,3 +9,6 @@
 !scan_test.go
 !link_test.go
 !preprocess_test.go
+!testdata
+!testdata/findpath
+!testdata/findpath/**
