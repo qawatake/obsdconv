@@ -100,7 +100,6 @@ func TestPathMatchScore(t *testing.T) {
 
 func TestFindPath(t *testing.T) {
 	const (
-		TEST_MD_FILE_NAME       = "test.md"
 		TEST_FIND_PATH_ROOT_DIR = "testdata/findpath/"
 	)
 	cases := []struct {
@@ -109,13 +108,15 @@ func TestFindPath(t *testing.T) {
 		fileId string
 		want   string
 	}{
-		{name: "in cur dir", root: "simple", fileId: TEST_MD_FILE_NAME, want: TEST_MD_FILE_NAME},
-		{name: "in subdir", root: "subdir", fileId: TEST_MD_FILE_NAME, want: "a/" + TEST_MD_FILE_NAME},
-		{name: "in subdir specified", root: "specified_subdir", fileId: "a/" + TEST_MD_FILE_NAME, want: "a/" + TEST_MD_FILE_NAME},
-		{name: "in cur dir and subdir", root: "cur_subdir", fileId: TEST_MD_FILE_NAME, want: TEST_MD_FILE_NAME},
-		{name: "in cur dir and specified subdir", root: "cur_specified_subdir", fileId: "a/" + TEST_MD_FILE_NAME, want: "a/" + TEST_MD_FILE_NAME},
-		{name: "in multiple subdirs", root: "subdir_x2", fileId: TEST_MD_FILE_NAME, want: "a/" + TEST_MD_FILE_NAME},
-		{name: "not found", root: "simple", fileId: "not_found.md", want: ""},
+		{name: "in cur dir", root: "simple", fileId: "test", want: "test.md"},
+		{name: "in subdir", root: "subdir", fileId: "test", want: "a/test.md"},
+		{name: "in subdir specified", root: "specified_subdir", fileId: "a/test", want: "a/test.md"},
+		{name: "in cur dir and subdir", root: "cur_subdir", fileId: "test", want: "test.md"},
+		{name: "in cur dir and specified subdir", root: "cur_specified_subdir", fileId: "a/test", want: "a/test.md"},
+		{name: "in multiple subdirs", root: "subdir_x2", fileId: "test", want: "a/test.md"},
+		{name: "not found", root: "simple", fileId: "not_found", want: ""},
+		{name: "with ext", root: "simple", fileId: "test.md", want: "test.md"},
+		{name: "image", root: "image", fileId: "test.png", want: "test.png"},
 	}
 
 	for _, tt := range cases {
