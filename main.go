@@ -16,7 +16,7 @@ func main() {
 	}
 
 	filename := os.Args[1]
-	root := ""
+	root := "."
 
 	file, err := os.Open(filename)
 	if err != nil {
@@ -92,6 +92,21 @@ func replace(root string, raw []rune) (output []rune, err error) {
 			if err != nil {
 				return nil, fmt.Errorf("genExternalLink failed: %w", err)
 			}
+			output = append(output, []rune(link)...)
+			cur += advance
+			continue
+		}
+
+		if advance, content := scanEmbeds(raw, cur); advance > 0 {
+			if content == "" {
+				cur += advance
+				continue
+			}
+			link, err := genExternalLink(root, content)
+			if err != nil {
+				return nil, fmt.Errorf("genExternalLink failed: %w", err)
+			}
+			output = append(output, '!')
 			output = append(output, []rune(link)...)
 			cur += advance
 			continue

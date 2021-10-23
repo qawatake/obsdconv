@@ -128,6 +128,16 @@ func scanInternalLink(raw []rune, ptr int) (advance int, content string) {
 	return advance, content
 }
 
+func scanEmbeds(raw []rune, ptr int) (advance int, content string) {
+	if !unescaped(raw, ptr, "![[") {
+		return 0, ""
+	}
+	cur := ptr + 1
+	advance, content = scanInternalLink(raw, cur)
+	cur += advance
+	return cur - ptr, content
+}
+
 func validURI(uri string) bool {
 	return !strings.ContainsAny(uri, " \t\r\n")
 }
