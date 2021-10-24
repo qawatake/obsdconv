@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 )
 
@@ -55,10 +56,44 @@ func TransformTag(raw []rune, ptr int) (advance int, tobewritten []rune) {
 
 func TransformExternalLinkFunc(root string) TransformerFunc {
 	return func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-		advance, _, _ = scanExternalLink(raw, ptr)
+		advance, displayName, ref := scanExternalLink(raw, ptr)
 		if advance == 0 {
 			return 0, nil
 		}
-		return advance, raw[ptr : ptr+advance]
+
+		u, err := url.Parse(ref)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "url.Parse failed in TransformExternalLinkFunc: %v\n", err)
+			return 0, nil
+		}
+		if (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" {
+			return advance, raw[ptr : ptr+advance]
+
+		} else if u.Scheme == "obsidian" {
+			q := u.Query()
+			fileId := q.Get("file")
+			if fileId == "" {
+				fmt.Fprintf(os.Stderr, "query file does not exits in obsidian url: %s\n", ref)
+				return 0, nil
+			}
+			path, err := findPath(root, fileId)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "findPath failed in TransformExternalLinkFunc: %v\n", err)
+				return 0, nil
+			}
+			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, path))
+
+		} else if u.Scheme == "" && u.Host == "" {
+			fileId := ref
+			path, err := findPath(root, fileId)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "findPath failed in TransformExternalLinkFunc: %v\n", err)
+				return 0, nil
+			}
+			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, path))
+		} else {
+			fmt.Fprintf(os.Stderr, "unexpected href: %s\n", ref)
+			return 0, nil
+		}
 	}
 }
