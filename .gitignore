@@ -15,3 +15,5 @@
 !testdata
 !testdata/findpath
 !testdata/findpath/**
+!testdata/transformexternallink
+!testdata/transformexternallink/**
