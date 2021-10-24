@@ -35,10 +35,12 @@ func main() {
 	}
 
 	frontMatter, body := splitMarkdown([]rune(string(content)))
-	newContent, err := replace(root, body)
-	if err != nil {
-		log.Fatal(err)
-	}
+	c := NewDefaultConverter(root)
+	newContent := c.Convert(body)
+	// newContent, err := replace(root, body)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	title := getH1(newContent)
 	fmt.Printf("Title: %v\n", title)
 	fmt.Printf("Front Matter: <<\n%v>>\n", string(frontMatter))

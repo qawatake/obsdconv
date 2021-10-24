@@ -2,6 +2,8 @@
 !.gitignore
 !go.mod
 !main.go
+!convert.go
+!transform.go
 !scan.go
 !link.go
 !preprocess.go
