@@ -491,6 +491,22 @@ func TestScanExternalLink(t *testing.T) {
 			wantDisplayName: "",
 			wantRef:         "",
 		},
+		{
+			name:            "[]]()",
+			argRaw:          []rune("[ test] ]( https://google.com#fragment )"),
+			argPtr:          0,
+			wantAdvance:     0,
+			wantDisplayName: "",
+			wantRef:         "",
+		},
+		{
+			name:            "[\\]]()",
+			argRaw:          []rune("[ test\\] ]( https://google.com#fragment )"),
+			argPtr:          0,
+			wantAdvance:     41,
+			wantDisplayName: "test\\]",
+			wantRef:         "https://google.com#fragment",
+		},
 	}
 
 	for _, tt := range cases {

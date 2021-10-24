@@ -142,6 +142,22 @@ func validURI(uri string) bool {
 	return !strings.ContainsAny(uri, " \t\r\n")
 }
 
+func validExternalLinkDisplayName(displayName string) bool {
+	runes := []rune(displayName)
+	cur := 0
+	for {
+		pos := strings.Index(string(runes[cur:]), "]")
+		if pos < 0 {
+			return true
+		}
+		cur += len([]rune(string(string(runes[cur:])[:pos]))) // 発見した ] の位置
+		if unescaped(runes, cur, "]") {
+			return false
+		}
+		cur++
+	}
+}
+
 func scanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {
 	if !(unescaped(raw, ptr, "[") && len(raw[ptr:]) >= 5) {
 		return 0, "", ""
@@ -151,8 +167,11 @@ func scanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref
 	if midpos < 0 || midpos+1 >= len(string(raw[cur:]))-1 {
 		return 0, "", ""
 	}
-	next := cur + len([]rune(string(string(raw[cur:])[:midpos]))) // "](" の "["
+	next := cur + len([]rune(string(string(raw[cur:])[:midpos]))) // "](" の "]"
 	displayName = strings.Trim(string(raw[cur:next]), " \t")
+	if !validExternalLinkDisplayName(displayName) {
+		return 0, "", ""
+	}
 	cur = next
 	if strings.Contains(displayName, "\r\n\r\n") || strings.Contains(displayName, "\n\n") {
 		return 0, "", ""
