@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	RuneDollar = 0x24 // $
+	RuneDollar = 0x24 // "$"
 )
 
 func main() {
@@ -37,10 +37,6 @@ func main() {
 	frontMatter, body := splitMarkdown([]rune(string(content)))
 	c := NewDefaultConverter(root)
 	newContent := c.Convert(body)
-	// newContent, err := replace(root, body)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 	title := getH1(newContent)
 	fmt.Printf("Title: %v\n", title)
 	fmt.Printf("Front Matter: <<\n%v>>\n", string(frontMatter))
@@ -51,99 +47,4 @@ func main() {
 	}
 	defer newFile.Close()
 	newFile.Write([]byte(string(newContent)))
-}
-
-func replace(root string, raw []rune) (output []rune, err error) {
-	output = make([]rune, 0)
-	cur := 0
-	for cur < len(raw) {
-		if advance := scanCodeBlock(raw, cur); advance > 0 {
-			next := cur + advance
-			output = append(output, raw[cur:next]...)
-			cur = next
-			continue
-		}
-
-		if advance := scanComment(raw, cur); advance > 0 {
-			next := cur + advance
-			output = append(output, raw[cur:next]...)
-			cur = next
-			continue
-		}
-
-		if advance := scanMathBlock(raw, cur); advance > 0 {
-			next := cur + advance
-			output = append(output, raw[cur:next]...)
-			cur = next
-			continue
-		}
-
-		if advance, _, _ := scanExternalLink(raw, cur); advance > 0 {
-			next := cur + advance
-			output = append(output, raw[cur:next]...)
-			cur = next
-			continue
-		}
-
-		if advance, content := scanInternalLink(raw, cur); advance > 0 {
-			if content == "" { // [[ ]] はスキップ
-				cur += advance
-				continue
-			}
-			link, err := genExternalLink(root, content)
-			if err != nil {
-				return nil, fmt.Errorf("genExternalLink failed: %w", err)
-			}
-			output = append(output, []rune(link)...)
-			cur += advance
-			continue
-		}
-
-		if advance, content := scanEmbeds(raw, cur); advance > 0 {
-			if content == "" {
-				cur += advance
-				continue
-			}
-			link, err := genExternalLink(root, content)
-			if err != nil {
-				return nil, fmt.Errorf("genExternalLink failed: %w", err)
-			}
-			output = append(output, '!')
-			output = append(output, []rune(link)...)
-			cur += advance
-			continue
-		}
-
-		if advance := scanInlineCode(raw, cur); advance > 0 {
-			next := cur + advance
-			output = append(output, raw[cur:next]...)
-			cur = next
-			continue
-		}
-
-		if advance := scanInlineMath(raw, cur); advance > 0 {
-			next := cur + advance
-			output = append(output, raw[cur:next]...)
-			cur = next
-			continue
-		}
-
-		if advance := scanRepeat(raw, cur, "#"); advance > 1 {
-			next := cur + advance
-			output = append(output, raw[cur:next]...)
-			cur = next
-			continue
-		}
-
-		if advance, _ := scanTag(raw, cur); advance > 0 {
-			next := cur + advance
-			cur = next
-			continue
-		}
-
-		// 普通の文字
-		output = append(output, raw[cur])
-		cur++
-	}
-	return output, nil
 }
