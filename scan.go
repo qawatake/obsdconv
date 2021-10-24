@@ -206,12 +206,13 @@ func scanComment(raw []rune, ptr int) (advance int) {
 		return 0
 	}
 	length := len(raw[ptr:]) - len([]rune(strings.TrimLeft(string(raw[ptr:]), "%")))
-	cur := ptr + length
+	cur := ptr + length // opening の %% の直後
 	pos := strings.Index(string(raw[cur:]), strings.Repeat("%", length))
 	if pos < 0 {
-		return len(raw[ptr:]) - ptr
+		return len(raw) - ptr
 	}
-	return cur + len([]rune(string(string(raw[cur:])[:pos]))) + length
+	cur += len([]rune(string(string(raw[cur:])[:pos]))) + length // closing %% の直後
+	return cur - ptr
 }
 
 func validMathBlockClosing(raw []rune, openPtr int, closingPtr int) bool {

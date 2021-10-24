@@ -549,6 +549,12 @@ func TestScanComment(t *testing.T) {
 			want:   5,
 		},
 		{
+			name: "longer closing with \\n",
+			argRaw: []rune("%%\nx\n%%%"),
+			argPtr: 0,
+			want: 7,
+		},
+		{
 			name:   "escaped closing",
 			argRaw: []rune("%%x\\%%"),
 			argPtr: 0,
