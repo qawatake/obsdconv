@@ -48,13 +48,7 @@ func NewDefaultConverter(vault string) *Converter {
 	c.Set(DefaultMiddleware(scanCodeBlock))
 	c.Set(DefaultMiddleware(scanComment))
 	c.Set(DefaultMiddleware(scanMathBlock))
-	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-		advance, _, _ = scanExternalLink(raw, ptr)
-		if advance == 0 {
-			return 0, nil
-		}
-		return advance, raw[ptr : ptr+advance]
-	})
+	c.Set(TransformExternalLinkFunc(vault))
 	c.Set(TransformInternalLinkFunc(vault))
 	c.Set(TransformEmbedsFunc(vault))
 	c.Set(DefaultMiddleware(scanInlineMath))

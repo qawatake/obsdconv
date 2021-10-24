@@ -52,3 +52,13 @@ func TransformTag(raw []rune, ptr int) (advance int, tobewritten []rune) {
 	}
 	return advance, nil
 }
+
+func TransformExternalLinkFunc(root string) TransformerFunc {
+	return func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _, _ = scanExternalLink(raw, ptr)
+		if advance == 0 {
+			return 0, nil
+		}
+		return advance, raw[ptr : ptr+advance]
+	}
+}
