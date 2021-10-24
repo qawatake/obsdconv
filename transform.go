@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 )
 
 func TransformNone(raw []rune, ptr int) (advance int, tobewritten []rune) {
@@ -66,6 +67,7 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			fmt.Fprintf(os.Stderr, "url.Parse failed in TransformExternalLinkFunc: %v\n", err)
 			return 0, nil
 		}
+
 		if (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" {
 			return advance, raw[ptr : ptr+advance]
 
@@ -84,13 +86,24 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, path))
 
 		} else if u.Scheme == "" && u.Host == "" {
-			fileId := ref
+			fileId, fragments, err := splitFragments(ref)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "splitFragments failed in TransformExternalLinkFunc: %v\n", err)
+				return 0, nil
+			}
 			path, err := findPath(root, fileId)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "findPath failed in TransformExternalLinkFunc: %v\n", err)
 				return 0, nil
 			}
-			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, path))
+			var newref string
+			if fragments == nil {
+				newref = path
+			} else {
+				newref = path + "#" + strings.Join(fragments, "#")
+			}
+			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, newref))
+
 		} else {
 			fmt.Fprintf(os.Stderr, "unexpected href: %s\n", ref)
 			return 0, nil
