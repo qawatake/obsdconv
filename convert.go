@@ -46,7 +46,7 @@ func DefaultMiddleware(scanner ScannerFunc) TransformerFunc {
 func NewDefaultConverter(vault string) *Converter {
 	c := new(Converter)
 	c.Set(DefaultMiddleware(scanCodeBlock))
-	c.Set(DefaultMiddleware(scanComment))
+	c.Set(TransformComment)
 	c.Set(DefaultMiddleware(scanMathBlock))
 	c.Set(TransformExternalLinkFunc(vault))
 	c.Set(TransformInternalLinkFunc(vault))

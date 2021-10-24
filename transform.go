@@ -110,3 +110,11 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 		}
 	}
 }
+
+func TransformComment(raw []rune, ptr int) (advance int, tobewritten []rune) {
+	advance = scanComment(raw, ptr)
+	if advance == 0 {
+		return 0, nil
+	}
+	return advance, nil
+}
