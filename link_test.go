@@ -141,6 +141,7 @@ func TestBuildLinkText(t *testing.T) {
 		{displayName: "test", fileId: "211023", fragments: []string{"", ""}, want: "test"},
 		{displayName: "", fileId: "211023", fragments: nil, want: "211023"},
 		{displayName: "", fileId: "211023", fragments: []string{"section", "subsection"}, want: "211023 > section > subsection"},
+		{displayName: "", fileId: "", fragments: []string{"section", "subsection"}, want: "section > subsection"},
 	}
 
 	for _, tt := range cases {

@@ -119,11 +119,15 @@ func buildLinkText(displayName string, fileId string, fragments []string) (linkt
 		return displayName
 	}
 
-	linktext = fileId
-	for _, f := range fragments {
-		linktext += fmt.Sprintf(" > %s", f)
+	if fileId != "" {
+		linktext = fileId
+		for _, f := range fragments {
+			linktext += fmt.Sprintf(" > %s", f)
+		}
+		return linktext
+	} else {
+		return strings.Join(fragments, " > ")
 	}
-	return linktext
 }
 
 func genExternalLink(root string, content string) (link string, err error) {
