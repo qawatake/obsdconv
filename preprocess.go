@@ -19,7 +19,7 @@ func getH1(content []rune) string {
 }
 
 // yaml front matter と本文を切り離す
-func splitMarkdown(content []rune) ([]rune, []rune) {
+func splitMarkdown(content []rune) (yml []byte, body []rune) {
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 
 	// 冒頭の改行をスキップ
@@ -51,10 +51,9 @@ func splitMarkdown(content []rune) ([]rune, []rune) {
 		return nil, content
 	}
 
-	body := make([]rune, 0)
 	for scanner.Scan() {
 		body = append(body, []rune(scanner.Text())...)
 		body = append(body, '\n')
 	}
-	return frontMatter, body
+	return []byte(string(frontMatter)), body
 }

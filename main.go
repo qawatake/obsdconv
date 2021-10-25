@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -34,23 +36,32 @@ func main() {
 		log.Fatalf("file.Write failed: %v", err)
 	}
 
-	frontMatter, body := splitMarkdown([]rune(string(content)))
-	title := ""
+	yml, body := splitMarkdown([]rune(string(content)))
+	frontmatter := new(frontMatter)
 	tags := make(map[string]struct{})
-	c := NewConverter(root, &title, tags)
+
+	c := NewConverter(root, &(frontmatter.Title), tags)
 	newContent := c.Convert(body)
-	fmt.Printf("Title: %v\n", title)
-	for key, _ := range tags {
-		fmt.Printf("[TAG] %s\n", key)
+
+	if err := yaml.Unmarshal(yml, frontmatter); err != nil {
+		log.Fatalf("yaml.Unmarshal failed: %v", err)
 	}
-	fmt.Printf("Front Matter: <<\n%v>>\n", string(frontMatter))
+	frontmatter.Aliases = append(frontmatter.Aliases, frontmatter.Title)
+	for key := range tags {
+		frontmatter.Tags = append(frontmatter.Tags, key)
+	}
+	yml, err = yaml.Marshal(frontmatter)
+	if err != nil {
+		log.Fatalf("yaml.Marshal failed: %v", err)
+	}
+	fmt.Printf("Front Matter: <<\n%v>>\n", string(yml))
 
 	newFile, err := os.Create("new." + filename)
 	if err != nil {
 		log.Fatalf("os.Create failed: %v", err)
 	}
 	defer newFile.Close()
-	newFile.Write([]byte(string(newContent)))
+	fmt.Fprintf(newFile, "---\n%s---\n%s", string(yml), string(newContent))
 }
 
 func NewConverter(vault string, title *string, tags map[string]struct{}) *Converter {

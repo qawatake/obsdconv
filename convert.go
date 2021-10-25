@@ -1,6 +1,8 @@
 package main
 
-import "log"
+import (
+	"log"
+)
 
 type TransformerFunc func(raw []rune, ptr int) (advance int, tobewritten []rune)
 
