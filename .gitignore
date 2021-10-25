@@ -8,6 +8,7 @@
 !link.go
 !preprocess.go
 !frontmatter.go
+!walk.go
 !main_test.go
 !transform_test.go
 !scan_test.go
