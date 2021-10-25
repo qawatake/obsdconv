@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 )
 
-func walk(src string, dst string) error {
-	err := filepath.Walk(src, func(path string, info fs.FileInfo, err error) error {
-		rpath, err := filepath.Rel(src, path)
+func walk(flags *flagBundle) error {
+	err := filepath.Walk(flags.src, func(path string, info fs.FileInfo, err error) error {
+		rpath, err := filepath.Rel(flags.src, path)
 		if err != nil {
 			return err
 		}
 		rpath = filepath.Clean(rpath)
-		newpath := dst + "/" + rpath
+		newpath := flags.dst + "/" + rpath
 		if info.IsDir() {
 			if _, err := os.Stat(newpath); !os.IsNotExist(err) {
 				return nil
@@ -43,7 +43,7 @@ func walk(src string, dst string) error {
 				return err
 			}
 			defer file.Close()
-			if err := convert(src, newpath, file); err != nil {
+			if err := convert(flags.src, newpath, flags, file); err != nil {
 				return err
 			}
 		}
