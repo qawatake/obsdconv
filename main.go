@@ -13,34 +13,38 @@ const (
 	RuneDollar = 0x24 // "$"
 )
 
-var srcflag string
-var dstflag string
-var rmtagflag bool
-var cptagflag bool
-var titleflag bool
-var aliasflag bool
-var linkflag bool
-var cmmtflag bool
-var obsflag bool
-var cmmnflag bool
+type flagBundle struct {
+	src   string
+	dst   string
+	rmtag bool
+	cptag bool
+	title bool
+	alias bool
+	link  bool
+	cmmt  bool
+	obs   bool
+	cmmn  bool
+}
+
+var flags flagBundle
 
 func init() {
-	flag.StringVar(&srcflag, "src", ".", "source directory")
-	flag.StringVar(&dstflag, "dst", ".", "destination directory")
-	flag.BoolVar(&rmtagflag, "rmtag", false, "remove tag")
-	flag.BoolVar(&cptagflag, "cptag", false, "copy tag to tags field of front matter")
-	flag.BoolVar(&titleflag, "title", false, "copy h1 content to title field of front matter")
-	flag.BoolVar(&aliasflag, "alias", false, "copy add h1 content to aliases field of front matter")
-	flag.BoolVar(&linkflag, "link", false, "convert obsidian internal and external links to external links in the usual format")
-	flag.BoolVar(&cmmtflag, "cmmt", false, "remove obsidian comment")
-	flag.BoolVar(&obsflag, "obs", false, "alias of -cptag -title -alias")
-	flag.BoolVar(&cmmnflag, "cmmn", false, "alias of -cptag -rmtag -title -alias -link -cmmt")
+	flag.StringVar(&flags.src, "src", ".", "source directory")
+	flag.StringVar(&flags.dst, "dst", ".", "destination directory")
+	flag.BoolVar(&flags.rmtag, "rmtag", false, "remove tag")
+	flag.BoolVar(&flags.cptag, "cptag", false, "copy tag to tags field of front matter")
+	flag.BoolVar(&flags.title, "title", false, "copy h1 content to title field of front matter")
+	flag.BoolVar(&flags.alias, "alias", false, "copy add h1 content to aliases field of front matter")
+	flag.BoolVar(&flags.link, "link", false, "convert obsidian internal and external links to external links in the usual format")
+	flag.BoolVar(&flags.cmmt, "cmmt", false, "remove obsidian comment")
+	flag.BoolVar(&flags.obs, "obs", false, "alias of -cptag -title -alias")
+	flag.BoolVar(&flags.cmmn, "cmmn", false, "alias of -cptag -rmtag -title -alias -link -cmmt")
 }
 
 func main() {
 	flag.Parse()
 	setFlags()
-	if err := walk(srcflag, dstflag); err != nil {
+	if err := walk(flags.src, flags.dst); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -159,14 +163,14 @@ func NewConverter(vault string, title *string, tags map[string]struct{}) *Conver
 }
 
 func setFlags() {
-	if obsflag || cmmnflag {
-		cptagflag = true
-		titleflag = true
-		aliasflag = true
+	if flags.obs || flags.cmmn {
+		flags.cptag = true
+		flags.title = true
+		flags.alias = true
 	}
-	if cmmnflag {
-		rmtagflag = true
-		linkflag = true
-		cmmnflag = true
+	if flags.cmmn {
+		flags.rmtag = true
+		flags.link = true
+		flags.cmmn = true
 	}
 }
