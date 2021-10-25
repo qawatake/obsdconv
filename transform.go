@@ -22,6 +22,7 @@ func TransformInternalLinkFunc(root string) TransformerFunc {
 		}
 		link, err := genExternalLink(root, content)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
 			fmt.Fprintf(os.Stderr, "genExternalLink failed in TransformInternalLinkFunc: %v", err)
 			return 0, nil
 		}
@@ -40,6 +41,7 @@ func TransformEmbedsFunc(root string) TransformerFunc {
 		}
 		link, err := genExternalLink(root, content)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
 			fmt.Fprintf(os.Stderr, "genExternalLink failed in TransformEmbedsFunc: %v", err)
 			return 0, nil
 		}
@@ -64,6 +66,7 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 
 		u, err := url.Parse(ref)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
 			fmt.Fprintf(os.Stderr, "url.Parse failed in TransformExternalLinkFunc: %v\n", err)
 			return 0, nil
 		}
@@ -75,11 +78,13 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			q := u.Query()
 			fileId := q.Get("file")
 			if fileId == "" {
+				fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
 				fmt.Fprintf(os.Stderr, "query file does not exits in obsidian url: %s\n", ref)
 				return 0, nil
 			}
 			path, err := findPath(root, fileId)
 			if err != nil {
+				fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
 				fmt.Fprintf(os.Stderr, "findPath failed in TransformExternalLinkFunc: %v\n", err)
 				return 0, nil
 			}
@@ -88,11 +93,13 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 		} else if u.Scheme == "" && u.Host == "" {
 			fileId, fragments, err := splitFragments(ref)
 			if err != nil {
+				fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
 				fmt.Fprintf(os.Stderr, "splitFragments failed in TransformExternalLinkFunc: %v\n", err)
 				return 0, nil
 			}
 			path, err := findPath(root, fileId)
 			if err != nil {
+				fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
 				fmt.Fprintf(os.Stderr, "findPath failed in TransformExternalLinkFunc: %v\n", err)
 				return 0, nil
 			}
@@ -105,6 +112,7 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, newref))
 
 		} else {
+			fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
 			fmt.Fprintf(os.Stderr, "unexpected href: %s\n", ref)
 			return 0, nil
 		}
