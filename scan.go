@@ -306,19 +306,17 @@ func scanHeader(raw []rune, ptr int) (advance int, level int, headertext string)
 	// 前の改行まではスペースしか入っちゃいけない
 	for back := ptr; back > 0; {
 		back--
-		switch raw[back] {
-		case '\n':
+		if raw[back] == '\n' {
 			break
-		case ' ':
+		} else if raw[back] == ' ' {
 			continue
-		default:
+		} else {
 			return 0, 0, ""
 		}
 	}
 
-	length := len(raw[ptr:]) - len(strings.TrimLeft(string(raw[ptr:]), "#"))
+	length := len(raw[ptr:]) - len([]rune(strings.TrimLeft(string(raw[ptr:]), "#")))
 	cur := ptr + length // "#" の直後
-
 	if cur >= len(raw) || !(raw[cur] == ' ' || raw[cur] == '\n' || (len(raw) >= 2 && string(raw[cur:cur+2]) == "\r\n")) {
 		return 0, 0, ""
 	}
