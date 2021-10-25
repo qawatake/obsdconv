@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -12,12 +13,38 @@ const (
 	RuneDollar = 0x24 // "$"
 )
 
+var srcflag string
+var dstflag string
+var rmtagflag bool
+var cptagflag bool
+var titleflag bool
+var aliasflag bool
+var linkflag bool
+var cmmtflag bool
+var obsflag bool
+var cmmnflag bool
+
+func init() {
+	flag.StringVar(&srcflag, "src", ".", "source directory")
+	flag.StringVar(&dstflag, "dst", ".", "destination directory")
+	flag.BoolVar(&rmtagflag, "rmtag", false, "remove tag")
+	flag.BoolVar(&cptagflag, "cptag", false, "copy tag to tags field of front matter")
+	flag.BoolVar(&titleflag, "title", false, "copy h1 content to title field of front matter")
+	flag.BoolVar(&aliasflag, "alias", false, "copy add h1 content to aliases field of front matter")
+	flag.BoolVar(&linkflag, "link", false, "convert obsidian internal and external links to external links in the usual format")
+	flag.BoolVar(&cmmtflag, "cmmt", false, "remove obsidian comment")
+	flag.BoolVar(&obsflag, "obs", false, "alias of -cptag -title -alias")
+	flag.BoolVar(&cmmnflag, "cmmn", false, "alias of -cptag -rmtag -title -alias -link -cmmt")
+}
+
 func main() {
-	if len(os.Args) != 2 {
+	flag.Parse()
+	setFlags()
+
+	if len(flag.Args()) != 1 {
 		log.Fatal("引数の個数が不正です")
 	}
-
-	filename := os.Args[1]
+	filename := flag.Args()[0]
 	root := "."
 
 	file, err := os.Open(filename)
@@ -135,4 +162,17 @@ func NewConverter(vault string, title *string, tags map[string]struct{}) *Conver
 	})
 	c.Set(TransformNone)
 	return c
+}
+
+func setFlags() {
+	if obsflag || cmmnflag {
+		cptagflag = true
+		titleflag = true
+		aliasflag = true
+	}
+	if cmmnflag {
+		rmtagflag = true
+		linkflag = true
+		cmmnflag = true
+	}
 }
