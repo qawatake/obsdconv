@@ -2,7 +2,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -39,54 +43,46 @@ func main() {
 	if err := walk(srcflag, dstflag); err != nil {
 		log.Fatal(err)
 	}
-	// if len(flag.Args()) != 1 {
-	// 	log.Fatal("引数の個数が不正です")
-	// }
-	// filename := flag.Args()[0]
-	// root := "."
+}
 
-	// file, err := os.Open(filename)
-	// if err != nil {
-	// 	log.Fatalf("os.Create failed %v", err)
-	// }
-	// defer file.Close()
-	// fileinfo, err := file.Stat()
-	// if err != nil {
-	// 	log.Fatalf("file.Stat failed %v", err)
-	// }
+func convert(vault string, newpath string, file *os.File) error {
+	fileinfo, err := file.Stat()
+	if err != nil {
+		log.Fatalf("file.Stat failed %v", err)
+	}
 
-	// content := make([]byte, fileinfo.Size())
-	// _, err = file.Read(content)
-	// if err != nil {
-	// 	log.Fatalf("file.Write failed: %v", err)
-	// }
+	content := make([]byte, fileinfo.Size())
+	_, err = file.Read(content)
+	if err != nil {
+		log.Fatalf("file.Write failed: %v", err)
+	}
 
-	// yml, body := splitMarkdown([]rune(string(content)))
-	// frontmatter := new(frontMatter)
-	// tags := make(map[string]struct{})
+	yml, body := splitMarkdown([]rune(string(content)))
+	frontmatter := new(frontMatter)
+	tags := make(map[string]struct{})
 
-	// c := NewConverter(root, &(frontmatter.Title), tags)
-	// newContent := c.Convert(body)
+	c := NewConverter(vault, &(frontmatter.Title), tags)
+	newContent := c.Convert(body)
 
-	// if err := yaml.Unmarshal(yml, frontmatter); err != nil {
-	// 	log.Fatalf("yaml.Unmarshal failed: %v", err)
-	// }
-	// frontmatter.Aliases = append(frontmatter.Aliases, frontmatter.Title)
-	// for key := range tags {
-	// 	frontmatter.Tags = append(frontmatter.Tags, key)
-	// }
-	// yml, err = yaml.Marshal(frontmatter)
-	// if err != nil {
-	// 	log.Fatalf("yaml.Marshal failed: %v", err)
-	// }
-	// fmt.Printf("Front Matter: <<\n%v>>\n", string(yml))
+	if err := yaml.Unmarshal(yml, frontmatter); err != nil {
+		log.Fatalf("yaml.Unmarshal failed: %v", err)
+	}
+	frontmatter.Aliases = append(frontmatter.Aliases, frontmatter.Title)
+	for key := range tags {
+		frontmatter.Tags = append(frontmatter.Tags, key)
+	}
+	yml, err = yaml.Marshal(frontmatter)
+	if err != nil {
+		log.Fatalf("yaml.Marshal failed: %v", err)
+	}
 
-	// newFile, err := os.Create("new." + filename)
-	// if err != nil {
-	// 	log.Fatalf("os.Create failed: %v", err)
-	// }
-	// defer newFile.Close()
-	// fmt.Fprintf(newFile, "---\n%s---\n%s", string(yml), string(newContent))
+	newfile, err := os.Create(newpath)
+	if err != nil {
+		return err
+	}
+	defer newfile.Close()
+	fmt.Fprintf(newfile, "---\n%s---\n%s", string(yml), string(newContent))
+	return nil
 }
 
 func NewConverter(vault string, title *string, tags map[string]struct{}) *Converter {

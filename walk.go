@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -38,9 +37,15 @@ func walk(src string, dst string) error {
 			}
 			defer newfile.Close()
 			io.Copy(newfile, file)
-			fmt.Printf("md file: %s -> %s\n", path, dst+"/"+rpath)
 		} else {
-			fmt.Printf("other file: %s -> %s\n", path, dst+"/"+rpath)
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+			if err := convert(src, newpath, file); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
