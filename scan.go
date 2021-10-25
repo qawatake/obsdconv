@@ -333,3 +333,10 @@ func scanHeader(raw []rune, ptr int) (advance int, level int, headertext string)
 	headertext = strings.Trim(string(raw[cur:ptr+advance]), " \t\r\n")
 	return advance, level, headertext
 }
+
+func scanEscaped(raw []rune, ptr int) (advance int) {
+	if !(unescaped(raw, ptr, "\\") && len(raw[ptr:]) > 1) {
+		return 0
+	}
+	return 2
+}
