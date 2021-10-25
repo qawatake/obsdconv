@@ -37,6 +37,10 @@ func followedBy(raw []rune, ptr int, ss []string) bool {
 	return false
 }
 
+func currentLine(raw []rune, ptr int) (linenum int) {
+	return strings.Count(string(raw[:ptr]), "\n") + 1
+}
+
 func scanInlineCode(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "`") && len(raw[ptr:]) > 1) {
 		return 0

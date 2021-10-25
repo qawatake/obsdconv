@@ -111,6 +111,22 @@ func TestFollowedBy(t *testing.T) {
 	}
 }
 
+func TestCurrentLine(t *testing.T) {
+	cases := []struct {
+		raw  []rune
+		ptr  int
+		want int
+	}{
+		{raw: []rune("a\nb\nc\nX"), ptr: 6, want: 4},
+		{raw: []rune("a\n\n\n\\n\\n\nX"), ptr: 9, want: 5},
+	}
+	for _, tt := range cases {
+		if got := currentLine(tt.raw, tt.ptr); got != tt.want {
+			t.Errorf("[ERROR] got: %d, want: %d with input %q", got, tt.want, string(tt.raw))
+		}
+	}
+}
+
 func TestScanTag(t *testing.T) {
 	cases := []struct {
 		argRaw      []rune
@@ -549,10 +565,10 @@ func TestScanComment(t *testing.T) {
 			want:   5,
 		},
 		{
-			name: "longer closing with \\n",
+			name:   "longer closing with \\n",
 			argRaw: []rune("%%\nx\n%%%"),
 			argPtr: 0,
-			want: 7,
+			want:   7,
 		},
 		{
 			name:   "escaped closing",
