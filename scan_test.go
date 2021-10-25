@@ -782,3 +782,39 @@ func TestScanCodeBlock(t *testing.T) {
 		}
 	}
 }
+
+func TestScanHeader(t *testing.T) {
+	cases := []struct {
+		name           string
+		raw            []rune
+		ptr            int
+		wantAdvance    int
+		wantLevel      int
+		wantHeaderText string
+	}{
+		{name: "simple h1", raw: []rune("# This is a header 1\n"), ptr: 0, wantAdvance: 21, wantLevel: 1, wantHeaderText: "This is a header 1"},
+		{name: "simple h6", raw: []rune("###### This is a header 6\n"), ptr: 0, wantAdvance: 26, wantLevel: 6, wantHeaderText: "This is a header 6"},
+		{name: "preceded by \\t", raw: []rune("\t# This is not a header 1\n"), ptr: 1, wantAdvance: 0, wantLevel: 0, wantHeaderText: ""},
+		{name: "preceded by a letter", raw: []rune("x # This is not a header 1\n"), ptr: 2, wantAdvance: 0, wantLevel: 0, wantHeaderText: ""},
+		{name: "preceded by \\n and spaces", raw: []rune("\n # This is not a header 1\n"), ptr: 2, wantAdvance: 25, wantLevel: 1, wantHeaderText: "This is not a header 1"},
+		{name: "escaped", raw: []rune("\\# This is not a header 1\n"), ptr: 1, wantAdvance: 0, wantLevel: 0, wantHeaderText: ""},
+		{name: "tag", raw: []rune("#This is a tag"), ptr: 0, wantAdvance: 0, wantLevel: 0, wantHeaderText: ""},
+		{name: "separated by \\r\\n", raw: []rune("# This is a header 1\r\n"), ptr: 0, wantAdvance: 22, wantLevel: 1, wantHeaderText: "This is a header 1"},
+		{name: "immediate \\r\\n", raw: []rune("#\r\n"), ptr: 0, wantAdvance: 3, wantLevel: 1, wantHeaderText: ""},
+	}
+
+	for _, tt := range cases {
+		gotAdvance, gotLevel, gotHeaderText := scanHeader(tt.raw, tt.ptr)
+		if gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR | advance - %s] got: %d, want: %d", tt.name, gotAdvance, tt.wantAdvance)
+			continue
+		}
+		if gotLevel != tt.wantLevel {
+			t.Errorf("[ERROR | level - %s] got: %d, want: %d", tt.name, gotLevel, tt.wantLevel)
+			continue
+		}
+		if gotHeaderText != tt.wantHeaderText {
+			t.Errorf("[ERROR | header text - %s] got: %q, want: %q", tt.name, gotHeaderText, tt.wantHeaderText)
+		}
+	}
+}

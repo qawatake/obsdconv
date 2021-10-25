@@ -298,3 +298,40 @@ func scanCodeBlock(raw []rune, ptr int) (advance int) {
 		return cur + closingLength - ptr
 	}
 }
+
+func scanHeader(raw []rune, ptr int) (advance int, level int, headertext string) {
+	if !(unescaped(raw, ptr, "#")) {
+		return
+	}
+	// 前の改行まではスペースしか入っちゃいけない
+	for back := ptr; back > 0; {
+		back--
+		switch raw[back] {
+		case '\n':
+			break
+		case ' ':
+			continue
+		default:
+			return 0, 0, ""
+		}
+	}
+
+	length := len(raw[ptr:]) - len(strings.TrimLeft(string(raw[ptr:]), "#"))
+	cur := ptr + length // "#" の直後
+
+	if cur >= len(raw) || !(raw[cur] == ' ' || raw[cur] == '\n' || (len(raw) >= 2 && string(raw[cur:cur+2]) == "\r\n")) {
+		return 0, 0, ""
+	}
+
+	pos := strings.Index(string(raw[cur:]), "\n")
+	if pos < 0 {
+		advance = len(raw[ptr:])
+		level = length
+		headertext = strings.Trim(string(raw[cur:]), " \t\r\n")
+		return advance, length, headertext
+	}
+	advance = cur + len([]rune(string(string(raw[cur:])[:pos+1]))) - ptr // \r\n や \n を含む
+	level = length
+	headertext = strings.Trim(string(raw[cur:ptr+advance]), " \t\r\n")
+	return advance, level, headertext
+}
