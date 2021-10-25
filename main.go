@@ -105,7 +105,7 @@ func NewConverter(vault string, title *string, tags map[string]struct{}) *Conver
 		if level == 1 && *title == "" {
 			_, _, *title = scanHeader(tagRemoved, 0)
 		}
-		return len(tagRemoved), tagRemoved
+		return advance, tagRemoved
 	})
 	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
 		advance = scanRepeat(raw, ptr, "#")
