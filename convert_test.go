@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"path/filepath"
 	"testing"
 )
 
@@ -178,13 +176,42 @@ func TestLinkConverter(t *testing.T) {
 			raw:   []rune("[[test#section#subsection | 211026]]"),
 			want:  []rune("[211026](test.md#subsection)"),
 		},
+		{
+			name:  "simple - embeds",
+			vault: "embeds/simple",
+			raw:   []rune("![[image.png]]"),
+			want:  []rune("![image.png](image.png)"),
+		},
+		{
+			name:  "display name - embeds",
+			vault: "embeds/displayname",
+			raw:   []rune("![[image.png | 211026]]"),
+			want:  []rune("![211026](image.png)"),
+		},
+		// {
+		// 	name:  "fragments - embeds",
+		// 	vault: "embeds/fragments",
+		// 	raw:   []rune("![[image.png#section]]"),
+		// 	want:  []rune("![image.png > section](image.png)"),
+		// },
+		{
+			name:  "empty - embeds",
+			vault: "embeds",
+			raw:   []rune("![[]]"),
+			want:  []rune("![[]]"),
+		},
+		{
+			name:  "blank - embeds",
+			vault: "embeds",
+			raw:   []rune("![[ ]]"),
+			want:  []rune(""),
+		},
 	}
 
 	for _, tt := range cases {
 		c := NewLinkConverter(TEST_LINK_CONVERTER_VAULT_DIR + tt.vault)
 		if got := c.Convert(tt.raw); string(got) != string(tt.want) {
 			t.Errorf("[ERROR | %v]\n\t got: %q\n\twant: %q", tt.name, string(got), string(tt.want))
-			fmt.Println(filepath.Dir(TEST_LINK_CONVERTER_VAULT_DIR+tt.vault), filepath.Base(TEST_LINK_CONVERTER_VAULT_DIR+tt.vault))
 		}
 	}
 }

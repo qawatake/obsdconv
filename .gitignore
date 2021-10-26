@@ -25,3 +25,5 @@
 !testdata/linkconverter/external/**
 !testdata/linkconverter/internal
 !testdata/linkconverter/internal/**
+!testdata/linkconverter/embeds
+!testdata/linkconverter/embeds/**
