@@ -136,7 +136,9 @@ func NewTagFinder(tags map[string]struct{}) *Converter {
 	})
 	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
 		advance, t := scanTag(raw, ptr)
-		tags[t] = struct{}{}
+		if advance > 0 {
+			tags[t] = struct{}{}
+		}
 		return advance, raw[ptr : ptr+advance]
 	})
 	c.Set(TransformNone)
