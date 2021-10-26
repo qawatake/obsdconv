@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestTagRemover(t *testing.T) {
 	cases := []struct {
@@ -25,28 +27,29 @@ func TestTagRemover(t *testing.T) {
 func TestTagFinder(t *testing.T) {
 	cases := []struct {
 		name     string
-		tags     map[string]struct{}
 		raw      []rune
 		wantTags []string
 	}{
-		{},
-		{},
+		{name: "simple", raw: []rune("# H1 #todo #obsidian\n## H2\n"), wantTags: []string{"todo", "obsidian"}},
+		{name: "escaped", raw: []rune("# H1 #todo \\#obsidian\n## H2\n"), wantTags: []string{"todo"}},
+		{name: "##", raw: []rune("# H1 #todo ##obsidian\n## H2\n"), wantTags: []string{"todo"}},
 	}
 
 	for _, tt := range cases {
-		c := NewTagFinder(tt.tags)
+		tags := make(map[string]struct{})
+		c := NewTagFinder(tags)
 		if got := c.Convert(tt.raw); string(got) != string(tt.raw) {
 			t.Errorf("[ERROR | ouput - %v]\n\tgot: %q\n\twant: %q", tt.name, string(got), string(tt.raw))
 		}
 		for _, tag := range tt.wantTags {
-			if _, ok := tt.tags[tag]; !ok {
+			if _, ok := tags[tag]; !ok {
 				t.Errorf("[ERROR]| %s] tag not found: %s", tt.name, tag)
 			} else {
-				delete(tt.tags, tag)
+				delete(tags, tag)
 			}
 		}
-		if len(tt.tags) > 0 {
-			for _, tag := range tt.tags {
+		if len(tags) > 0 {
+			for tag := range tags {
 				t.Errorf("[ERROR | %s] unexpected tag found: %s", tt.name, tag)
 			}
 		}
