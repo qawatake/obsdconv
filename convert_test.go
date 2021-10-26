@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"path/filepath"
 	"testing"
 )
 
@@ -83,20 +85,46 @@ func TestTitleFinder(t *testing.T) {
 }
 
 func TestLinkConverter(t *testing.T) {
+	const (
+		TEST_LINK_CONVERTER_VAULT_DIR = "testdata/linkconverter/"
+	)
 	cases := []struct {
 		name  string
 		vault string
 		raw   []rune
 		want  []rune
 	}{
-		{},
-		{},
+		{name: "simple - external",
+			vault: "external",
+			raw:   []rune("[google](https://google.com)"),
+			want:  []rune("[google](https://google.com)")},
+		{name: "filename - external",
+			vault: "external/filename",
+			raw:   []rune("[211026](test.md)"),
+			want:  []rune("[211026](test.md)")},
+		{name: "ref is fileId (filename with the extension removed) - external",
+			vault: "external/fileid",
+			raw:   []rune("[211026](test)"),
+			want:  []rune("[211026](test.md)")},
+		{name: "ref is fileId with fragments - external",
+			vault: "external/fragments",
+			raw:   []rune("[211026](test#section)"),
+			want:  []rune("[211026](test.md#section)")},
+		{name: "obsidian url - external",
+			vault: "external/obsidianurl",
+			raw:   []rune("[open obsidian note](obsidian://open?vault=obsidian&file=test)"),
+			want:  []rune("[open obsidian note](test.md)")},
+		{name: "escaped japanese obsidian url - external",
+			vault: "external/escaped_obsidianurl",
+			raw:   []rune("[日本語のテスト](obsidian://open?vault=obsidian&file=%E3%83%86%E3%82%B9%E3%83%88)"),
+			want:  []rune("[日本語のテスト](テスト.md)")},
 	}
 
 	for _, tt := range cases {
-		c := NewLinkConverter(tt.vault)
+		c := NewLinkConverter(TEST_LINK_CONVERTER_VAULT_DIR + tt.vault)
 		if got := c.Convert(tt.raw); string(got) != string(tt.want) {
-			t.Errorf("[ERROR | %v]\n\tgot: %q\n\twant: %q", tt.name, got, tt.want)
+			t.Errorf("[ERROR | %v]\n\tgot: %q\n\twant: %q", tt.name, string(got), string(tt.want))
+			fmt.Println(filepath.Dir(TEST_LINK_CONVERTER_VAULT_DIR+tt.vault), filepath.Base(TEST_LINK_CONVERTER_VAULT_DIR+tt.vault))
 		}
 	}
 }

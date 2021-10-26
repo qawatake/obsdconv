@@ -20,3 +20,8 @@
 !testdata/findpath/**
 !testdata/transformexternallink
 !testdata/transformexternallink/**
+!testdata/linkconverter
+!testdata/linkconverter/external
+!testdata/linkconverter/external/**
+!testdata/linkconverter/internal
+!testdata/linkconverter/internal/**
