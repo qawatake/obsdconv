@@ -21,7 +21,7 @@ func TestTagRemover(t *testing.T) {
 
 	for _, tt := range cases {
 		if got := c.Convert(tt.raw); string(got) != string(tt.want) {
-			t.Errorf("[ERROR | %v]\n\tgot: %q\n\twant: %q", tt.name, string(got), string(tt.want))
+			t.Errorf("[ERROR | %v]\n\t got: %q\n\twant: %q", tt.name, string(got), string(tt.want))
 		}
 	}
 }
@@ -41,7 +41,7 @@ func TestTagFinder(t *testing.T) {
 		tags := make(map[string]struct{})
 		c := NewTagFinder(tags)
 		if got := c.Convert(tt.raw); string(got) != string(tt.raw) {
-			t.Errorf("[ERROR | ouput - %v]\n\tgot: %q\n\twant: %q", tt.name, string(got), string(tt.raw))
+			t.Errorf("[ERROR | ouput - %v]\n\t got: %q\n\twant: %q", tt.name, string(got), string(tt.raw))
 		}
 		for _, tag := range tt.wantTags {
 			if _, ok := tags[tag]; !ok {
@@ -76,7 +76,7 @@ func TestTitleFinder(t *testing.T) {
 		gotTitle := ""
 		c := NewTitleFinder(&gotTitle)
 		if got := c.Convert(tt.raw); string(got) != string(tt.raw) {
-			t.Errorf("[ERROR | output - %v]\n\tgot: %q\n\twant: %q", tt.name, got, tt.raw)
+			t.Errorf("[ERROR | output - %v]\n\t got: %q\n\twant: %q", tt.name, got, tt.raw)
 		}
 		if gotTitle != tt.wantTitle {
 			t.Errorf("[ERROR | title - %v] got: %q, want: %q", tt.name, gotTitle, tt.wantTitle)
@@ -94,36 +94,96 @@ func TestLinkConverter(t *testing.T) {
 		raw   []rune
 		want  []rune
 	}{
-		{name: "simple - external",
+		{
+			name:  "simple - external",
 			vault: "external",
 			raw:   []rune("[google](https://google.com)"),
-			want:  []rune("[google](https://google.com)")},
-		{name: "filename - external",
+			want:  []rune("[google](https://google.com)"),
+		},
+		{
+			name:  "filename - external",
 			vault: "external/filename",
 			raw:   []rune("[211026](test.md)"),
-			want:  []rune("[211026](test.md)")},
-		{name: "ref is fileId (filename with the extension removed) - external",
+			want:  []rune("[211026](test.md)"),
+		},
+		{
+			name:  "ref is fileId (filename with the extension removed) - external",
 			vault: "external/fileid",
 			raw:   []rune("[211026](test)"),
-			want:  []rune("[211026](test.md)")},
-		{name: "ref is fileId with fragments - external",
+			want:  []rune("[211026](test.md)"),
+		},
+		{
+			name:  "ref is fileId with fragments - external",
 			vault: "external/fragments",
 			raw:   []rune("[211026](test#section)"),
-			want:  []rune("[211026](test.md#section)")},
-		{name: "obsidian url - external",
+			want:  []rune("[211026](test.md#section)"),
+		},
+		{
+			name:  "obsidian url - external",
 			vault: "external/obsidianurl",
 			raw:   []rune("[open obsidian note](obsidian://open?vault=obsidian&file=test)"),
-			want:  []rune("[open obsidian note](test.md)")},
-		{name: "escaped japanese obsidian url - external",
+			want:  []rune("[open obsidian note](test.md)"),
+		},
+		{
+			name:  "escaped japanese obsidian url - external",
 			vault: "external/escaped_obsidianurl",
 			raw:   []rune("[日本語のテスト](obsidian://open?vault=obsidian&file=%E3%83%86%E3%82%B9%E3%83%88)"),
-			want:  []rune("[日本語のテスト](テスト.md)")},
+			want:  []rune("[日本語のテスト](テスト.md)"),
+		},
+		{
+			name:  "simple - internal",
+			vault: "internal/simple",
+			raw:   []rune("[[test]]"),
+			want:  []rune("[test](test.md)"),
+		},
+		{
+			name:  "filename - internal",
+			vault: "internal/filename",
+			raw:   []rune("[[test.md]]"),
+			want:  []rune("[test.md](test.md)"),
+		},
+		{
+			name:  "empty",
+			vault: "internal",
+			raw:   []rune("[[]]"),
+			want:  []rune("[[]]"),
+		},
+		{
+			name:  "blank",
+			vault: "internal",
+			raw:   []rune("[[ ]]"),
+			want:  []rune(""),
+		},
+		{
+			name:  "dispaly name - internal",
+			vault: "internal/displayname",
+			raw:   []rune("[[test | 211026]]"),
+			want:  []rune("[211026](test.md)"),
+		},
+		{
+			name:  "fragments - internal",
+			vault: "internal/fragments",
+			raw:   []rune("[[test#section#subsection]]"),
+			want:  []rune("[test > section > subsection](test.md#subsection)"),
+		},
+		{
+			name:  "only fragments - internal",
+			vault: "internal/only_fragments",
+			raw:   []rune("[[#section#subsection]]"),
+			want:  []rune("[section > subsection](#subsection)"),
+		},
+		{
+			name:  "display name with fragments - internal",
+			vault: "internal/displayname_fragments",
+			raw:   []rune("[[test#section#subsection | 211026]]"),
+			want:  []rune("[211026](test.md#subsection)"),
+		},
 	}
 
 	for _, tt := range cases {
 		c := NewLinkConverter(TEST_LINK_CONVERTER_VAULT_DIR + tt.vault)
 		if got := c.Convert(tt.raw); string(got) != string(tt.want) {
-			t.Errorf("[ERROR | %v]\n\tgot: %q\n\twant: %q", tt.name, string(got), string(tt.want))
+			t.Errorf("[ERROR | %v]\n\t got: %q\n\twant: %q", tt.name, string(got), string(tt.want))
 			fmt.Println(filepath.Dir(TEST_LINK_CONVERTER_VAULT_DIR+tt.vault), filepath.Base(TEST_LINK_CONVERTER_VAULT_DIR+tt.vault))
 		}
 	}
