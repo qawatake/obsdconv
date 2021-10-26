@@ -146,7 +146,7 @@ func genExternalLink(root string, content string) (link string, err error) {
 	if fragments == nil {
 		ref = path
 	} else {
-		ref = path + "#" + strings.Join(fragments, "#")
+		ref = path + "#" + fragments[len(fragments)-1]
 	}
 
 	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
