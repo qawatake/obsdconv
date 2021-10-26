@@ -39,6 +39,11 @@ type flagBundle struct {
 	cmmn  bool
 }
 
+var (
+	ErrFlagSourceNotSet      = fmt.Errorf("flag %s was not set", FLAG_SOURCE)
+	ErrFlagDestinationNotSet = fmt.Errorf("flag %s was not set", FLAG_DESTINATION)
+)
+
 var flags flagBundle
 
 func init() {
@@ -47,7 +52,9 @@ func init() {
 
 func main() {
 	flag.Parse()
-	setFlags(flag.CommandLine, &flags)
+	if err := setFlags(flag.CommandLine, &flags); err != nil {
+		log.Fatal(err)
+	}
 	if err := walk(&flags); err != nil {
 		log.Fatal(err)
 	}
@@ -100,17 +107,22 @@ func process(vault string, newpath string, flags *flagBundle, file *os.File) err
 	return nil
 }
 
-func setFlags(flagset *flag.FlagSet, flags *flagBundle) {
-	orgFlag := flags
+// 実行前に↓が必要
+// 1. initFlags(flagset, flags)
+// 2. flag の値の設定
+// 	- flag.CommandLine => flag.Parse()
+//	- それ以外 => flagset.Set("フラグ名", "フラグの値を表す文字列")
+func setFlags(flagset *flag.FlagSet, flags *flagBundle) error {
+	orgFlag := *flags
 	setflags := make(map[string]struct{})
 	flagset.Visit(func(f *flag.Flag) {
 		setflags[f.Name] = struct{}{}
 	})
 	if _, ok := setflags[FLAG_SOURCE]; !ok {
-		log.Fatalf("flag %s was not set", FLAG_SOURCE)
+		return ErrFlagSourceNotSet
 	}
 	if _, ok := setflags[FLAG_DESTINATION]; !ok {
-		log.Fatalf("flag %s was not set", FLAG_DESTINATION)
+		return ErrFlagDestinationNotSet
 	}
 
 	if flags.obs || flags.cmmn {
@@ -142,6 +154,7 @@ func setFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	if _, ok := setflags[FLAG_REMOVE_COMMENT]; ok {
 		flags.cmmt = orgFlag.cmmt
 	}
+	return nil
 }
 
 func convert(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune) {
