@@ -62,8 +62,12 @@ func TestTitleFinder(t *testing.T) {
 		raw       []rune
 		wantTitle string
 	}{
-		{},
-		{},
+		{name: "simple", raw: []rune("# H1 #todo #obsidian\n# Second H1\n## H2\n"), wantTitle: "H1 #todo #obsidian"},
+		{name: "preceded by \\t", raw: []rune("\t# H1 #todo #obsidian\n# Second H1\n## H2\n"), wantTitle: "Second H1"},
+		{name: "preceded by a letter", raw: []rune("x# H1 #todo #obsidian\n# Second H1\n## H2\n"), wantTitle: "Second H1"},
+		{name: "escaped", raw: []rune("\\# H1 #todo #obsidian\n# Second H1\n## H2\n"), wantTitle: "Second H1"},
+		{name: "separated by \\r\\n", raw: []rune("# H1 #todo #obsidian\r\n# Second H1\n## H2\n"), wantTitle: "H1 #todo #obsidian"},
+		{name: "immediate \\r\\n", raw: []rune("#\r\n not H1 #todo #obsidian\n# Second H1\n## H2\n"), wantTitle: "Second H1"},
 	}
 
 	for _, tt := range cases {
