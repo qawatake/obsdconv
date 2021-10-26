@@ -13,6 +13,19 @@ const (
 	RuneDollar = 0x24 // "$"
 )
 
+const (
+	FLAG_SOURCE         = "src"
+	FLAG_DESTINATION    = "dst"
+	FLAG_REMOVE_TAGS    = "rmtag"
+	FLAG_COPY_TAGS      = "cptag"
+	FLAG_COPY_TITLE     = "title"
+	FLAG_COPY_ALIASES   = "alias"
+	FLAG_CONVERT_LINKS  = "link"
+	FLAG_REMOVE_COMMENT = "cmmt"
+	FLAG_OBSIDIAN_USAGE = "obs"
+	FLAG_COMMON_USAGE   = "cmmn"
+)
+
 type flagBundle struct {
 	src   string
 	dst   string
@@ -29,16 +42,16 @@ type flagBundle struct {
 var flags flagBundle
 
 func init() {
-	flag.StringVar(&flags.src, "src", ".", "source directory")
-	flag.StringVar(&flags.dst, "dst", ".", "destination directory")
-	flag.BoolVar(&flags.rmtag, "rmtag", false, "remove tag")
-	flag.BoolVar(&flags.cptag, "cptag", false, "copy tag to tags field of front matter")
-	flag.BoolVar(&flags.title, "title", false, "copy h1 content to title field of front matter")
-	flag.BoolVar(&flags.alias, "alias", false, "copy add h1 content to aliases field of front matter")
-	flag.BoolVar(&flags.link, "link", false, "convert obsidian internal and external links to external links in the usual format")
-	flag.BoolVar(&flags.cmmt, "cmmt", false, "remove obsidian comment")
-	flag.BoolVar(&flags.obs, "obs", false, "alias of -cptag -title -alias")
-	flag.BoolVar(&flags.cmmn, "cmmn", false, "alias of -cptag -rmtag -title -alias -link -cmmt")
+	flag.StringVar(&flags.src, FLAG_SOURCE, ".", "source directory")
+	flag.StringVar(&flags.dst, FLAG_DESTINATION, ".", "destination directory")
+	flag.BoolVar(&flags.rmtag, FLAG_REMOVE_TAGS, false, "remove tag")
+	flag.BoolVar(&flags.cptag, FLAG_COPY_TAGS, false, "copy tag to tags field of front matter")
+	flag.BoolVar(&flags.title, FLAG_COPY_TITLE, false, "copy h1 content to title field of front matter")
+	flag.BoolVar(&flags.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
+	flag.BoolVar(&flags.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
+	flag.BoolVar(&flags.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
+	flag.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
+	flag.BoolVar(&flags.cmmn, FLAG_COMMON_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt")
 }
 
 func main() {
@@ -267,6 +280,18 @@ func NewConverter(vault string, title *string, tags map[string]struct{}) *Conver
 }
 
 func setFlags() {
+	orgFlag := flags
+	setflags := make(map[string]struct{})
+	flag.Visit(func(f *flag.Flag) {
+		setflags[f.Name] = struct{}{}
+	})
+	if _, ok := setflags[FLAG_SOURCE]; !ok {
+		log.Fatalf("flag %s was not set", FLAG_SOURCE)
+	}
+	if _, ok := setflags[FLAG_DESTINATION]; !ok {
+		log.Fatalf("flag %s was not set", FLAG_DESTINATION)
+	}
+
 	if flags.obs || flags.cmmn {
 		flags.cptag = true
 		flags.title = true
@@ -276,5 +301,24 @@ func setFlags() {
 		flags.rmtag = true
 		flags.link = true
 		flags.cmmt = true
+	}
+
+	if _, ok := setflags[FLAG_COPY_TAGS]; ok {
+		flags.cptag = orgFlag.cptag
+	}
+	if _, ok := setflags[FLAG_COPY_TITLE]; ok {
+		flags.title = orgFlag.title
+	}
+	if _, ok := setflags[FLAG_COPY_ALIASES]; ok {
+		flags.alias = orgFlag.alias
+	}
+	if _, ok := setflags[FLAG_REMOVE_TAGS]; ok {
+		flags.rmtag = orgFlag.rmtag
+	}
+	if _, ok := setflags[FLAG_CONVERT_LINKS]; ok {
+		flags.link = orgFlag.link
+	}
+	if _, ok := setflags[FLAG_REMOVE_COMMENT]; ok {
+		flags.cmmt = orgFlag.cmmt
 	}
 }
