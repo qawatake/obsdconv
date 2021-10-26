@@ -8,8 +8,9 @@ func TestTagRemover(t *testing.T) {
 		raw  []rune
 		want []rune
 	}{
-		{},
-		{},
+		{name: "simple", raw: []rune("# H1 #todo #obsidian\n## H2\n"), want: []rune("# H1  \n## H2\n")},
+		{name: "escaped", raw: []rune("# H1 #todo \\#obsidian\n## H2\n"), want: []rune("# H1  \\#obsidian\n## H2\n")},
+		{name: "##", raw: []rune("# H1 #todo ##obsidian\n## H2\n"), want: []rune("# H1  ##obsidian\n## H2\n")},
 	}
 
 	c := NewTagRemover()

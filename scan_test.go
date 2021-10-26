@@ -170,6 +170,12 @@ func TestScanTag(t *testing.T) {
 			wantAdvance: 0,
 			wantTag:     "",
 		},
+		{
+			argRaw: []rune("#book/comic"),
+			argPtr: 0,
+			wantAdvance: 11,
+			wantTag: "book/comic",
+		},
 	}
 
 	for _, tt := range cases {
