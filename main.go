@@ -62,7 +62,7 @@ func main() {
 	}
 }
 
-func convert(vault string, newpath string, flags *flagBundle, file *os.File) error {
+func process(vault string, newpath string, flags *flagBundle, file *os.File) error {
 	fileinfo, err := file.Stat()
 	if err != nil {
 		log.Fatalf("file.Stat failed %v", err)
@@ -79,8 +79,7 @@ func convert(vault string, newpath string, flags *flagBundle, file *os.File) err
 	title := ""
 	tags := make(map[string]struct{})
 
-	c := NewConverter(vault, &title, tags)
-	newContent := c.Convert(body)
+	newContent := convert(body, vault, &title, tags, *flags)
 
 	if err := yaml.Unmarshal(yml, frontmatter); err != nil {
 		log.Fatalf("yaml.Unmarshal failed: %v", err)
@@ -108,175 +107,6 @@ func convert(vault string, newpath string, flags *flagBundle, file *os.File) err
 	defer newfile.Close()
 	fmt.Fprintf(newfile, "---\n%s---\n%s", string(yml), string(newContent))
 	return nil
-}
-
-func NewConverter(vault string, title *string, tags map[string]struct{}) *Converter {
-	*title = ""
-
-	// タグ削除用の Converter を作成
-	remover := new(Converter)
-	remover.Set(DefaultMiddleware(scanEscaped))
-	remover.Set(DefaultMiddleware(scanCodeBlock))
-	if flags.cmmt {
-		remover.Set(TransformComment)
-	} else {
-		remover.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance = scanComment(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			return advance, raw[ptr : ptr+advance]
-		})
-	}
-	remover.Set(DefaultMiddleware(scanMathBlock))
-	if flags.link {
-		remover.Set(TransformExternalLinkFunc(vault))
-		remover.Set(TransformInternalLinkFunc(vault))
-		remover.Set(TransformEmbedsFunc(vault))
-	} else {
-		remover.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, _, _ = scanExternalLink(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			return advance, raw[ptr : ptr+advance]
-		})
-		remover.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, _ = scanInternalLink(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			return advance, raw[ptr : ptr+advance]
-		})
-		remover.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, _ = scanEmbeds(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			return advance, raw[ptr : ptr+advance]
-		})
-	}
-	remover.Set(DefaultMiddleware(scanInlineMath))
-	remover.Set(DefaultMiddleware(scanInlineCode))
-	remover.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-		advance = scanRepeat(raw, ptr, "#")
-		if advance <= 1 {
-			return 0, nil
-		}
-		return advance, raw[ptr : ptr+advance]
-	})
-	remover.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-		advance, tag := scanTag(raw, ptr)
-		if advance == 0 {
-			return 0, nil
-		}
-		tags[tag] = struct{}{}
-		return advance, nil
-	})
-	remover.Set(TransformNone)
-
-	// メインの converter を作成
-	c := new(Converter)
-	c.Set(DefaultMiddleware(scanEscaped))
-	c.Set(DefaultMiddleware(scanCodeBlock))
-	if flags.cmmt {
-		c.Set(TransformComment)
-	} else {
-		c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance = scanComment(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			return advance, raw[ptr : ptr+advance]
-		})
-	}
-	c.Set(DefaultMiddleware(scanMathBlock))
-	if flags.link {
-		c.Set(TransformExternalLinkFunc(vault))
-		c.Set(TransformInternalLinkFunc(vault))
-		c.Set(TransformEmbedsFunc(vault))
-	} else {
-		c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, _, _ = scanExternalLink(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			return advance, raw[ptr : ptr+advance]
-		})
-		c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, _ = scanInternalLink(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			return advance, raw[ptr : ptr+advance]
-		})
-		c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, _ = scanEmbeds(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			return advance, raw[ptr : ptr+advance]
-		})
-	}
-	c.Set(DefaultMiddleware(scanInlineMath))
-	c.Set(DefaultMiddleware(scanInlineCode))
-	if flags.rmtag {
-		c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, level, _ := scanHeader(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			tagRemoved := remover.Convert(raw[ptr : ptr+advance])
-			if level == 1 && *title == "" {
-				_, _, *title = scanHeader(tagRemoved, 0)
-			}
-			return advance, tagRemoved
-		})
-	} else {
-		c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, level, _ := scanHeader(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			tagRemoved := remover.Convert(raw[ptr : ptr+advance])
-			if level == 1 && *title == "" {
-				_, _, *title = scanHeader(tagRemoved, 0)
-			}
-			return advance, raw[ptr : ptr+advance]
-		})
-	}
-	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-		advance = scanRepeat(raw, ptr, "#")
-		if advance <= 1 {
-			return 0, nil
-		}
-		return advance, raw[ptr : ptr+advance]
-	})
-	if flags.rmtag {
-		c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, tag := scanTag(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			tags[tag] = struct{}{}
-			if flags.rmtag {
-				return advance, nil
-			} else {
-				return advance, raw[ptr : ptr+advance]
-			}
-		})
-	} else {
-		c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
-			advance, tag := scanTag(raw, ptr)
-			if advance == 0 {
-				return 0, nil
-			}
-			tags[tag] = struct{}{}
-			return advance, raw[ptr : ptr+advance]
-		})
-	}
-	c.Set(TransformNone)
-	return c
 }
 
 func setFlags() {
@@ -321,4 +151,25 @@ func setFlags() {
 	if _, ok := setflags[FLAG_REMOVE_COMMENT]; ok {
 		flags.cmmt = orgFlag.cmmt
 	}
+}
+
+func convert(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune) {
+	output = raw
+	if flags.cptag {
+		_ = NewTagFinder(tags).Convert(output)
+	}
+	if flags.rmtag {
+		output = NewTagRemover().Convert(output)
+	}
+	if flags.cmmt {
+		output = NewCommentEraser().Convert(output)
+	}
+	if flags.link {
+		output = NewLinkConverter(vault).Convert(output)
+	}
+	if flags.title {
+		titleFoundFrom := NewTagRemover().Convert(output)
+		_ = NewTitleFinder(title).Convert(titleFoundFrom)
+	}
+	return output
 }

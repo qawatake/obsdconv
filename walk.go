@@ -43,7 +43,7 @@ func walk(flags *flagBundle) error {
 				return err
 			}
 			defer file.Close()
-			if err := convert(flags.src, newpath, flags, file); err != nil {
+			if err := process(flags.src, newpath, flags, file); err != nil {
 				return err
 			}
 		}
