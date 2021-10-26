@@ -9,12 +9,13 @@
 !preprocess.go
 !frontmatter.go
 !walk.go
-!main_test.go
+!flag.go
 !convert_test.go
 !transform_test.go
 !scan_test.go
 !link_test.go
 !preprocess_test.go
+!flag_test.go
 !testdata
 !testdata/findpath
 !testdata/findpath/**
