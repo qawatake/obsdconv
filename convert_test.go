@@ -107,15 +107,48 @@ func TestCommentEraser(t *testing.T) {
 		raw  []rune
 		want []rune
 	}{
-		{},
-		{},
+		{
+			name: "simple",
+			raw:  []rune("%%x%%"),
+			want: []rune(""),
+		},
+		{
+			name: "long bracket",
+			raw:  []rune("%%%x%%%"),
+			want: []rune(""),
+		},
+		{
+			name: "longer closing",
+			raw:  []rune("%%x%%%"),
+			want: []rune("%"),
+		},
+		{
+			name: "longer closing with \\n",
+			raw:  []rune("%%\nx\n%%%"),
+			want: []rune("%"),
+		},
+		{
+			name: "escaped closing",
+			raw:  []rune("%%x\\%%"),
+			want: []rune(""),
+		},
+		{
+			name: "escaped opening",
+			raw:  []rune("\\%%x%%"),
+			want: []rune("\\%%x"),
+		},
+		{
+			name: "no closing",
+			raw:  []rune("%%x"),
+			want: []rune(""),
+		},
 	}
 
 	c := NewCommentEraser()
 
 	for _, tt := range cases {
 		if got := c.Convert(tt.raw); string(got) != string(tt.want) {
-			t.Errorf("[ERROR | %v]\n\tgot: %q\n\twant: %q", tt.name, got, tt.want)
+			t.Errorf("[ERROR | %v]\n\tgot: %q\n\twant: %q", tt.name, string(got), string(tt.want))
 		}
 	}
 }
