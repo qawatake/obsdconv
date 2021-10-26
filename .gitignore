@@ -10,6 +10,7 @@
 !frontmatter.go
 !walk.go
 !main_test.go
+!convert_test.go
 !transform_test.go
 !scan_test.go
 !link_test.go

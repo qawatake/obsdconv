@@ -67,3 +67,213 @@ func NewDefaultConverter(vault string) *Converter {
 	c.Set(TransformNone)
 	return c
 }
+
+func NewTagRemover() *Converter {
+	c := new(Converter)
+
+	c.Set(DefaultMiddleware(scanEscaped))
+	c.Set(DefaultMiddleware(scanCodeBlock))
+	// c.Set(TransformComment)
+	c.Set(DefaultMiddleware(scanComment))
+	c.Set(DefaultMiddleware(scanMathBlock))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _, _ = scanExternalLink(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	// c.Set(TransformExternalLinkFunc(vault))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanInternalLink(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	// c.Set(TransformInternalLinkFunc(vault))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanEmbeds(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	// c.Set(TransformEmbedsFunc(vault))
+	c.Set(DefaultMiddleware(scanInlineMath))
+	c.Set(DefaultMiddleware(scanInlineCode))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance = scanRepeat(raw, ptr, "#")
+		if advance <= 1 {
+			return 0, nil
+		}
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(TransformTag)
+	c.Set(TransformNone)
+	return c
+}
+
+func NewTagFinder(tags map[string]struct{}) *Converter {
+	c := new(Converter)
+
+	c.Set(DefaultMiddleware(scanEscaped))
+	c.Set(DefaultMiddleware(scanCodeBlock))
+	// c.Set(TransformComment)
+	c.Set(DefaultMiddleware(scanComment))
+	c.Set(DefaultMiddleware(scanMathBlock))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _, _ = scanExternalLink(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanInternalLink(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanEmbeds(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(DefaultMiddleware(scanInlineMath))
+	c.Set(DefaultMiddleware(scanInlineCode))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance = scanRepeat(raw, ptr, "#")
+		if advance <= 1 {
+			return 0, nil
+		}
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, t := scanTag(raw, ptr)
+		tags[t] = struct{}{}
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(TransformNone)
+	return c
+}
+
+func NewTitleFinder(title *string) *Converter {
+	c := new(Converter)
+
+	c.Set(DefaultMiddleware(scanEscaped))
+	c.Set(DefaultMiddleware(scanCodeBlock))
+	// c.Set(TransformComment)
+	c.Set(DefaultMiddleware(scanComment))
+	c.Set(DefaultMiddleware(scanMathBlock))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _, _ = scanExternalLink(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanInternalLink(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanEmbeds(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(DefaultMiddleware(scanInlineMath))
+	c.Set(DefaultMiddleware(scanInlineCode))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, level, headertext := scanHeader(raw, ptr)
+		if level == 1 && *title == "" {
+			*title = headertext
+		}
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance = scanRepeat(raw, ptr, "#")
+		if advance <= 1 {
+			return 0, nil
+		}
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanTag(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(TransformNone)
+	return c
+}
+
+func NewLinkConverter(vault string) *Converter {
+	c := new(Converter)
+
+	c.Set(DefaultMiddleware(scanEscaped))
+	c.Set(DefaultMiddleware(scanCodeBlock))
+	// c.Set(TransformComment)
+	c.Set(DefaultMiddleware(scanComment))
+	c.Set(DefaultMiddleware(scanMathBlock))
+	c.Set(TransformExternalLinkFunc(vault))
+	// c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+	// 	advance, _, _ = scanExternalLink(raw, ptr)
+	// 	return advance, raw[ptr : ptr+advance]
+	// })
+	c.Set(TransformInternalLinkFunc(vault))
+	// c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+	// 	advance, _ = scanInternalLink(raw, ptr)
+	// 	return advance, raw[ptr : ptr+advance]
+	// })
+	c.Set(TransformEmbedsFunc(vault))
+	// c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+	// 	advance, _ = scanEmbeds(raw, ptr)
+	// 	return advance, raw[ptr : ptr+advance]
+	// })
+	c.Set(DefaultMiddleware(scanInlineMath))
+	c.Set(DefaultMiddleware(scanInlineCode))
+	// c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+	// 	advance, level, headertext := scanHeader(raw, ptr)
+	// 	if level == 1 && *title == "" {
+	// 		*title = headertext
+	// 	}
+	// 	return advance, raw[ptr : ptr+advance]
+	// })
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance = scanRepeat(raw, ptr, "#")
+		if advance <= 1 {
+			return 0, nil
+		}
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanTag(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(TransformNone)
+	return c
+}
+
+func NewCommentEraser() *Converter {
+	c := new(Converter)
+
+	c.Set(DefaultMiddleware(scanEscaped))
+	c.Set(DefaultMiddleware(scanCodeBlock))
+	c.Set(TransformComment)
+	// c.Set(DefaultMiddleware(scanComment))
+	c.Set(DefaultMiddleware(scanMathBlock))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _, _ = scanExternalLink(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanInternalLink(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanEmbeds(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(DefaultMiddleware(scanInlineMath))
+	c.Set(DefaultMiddleware(scanInlineCode))
+	// c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+	// 	advance, level, headertext := scanHeader(raw, ptr)
+	// 	if level == 1 && *title == "" {
+	// 		*title = headertext
+	// 	}
+	// 	return advance, raw[ptr : ptr+advance]
+	// })
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance = scanRepeat(raw, ptr, "#")
+		if advance <= 1 {
+			return 0, nil
+		}
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune) {
+		advance, _ = scanTag(raw, ptr)
+		return advance, raw[ptr : ptr+advance]
+	})
+	c.Set(TransformNone)
+	return c
+}
