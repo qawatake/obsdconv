@@ -42,21 +42,12 @@ type flagBundle struct {
 var flags flagBundle
 
 func init() {
-	flag.StringVar(&flags.src, FLAG_SOURCE, ".", "source directory")
-	flag.StringVar(&flags.dst, FLAG_DESTINATION, ".", "destination directory")
-	flag.BoolVar(&flags.rmtag, FLAG_REMOVE_TAGS, false, "remove tag")
-	flag.BoolVar(&flags.cptag, FLAG_COPY_TAGS, false, "copy tag to tags field of front matter")
-	flag.BoolVar(&flags.title, FLAG_COPY_TITLE, false, "copy h1 content to title field of front matter")
-	flag.BoolVar(&flags.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
-	flag.BoolVar(&flags.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
-	flag.BoolVar(&flags.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
-	flag.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
-	flag.BoolVar(&flags.cmmn, FLAG_COMMON_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt")
+	initFlags(flag.CommandLine, &flags)
 }
 
 func main() {
 	flag.Parse()
-	setFlags()
+	setFlags(flag.CommandLine, &flags)
 	if err := walk(&flags); err != nil {
 		log.Fatal(err)
 	}
@@ -109,10 +100,10 @@ func process(vault string, newpath string, flags *flagBundle, file *os.File) err
 	return nil
 }
 
-func setFlags() {
+func setFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	orgFlag := flags
 	setflags := make(map[string]struct{})
-	flag.Visit(func(f *flag.Flag) {
+	flagset.Visit(func(f *flag.Flag) {
 		setflags[f.Name] = struct{}{}
 	})
 	if _, ok := setflags[FLAG_SOURCE]; !ok {
@@ -172,4 +163,17 @@ func convert(raw []rune, vault string, title *string, tags map[string]struct{}, 
 		_ = NewTitleFinder(title).Convert(titleFoundFrom)
 	}
 	return output
+}
+
+func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
+	flagset.StringVar(&flags.src, FLAG_SOURCE, ".", "source directory")
+	flagset.StringVar(&flags.dst, FLAG_DESTINATION, ".", "destination directory")
+	flagset.BoolVar(&flags.rmtag, FLAG_REMOVE_TAGS, false, "remove tag")
+	flagset.BoolVar(&flags.cptag, FLAG_COPY_TAGS, false, "copy tag to tags field of front matter")
+	flagset.BoolVar(&flags.title, FLAG_COPY_TITLE, false, "copy h1 content to title field of front matter")
+	flagset.BoolVar(&flags.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
+	flagset.BoolVar(&flags.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
+	flagset.BoolVar(&flags.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
+	flagset.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
+	flagset.BoolVar(&flags.cmmn, FLAG_COMMON_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt")
 }

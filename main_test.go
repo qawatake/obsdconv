@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"testing"
 )
 
@@ -102,6 +104,37 @@ func TestConverter(t *testing.T) {
 		got := c.Convert([]rune(tt.input))
 		if string(got) != tt.want {
 			t.Errorf("[ERROR] %s\n\tgot:  %q\n\twant: %q", tt.name, string(got), tt.want)
+		}
+	}
+}
+
+func TestSetFlags(t *testing.T) {
+	cases := []struct {
+		num       int
+		cmdflags  map[string]string
+		wantflags flagBundle
+	}{
+		{
+			cmdflags: map[string]string{
+				FLAG_SOURCE: "",
+			},
+			wantflags: flagBundle{},
+		},
+		{},
+	}
+
+	for id, tt := range cases {
+		flagset := flag.NewFlagSet(fmt.Sprintf("TestSetFlags %d", id), flag.ExitOnError)
+		gotflags := new(flagBundle)
+		initFlags(flagset, gotflags)
+		if len(tt.cmdflags) != 10 {
+			t.Fatalf("[FATAL | %d] wrong number of cmdflags", id)
+		}
+		for cmdname, cmdvalue := range tt.cmdflags {
+			flag.CommandLine.Set(cmdname, cmdvalue)
+		}
+		if *gotflags != tt.wantflags {
+			t.Errorf("[ERROR | %d] got: %+v, want: %+v", id, *gotflags, tt.wantflags)
 		}
 	}
 }
