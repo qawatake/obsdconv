@@ -138,6 +138,9 @@ func scanEmbeds(raw []rune, ptr int) (advance int, content string) {
 	}
 	cur := ptr + 1
 	advance, content = scanInternalLink(raw, cur)
+	if advance == 0 {
+		return 0, ""
+	}
 	cur += advance
 	return cur - ptr, content
 }
