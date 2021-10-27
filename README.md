@@ -12,7 +12,7 @@ Obsdconv enables you to
 We provide binaries for several platforms.
 Please download the one suitable to your environment.
 Or if you have a go runtime, you can build a binary by running
-`go build`, and then you can get `obsdconf`.
+`go mod tidy && go build`, to get `obsdconf`.
 Remenber to set `PATH` for the binary.
 
 ## Quick Start
