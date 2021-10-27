@@ -6,11 +6,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/qawatake/obsd2hugo/convert"
 	"gopkg.in/yaml.v2"
-)
-
-const (
-	RuneDollar = 0x24 // "$"
 )
 
 const (
@@ -77,7 +74,7 @@ func process(vault string, newpath string, flags *flagBundle, file *os.File) err
 	title := ""
 	tags := make(map[string]struct{})
 
-	newContent, err := convert(body, vault, &title, tags, *flags)
+	newContent, err := converts(body, vault, &title, tags, *flags)
 	if err != nil {
 		return fmt.Errorf("convert failed: %w", err)
 	}
@@ -110,38 +107,38 @@ func process(vault string, newpath string, flags *flagBundle, file *os.File) err
 	return nil
 }
 
-func convert(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune, err error) {
+func converts(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune, err error) {
 	output = raw
 	if flags.cptag {
-		_, err = NewTagFinder(tags).Convert(output)
+		_, err = convert.NewTagFinder(tags).Convert(output)
 		if err != nil {
 			return nil, fmt.Errorf("TagFinder failed: %w", err)
 		}
 	}
 	if flags.rmtag {
-		output, err = NewTagRemover().Convert(output)
+		output, err = convert.NewTagRemover().Convert(output)
 		if err != nil {
 			return nil, fmt.Errorf("TagRemover failed: %w", err)
 		}
 	}
 	if flags.cmmt {
-		output, err = NewCommentEraser().Convert(output)
+		output, err = convert.NewCommentEraser().Convert(output)
 		if err != nil {
 			return nil, fmt.Errorf("CommentEraser failed: %w", err)
 		}
 	}
 	if flags.link {
-		output, err = NewLinkConverter(vault).Convert(output)
+		output, err = convert.NewLinkConverter(vault).Convert(output)
 		if err != nil {
 			return nil, fmt.Errorf("LinkConverter failed: %w", err)
 		}
 	}
 	if flags.title {
-		titleFoundFrom, _ := NewTagRemover().Convert(output)
+		titleFoundFrom, _ := convert.NewTagRemover().Convert(output)
 		if err != nil {
 			return nil, fmt.Errorf("preprocess TagRemover for finding titles failed: %w", err)
 		}
-		_, err = NewTitleFinder(title).Convert(titleFoundFrom)
+		_, err = convert.NewTitleFinder(title).Convert(titleFoundFrom)
 		if err != nil {
 			return nil, fmt.Errorf("TitleFinder failed: %w", err)
 		}

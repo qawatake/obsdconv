@@ -1,4 +1,4 @@
-package main
+package scan
 
 import "testing"
 
@@ -111,21 +111,7 @@ func TestFollowedBy(t *testing.T) {
 	}
 }
 
-func TestCurrentLine(t *testing.T) {
-	cases := []struct {
-		raw  []rune
-		ptr  int
-		want int
-	}{
-		{raw: []rune("a\nb\nc\nX"), ptr: 6, want: 4},
-		{raw: []rune("a\n\n\n\\n\\n\nX"), ptr: 9, want: 5},
-	}
-	for _, tt := range cases {
-		if got := currentLine(tt.raw, tt.ptr); got != tt.want {
-			t.Errorf("[ERROR] got: %d, want: %d with input %q", got, tt.want, string(tt.raw))
-		}
-	}
-}
+
 
 func TestScanTag(t *testing.T) {
 	cases := []struct {
@@ -171,15 +157,15 @@ func TestScanTag(t *testing.T) {
 			wantTag:     "",
 		},
 		{
-			argRaw: []rune("#book/comic"),
-			argPtr: 0,
+			argRaw:      []rune("#book/comic"),
+			argPtr:      0,
 			wantAdvance: 11,
-			wantTag: "book/comic",
+			wantTag:     "book/comic",
 		},
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotTag := scanTag(tt.argRaw, tt.argPtr)
+		gotAdvance, gotTag := ScanTag(tt.argRaw, tt.argPtr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR] got: %v, want: %v", gotAdvance, tt.wantAdvance)
 		}
@@ -213,7 +199,7 @@ func TestScanRepeat(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := scanRepeat(tt.argRaw, 0, tt.argSubstr); got != tt.want {
+		if got := ScanRepeat(tt.argRaw, 0, tt.argSubstr); got != tt.want {
 			t.Errorf("[ERROR] got: %v, want: %v", got, tt.want)
 		}
 	}
@@ -283,7 +269,7 @@ func TestScanInlineMath(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := scanInlineMath(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := ScanInlineMath(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -335,7 +321,7 @@ func TestScanInlineCode(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := scanInlineCode(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := ScanInlineCode(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -387,7 +373,7 @@ func TestScanInternalLink(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotContent := scanInternalLink(tt.argRaw, tt.argPtr)
+		gotAdvance, gotContent := ScanInternalLink(tt.argRaw, tt.argPtr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
 		}
@@ -532,7 +518,7 @@ func TestScanExternalLink(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotDisplayName, gotRef := scanExternalLink(tt.argRaw, tt.argPtr)
+		gotAdvance, gotDisplayName, gotRef := ScanExternalLink(tt.argRaw, tt.argPtr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
 		}
@@ -597,7 +583,7 @@ func TestScanComment(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := scanComment(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := ScanComment(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -713,7 +699,7 @@ func TestScanMathBlock(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := scanMathBlock(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := ScanMathBlock(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -783,7 +769,7 @@ func TestScanCodeBlock(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := scanCodeBlock(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := ScanCodeBlock(tt.argRaw, tt.argPtr); got != tt.want {
 			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -810,7 +796,7 @@ func TestScanHeader(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotLevel, gotHeaderText := scanHeader(tt.raw, tt.ptr)
+		gotAdvance, gotLevel, gotHeaderText := ScanHeader(tt.raw, tt.ptr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR | advance - %s] got: %d, want: %d", tt.name, gotAdvance, tt.wantAdvance)
 			continue

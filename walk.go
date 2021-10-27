@@ -7,6 +7,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"github.com/qawatake/obsd2hugo/convert"
 )
 
 func walk(flags *flagBundle) error {
@@ -56,11 +58,11 @@ func walk(flags *flagBundle) error {
 
 func handleErr(path string, err error) error {
 	orgErr := errors.Unwrap(err)
-	if e, ok := orgErr.(ErrTransform); !ok {
+	if e, ok := orgErr.(convert.ErrTransform); !ok {
 		return fmt.Errorf("[ERROR] path: %s | %v", path, orgErr)
 	} else {
 		e.SetPath(path)
-		if _, ok := e.(ErrInvalidInternalLinkContent); !ok {
+		if _, ok := e.(convert.ErrInvalidInternalLinkContent); !ok {
 			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", e.Path(), e.Line(), e.Cause())
 		} else {
 			return fmt.Errorf("[ERROR] path: %s, line: %d | invalid internal link content found", e.Path(), e.Line())

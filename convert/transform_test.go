@@ -1,4 +1,4 @@
-package main
+package convert
 
 import "testing"
 
@@ -27,6 +27,22 @@ func TestTransformExternalLink(t *testing.T) {
 		}
 		if string(got) != string(tt.want) {
 			t.Errorf("[ERROR | %v]\ngot: %q, want: %q", tt.name, string(got), string(tt.want))
+		}
+	}
+}
+
+func TestCurrentLine(t *testing.T) {
+	cases := []struct {
+		raw  []rune
+		ptr  int
+		want int
+	}{
+		{raw: []rune("a\nb\nc\nX"), ptr: 6, want: 4},
+		{raw: []rune("a\n\n\n\\n\\n\nX"), ptr: 9, want: 5},
+	}
+	for _, tt := range cases {
+		if got := currentLine(tt.raw, tt.ptr); got != tt.want {
+			t.Errorf("[ERROR] got: %d, want: %d with input %q", got, tt.want, string(tt.raw))
 		}
 	}
 }

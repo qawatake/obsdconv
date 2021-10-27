@@ -1,8 +1,12 @@
-package main
+package scan
 
 import (
 	"strings"
 	"unicode"
+)
+
+const (
+	RuneDollar = 0x24 // "$"
 )
 
 func unescaped(raw []rune, ptr int, substr string) bool {
@@ -37,11 +41,9 @@ func followedBy(raw []rune, ptr int, ss []string) bool {
 	return false
 }
 
-func currentLine(raw []rune, ptr int) (linenum int) {
-	return strings.Count(string(raw[:ptr]), "\n") + 1
-}
 
-func scanInlineCode(raw []rune, ptr int) (advance int) {
+
+func ScanInlineCode(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "`") && len(raw[ptr:]) > 1) {
 		return 0
 	}
@@ -58,7 +60,7 @@ func scanInlineCode(raw []rune, ptr int) (advance int) {
 	}
 }
 
-func scanInlineMath(raw []rune, ptr int) (advance int) {
+func ScanInlineMath(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "$") && !followedBy(raw, ptr, []string{" ", "\t"})) {
 		return 0
 	}
@@ -87,7 +89,7 @@ func scanInlineMath(raw []rune, ptr int) (advance int) {
 	return 0
 }
 
-func scanRepeat(raw []rune, ptr int, substr string) (advance int) {
+func ScanRepeat(raw []rune, ptr int, substr string) (advance int) {
 	length := len([]rune(substr))
 	cur := ptr
 	next := cur + length
@@ -98,7 +100,7 @@ func scanRepeat(raw []rune, ptr int, substr string) (advance int) {
 	return cur - ptr
 }
 
-func scanTag(raw []rune, ptr int) (advance int, tag string) {
+func ScanTag(raw []rune, ptr int) (advance int, tag string) {
 	if !(unescaped(raw, ptr, "#") && len(raw[ptr:]) > 1) {
 		return 0, ""
 	}
@@ -115,7 +117,7 @@ func scanTag(raw []rune, ptr int) (advance int, tag string) {
 	return cur - ptr, string(raw[ptr+1 : cur])
 }
 
-func scanInternalLink(raw []rune, ptr int) (advance int, content string) {
+func ScanInternalLink(raw []rune, ptr int) (advance int, content string) {
 	if !(unescaped(raw, ptr, "[[") && len(raw[ptr:]) >= 5) {
 		return 0, ""
 	}
@@ -132,12 +134,12 @@ func scanInternalLink(raw []rune, ptr int) (advance int, content string) {
 	return advance, content
 }
 
-func scanEmbeds(raw []rune, ptr int) (advance int, content string) {
+func ScanEmbeds(raw []rune, ptr int) (advance int, content string) {
 	if !unescaped(raw, ptr, "![[") {
 		return 0, ""
 	}
 	cur := ptr + 1
-	advance, content = scanInternalLink(raw, cur)
+	advance, content = ScanInternalLink(raw, cur)
 	if advance == 0 {
 		return 0, ""
 	}
@@ -165,7 +167,7 @@ func validExternalLinkDisplayName(displayName string) bool {
 	}
 }
 
-func scanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {
+func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {
 	if !(unescaped(raw, ptr, "[") && len(raw[ptr:]) >= 5) {
 		return 0, "", ""
 	}
@@ -208,7 +210,7 @@ func scanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref
 	return
 }
 
-func scanComment(raw []rune, ptr int) (advance int) {
+func ScanComment(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "%%") && len(raw) >= 2) {
 		return 0
 	}
@@ -247,7 +249,7 @@ func validMathBlockClosing(raw []rune, openPtr int, closingPtr int) bool {
 	return remaining == ""
 }
 
-func scanMathBlock(raw []rune, ptr int) (advance int) {
+func ScanMathBlock(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "$$") && len(raw) >= 3) {
 		return 0
 	}
@@ -271,7 +273,7 @@ func scanMathBlock(raw []rune, ptr int) (advance int) {
 	}
 }
 
-func scanCodeBlock(raw []rune, ptr int) (advance int) {
+func ScanCodeBlock(raw []rune, ptr int) (advance int) {
 	if !unescaped(raw, ptr, "```") {
 		return 0
 	}
@@ -302,7 +304,7 @@ func scanCodeBlock(raw []rune, ptr int) (advance int) {
 	}
 }
 
-func scanHeader(raw []rune, ptr int) (advance int, level int, headertext string) {
+func ScanHeader(raw []rune, ptr int) (advance int, level int, headertext string) {
 	if !(unescaped(raw, ptr, "#")) {
 		return
 	}
@@ -337,7 +339,7 @@ func scanHeader(raw []rune, ptr int) (advance int, level int, headertext string)
 	return advance, level, headertext
 }
 
-func scanEscaped(raw []rune, ptr int) (advance int) {
+func ScanEscaped(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "\\") && len(raw[ptr:]) > 1) {
 		return 0
 	}

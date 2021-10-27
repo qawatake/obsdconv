@@ -2,19 +2,19 @@
 !.gitignore
 !go.mod
 !main.go
-!convert.go
-!transform.go
-!scan.go
-!link.go
+# !convert.go
+# !transform.go
+# !scan.go
+# !link.go
 !preprocess.go
 !frontmatter.go
 !walk.go
 !flag.go
-!error.go
-!convert_test.go
-!transform_test.go
-!scan_test.go
-!link_test.go
+# !error.go
+# !convert_test.go
+# !transform_test.go
+# !scan_test.go
+# !link_test.go
 !preprocess_test.go
 !flag_test.go
 !testdata
@@ -29,3 +29,15 @@
 !testdata/linkconverter/internal/**
 !testdata/linkconverter/embeds
 !testdata/linkconverter/embeds/**
+
+!scan
+!scan/scan.go
+!scan/scan_test.go
+!convert
+!convert/convert.go
+!convert/transform.go
+!convert/link.go
+!convert/error.go
+!convert/convert_test.go
+!convert/transform_test.go
+!convert/link_test.go

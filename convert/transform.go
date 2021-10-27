@@ -1,10 +1,16 @@
-package main
+package convert
 
 import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	"github.com/qawatake/obsd2hugo/scan"
 )
+
+func currentLine(raw []rune, ptr int) (linenum int) {
+	return strings.Count(string(raw[:ptr]), "\n") + 1
+}
 
 func TransformNone(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 	return 1, raw[ptr : ptr+1], nil
@@ -12,7 +18,7 @@ func TransformNone(raw []rune, ptr int) (advance int, tobewritten []rune, err er
 
 func TransformInternalLinkFunc(root string) TransformerFunc {
 	return func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance, content := scanInternalLink(raw, ptr)
+		advance, content := scan.ScanInternalLink(raw, ptr)
 		if advance == 0 {
 			return 0, nil, nil
 		}
@@ -33,7 +39,7 @@ func TransformInternalLinkFunc(root string) TransformerFunc {
 
 func TransformEmbedsFunc(root string) TransformerFunc {
 	return func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance, content := scanEmbeds(raw, ptr)
+		advance, content := scan.ScanEmbeds(raw, ptr)
 		if advance == 0 {
 			return 0, nil, nil
 		}
@@ -53,7 +59,7 @@ func TransformEmbedsFunc(root string) TransformerFunc {
 }
 
 func TransformTag(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-	advance, _ = scanTag(raw, ptr)
+	advance, _ = scan.ScanTag(raw, ptr)
 	if advance == 0 {
 		return 0, nil, nil
 	}
@@ -62,7 +68,7 @@ func TransformTag(raw []rune, ptr int) (advance int, tobewritten []rune, err err
 
 func TransformExternalLinkFunc(root string) TransformerFunc {
 	return func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance, displayName, ref := scanExternalLink(raw, ptr)
+		advance, displayName, ref := scan.ScanExternalLink(raw, ptr)
 		if advance == 0 {
 			return 0, nil, nil
 		}
@@ -135,7 +141,7 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 }
 
 func TransformComment(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-	advance = scanComment(raw, ptr)
+	advance = scan.ScanComment(raw, ptr)
 	if advance == 0 {
 		return 0, nil, nil
 	}
