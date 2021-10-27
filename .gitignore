@@ -9,6 +9,7 @@
 !flag.go
 !preprocess_test.go
 !flag_test.go
+!frontmatter_test.go
 
 !testdata
 !testdata/findpath
