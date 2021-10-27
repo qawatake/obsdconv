@@ -5,28 +5,12 @@ import (
 	"strings"
 )
 
-func getH1(content []rune) string {
-	scanner := bufio.NewScanner(strings.NewReader(string(content)))
-	if !scanner.Scan() {
-		return ""
-	}
-	line := strings.Trim(scanner.Text(), " \t")
-	runes := []rune(line)
-	if !(len(runes) >= 3 && string(runes[:2]) == "# ") {
-		return ""
-	}
-	return strings.TrimLeft(line, "# \t")
-}
-
 // yaml front matter と本文を切り離す
 func splitMarkdown(content []rune) (yml []byte, body []rune) {
 	scanner := bufio.NewScanner(strings.NewReader(string(content)))
 
-	// 冒頭の改行をスキップ
-	for scanner.Scan() {
-		if scanner.Text() != "" {
-			break
-		}
+	if !scanner.Scan() {
+		return nil, nil
 	}
 
 	// --- が見つからなかったら front matter なし

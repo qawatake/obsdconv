@@ -2,29 +2,6 @@ package main
 
 import "testing"
 
-func TestGetH1(t *testing.T) {
-	cases := []struct {
-		input string
-		want  string
-	}{
-		{
-			input: "#     This is a markdown file for test.   \t \n # This is a second title. \n ## h2",
-			want:  "This is a markdown file for test.",
-		},
-		{
-			input: "#       \n # this is a second title.",
-			want:  "",
-		},
-	}
-
-	for _, tt := range cases {
-		if got := getH1([]rune(tt.input)); got != tt.want {
-			t.Errorf("[ERROR] got: %q, want: %q", got, tt.want)
-		}
-	}
-
-}
-
 func TestSplitMarkdown(t *testing.T) {
 	cases := []struct {
 		input           string
@@ -33,11 +10,6 @@ func TestSplitMarkdown(t *testing.T) {
 	}{
 		{
 			input:           "---\ntitle: \"This is a test\"\n---\n# This is a test\n",
-			wantFrontMatter: "title: \"This is a test\"\n",
-			wantBody:        "# This is a test\n",
-		},
-		{
-			input:           "\n\n---\ntitle: \"This is a test\"\n---\n# This is a test\n",
 			wantFrontMatter: "title: \"This is a test\"\n",
 			wantBody:        "# This is a test\n",
 		},
