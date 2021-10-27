@@ -27,8 +27,6 @@ func TransformInternalLinkFunc(root string) TransformerFunc {
 		}
 		link, err := genExternalLink(root, content)
 		if err != nil {
-			// fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
-			// fmt.Fprintf(os.Stderr, "genExternalLink failed in TransformInternalLinkFunc: %v", err)
 			err := newErrConvert(fmt.Errorf("genExternalLink failed in TransformInternalLinkFunc: %w", err))
 			err.SetLine(currentLine(raw, ptr))
 			return 0, nil, err
@@ -48,8 +46,6 @@ func TransformEmbedsFunc(root string) TransformerFunc {
 		}
 		link, err := genExternalLink(root, content)
 		if err != nil {
-			// fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
-			// fmt.Fprintf(os.Stderr, "genExternalLink failed in TransformEmbedsFunc: %v", err)
 			err := newErrConvert(fmt.Errorf("genExternalLink failed in TransformEmbedsFunc: %w", err))
 			err.SetLine(currentLine(raw, ptr))
 			return 0, nil, err
@@ -75,8 +71,6 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 
 		u, err := url.Parse(ref)
 		if err != nil {
-			// fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
-			// fmt.Fprintf(os.Stderr, "url.Parse failed in TransformExternalLinkFunc: %v\n", err)
 			err := newErrConvert(fmt.Errorf("url.Parse failed in TransformExternalLinkFunc: %w", err))
 			err.SetLine(currentLine(raw, ptr))
 			return 0, nil, err
@@ -89,16 +83,12 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			q := u.Query()
 			fileId := q.Get("file")
 			if fileId == "" {
-				// fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
-				// fmt.Fprintf(os.Stderr, "query file does not exits in obsidian url: %s\n", ref)
 				err := newErrConvert(fmt.Errorf("query file does not exits in obsidian url: %s", ref))
 				err.SetLine(currentLine(raw, ptr))
 				return 0, nil, err
 			}
 			path, err := findPath(root, fileId)
 			if err != nil {
-				// fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
-				// fmt.Fprintf(os.Stderr, "findPath failed in TransformExternalLinkFunc: %v\n", err)
 				err := newErrConvert(fmt.Errorf("findPath failed in TransformExternalLinkFunc: %w", err))
 				err.SetLine(currentLine(raw, ptr))
 				return 0, nil, err
@@ -108,16 +98,12 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 		} else if u.Scheme == "" && u.Host == "" {
 			fileId, fragments, err := splitFragments(ref)
 			if err != nil {
-				// fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
-				// fmt.Fprintf(os.Stderr, "splitFragments failed in TransformExternalLinkFunc: %v\n", err)
 				err := newErrConvert(fmt.Errorf("splitFragments failed in TransformExternalLinkFunc: %w", err))
 				err.SetLine(currentLine(raw, ptr))
 				return 0, nil, err
 			}
 			path, err := findPath(root, fileId)
 			if err != nil {
-				// fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
-				// fmt.Fprintf(os.Stderr, "findPath failed in TransformExternalLinkFunc: %v\n", err)
 				err := newErrConvert(fmt.Errorf("findPath failed in TransformExternalLinkFunc: %w", err))
 				err.SetLine(currentLine(raw, ptr))
 				return 0, nil, err
@@ -131,8 +117,6 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, newref)), nil
 
 		} else {
-			// fmt.Fprintf(os.Stderr, "line %d: ", currentLine(raw, ptr))
-			// fmt.Fprintf(os.Stderr, "unexpected href: %s\n", ref)
 			err := newErrConvert(fmt.Errorf("unexpected href: %s", ref))
 			err.SetLine(currentLine(raw, ptr))
 			return 0, nil, err
