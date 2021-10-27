@@ -6,7 +6,7 @@ Obsdconv enables you to
 - remove tags from text,
 - copy tags in text to front matter `tags` field,
 - set H1 content to front matter `title` and `aliases` field,
-- convert internal links `[[file]]` , embeds `![[image]]`, and external links with Obsidian URI `[text](obsidian://open?vault=notes&file=filename` to the standard format, and etc.
+- convert internal links `[[file]]` , embeds `![[image]]`, and external links with Obsidian URI `[text](obsidian://open?vault=notes&file=filename)` to the standard format, and etc.
 
 ## Installation
 We provide binaries for several platforms.
