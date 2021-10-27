@@ -14,21 +14,23 @@ const (
 	FLAG_COPY_ALIASES   = "alias"
 	FLAG_CONVERT_LINKS  = "link"
 	FLAG_REMOVE_COMMENT = "cmmt"
+	FLAG_PUBLISHABLE    = "pub"
 	FLAG_OBSIDIAN_USAGE = "obs"
 	FLAG_COMMON_USAGE   = "cmmn"
 )
 
 type flagBundle struct {
-	src   string
-	dst   string
-	rmtag bool
-	cptag bool
-	title bool
-	alias bool
-	link  bool
-	cmmt  bool
-	obs   bool
-	cmmn  bool
+	src         string
+	dst         string
+	rmtag       bool
+	cptag       bool
+	title       bool
+	alias       bool
+	link        bool
+	cmmt        bool
+	publishable bool
+	obs         bool
+	cmmn        bool
 }
 
 var (
@@ -76,6 +78,7 @@ func setFlags(flagset *flag.FlagSet, flags *flagBundle) error {
 		flags.rmtag = true
 		flags.link = true
 		flags.cmmt = true
+		flags.publishable = true
 	}
 
 	if _, ok := setflags[FLAG_COPY_TAGS]; ok {
@@ -95,6 +98,9 @@ func setFlags(flagset *flag.FlagSet, flags *flagBundle) error {
 	}
 	if _, ok := setflags[FLAG_REMOVE_COMMENT]; ok {
 		flags.cmmt = orgFlag.cmmt
+	}
+	if _, ok := setflags[FLAG_PUBLISHABLE]; ok {
+		flags.publishable = orgFlag.publishable
 	}
 	return nil
 }
