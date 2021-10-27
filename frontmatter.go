@@ -39,6 +39,7 @@ func convertYAML(raw []byte, frontmatter frontMatter) (output []byte, err error)
 			if !exists {
 				vv = append(vv, frontmatter.Alias)
 			}
+			m["aliases"] = vv
 		}
 	}
 
@@ -63,6 +64,7 @@ func convertYAML(raw []byte, frontmatter frontMatter) (output []byte, err error)
 					vv = append(vv, t)
 				}
 			}
+			m["tags"] = vv
 		}
 	}
 
