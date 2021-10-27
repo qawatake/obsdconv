@@ -7,20 +7,20 @@ import (
 )
 
 type frontMatter struct {
-	Title   string   `yaml:"title,omitempty"`
-	Tags    []string `yaml:"tags,omitempty"`
-	Alias   string
+	title string
+	tags  []string
+	alias string
 }
 
-func convertYAML(raw []byte, frontmatter frontMatter) (output []byte, err error) {
+func convertYAML(raw []byte, frontmatter frontMatter, flags *flagBundle) (output []byte, err error) {
 	m := make(map[interface{}]interface{})
 	if err := yaml.Unmarshal(raw, m); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal front matter: %w", err)
 	}
-	m["title"] = frontmatter.Title
+	m["title"] = frontmatter.title
 
 	if v, ok := m["aliases"]; !ok {
-		m["aliases"] = []string{frontmatter.Alias}
+		m["aliases"] = []string{frontmatter.alias}
 	} else {
 		if vv, ok := v.([]interface{}); !ok {
 			return nil, fmt.Errorf("aliases field found but its field type is not []interface{}: %T", v)
@@ -31,20 +31,20 @@ func convertYAML(raw []byte, frontmatter frontMatter) (output []byte, err error)
 				if !ok {
 					return nil, fmt.Errorf("aliases field found but its field type is not string: %T", a)
 				}
-				if aa == frontmatter.Alias {
+				if aa == frontmatter.alias {
 					exists = true
 				}
 			}
 			if !exists {
-				vv = append(vv, frontmatter.Alias)
+				vv = append(vv, frontmatter.alias)
 			}
 			m["aliases"] = vv
 		}
 	}
 
 	if v, ok := m["tags"]; !ok {
-		tags := make([]string, len(frontmatter.Tags))
-		copy(tags, frontmatter.Tags)
+		tags := make([]string, len(frontmatter.tags))
+		copy(tags, frontmatter.tags)
 		m["tags"] = tags
 	} else {
 		if vv, ok := v.([]interface{}); !ok {
@@ -58,7 +58,7 @@ func convertYAML(raw []byte, frontmatter frontMatter) (output []byte, err error)
 				}
 				existingTag[aa] = true
 			}
-			for _, t := range frontmatter.Tags {
+			for _, t := range frontmatter.tags {
 				if !existingTag[t] {
 					vv = append(vv, t)
 				}

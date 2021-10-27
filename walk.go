@@ -85,17 +85,17 @@ func process(vault string, path string, newpath string, flags *flagBundle) error
 
 	var frontmatter frontMatter
 	if flags.title {
-		frontmatter.Title = title
+		frontmatter.title = title
 	}
 	if flags.alias {
-		frontmatter.Alias = frontmatter.Title
+		frontmatter.alias = frontmatter.title
 	}
 	if flags.cptag {
 		for key := range tags {
-			frontmatter.Tags = append(frontmatter.Tags, key)
+			frontmatter.tags = append(frontmatter.tags, key)
 		}
 	}
-	yml, err = convertYAML(yml, frontmatter)
+	yml, err = convertYAML(yml, frontmatter, nil)
 	if err != nil {
 		return fmt.Errorf("failed to convert yaml: %w", err)
 	}

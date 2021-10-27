@@ -14,9 +14,9 @@ func TestConvertYAML(t *testing.T) {
 			raw: []byte(`cssclass: index-page
 publish: true`),
 			frontmatter: frontMatter{
-				Title: "211027",
-				Alias: "today",
-				Tags:  []string{"todo", "math"},
+				title: "211027",
+				alias: "today",
+				tags:  []string{"todo", "math"},
 			},
 			want: `aliases:
 - today
@@ -34,9 +34,9 @@ title: "211027"
 publish: true
 title: 211026`),
 			frontmatter: frontMatter{
-				Title: "211027",
-				Alias: "today",
-				Tags:  []string{"todo", "math"},
+				title: "211027",
+				alias: "today",
+				tags:  []string{"todo", "math"},
 			},
 			want: `aliases:
 - today
@@ -56,9 +56,9 @@ aliases:
 - today
 `),
 			frontmatter: frontMatter{
-				Title: "211027",
-				Alias: "birthday",
-				Tags:  []string{"todo", "math"},
+				title: "211027",
+				alias: "birthday",
+				tags:  []string{"todo", "math"},
 			},
 			want: `aliases:
 - today
@@ -79,9 +79,9 @@ aliases:
 - today
 `),
 			frontmatter: frontMatter{
-				Title: "211027",
-				Alias: "today",
-				Tags:  []string{"todo", "math"},
+				title: "211027",
+				alias: "today",
+				tags:  []string{"todo", "math"},
 			},
 			want: `aliases:
 - today
@@ -101,9 +101,9 @@ tags:
 - book
 `),
 			frontmatter: frontMatter{
-				Title: "211027",
-				Alias: "today",
-				Tags:  []string{"todo", "math"},
+				title: "211027",
+				alias: "today",
+				tags:  []string{"todo", "math"},
 			},
 			want: `aliases:
 - today
@@ -125,9 +125,9 @@ tags:
 - math
 `),
 			frontmatter: frontMatter{
-				Title: "211027",
-				Alias: "today",
-				Tags:  []string{"todo", "math"},
+				title: "211027",
+				alias: "today",
+				tags:  []string{"todo", "math"},
 			},
 			want: `aliases:
 - today
@@ -143,7 +143,7 @@ title: "211027"
 	}
 
 	for _, tt := range cases {
-		got, err := convertYAML(tt.raw, tt.frontmatter)
+		got, err := convertYAML(tt.raw, tt.frontmatter, nil)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 		}
