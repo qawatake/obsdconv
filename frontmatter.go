@@ -10,6 +10,7 @@ type frontMatter struct {
 	Title   string   `yaml:"title,omitempty"`
 	Aliases []string `yaml:"aliases,omitempty"`
 	Tags    []string `yaml:"tags,omitempty"`
+	Alias   string
 }
 
 func convertYAML(raw []byte, frontmatter frontMatter) (output []byte, err error) {
@@ -20,32 +21,48 @@ func convertYAML(raw []byte, frontmatter frontMatter) (output []byte, err error)
 	m["title"] = frontmatter.Title
 
 	if v, ok := m["aliases"]; !ok {
-		m["aliases"] = make([]string, len(frontmatter.Aliases))
-		if vv, ok := m["aliases"].([]string); ok {
-			copy(vv, frontmatter.Aliases)
-		} else {
-			return nil, fmt.Errorf("aliases field not found and failed to add aliases: %w", err)
-		}
+		m["aliases"] = []string{frontmatter.Alias}
 	} else {
-		if vv, ok := v.([]string); ok {
-			vv = append(vv, frontmatter.Aliases...)
+		if vv, ok := v.([]interface{}); !ok {
+			return nil, fmt.Errorf("aliases field found but its field type is not []interface{}: %T", v)
 		} else {
-			return nil, fmt.Errorf("aliases field found but failed to add aliases: %w", err)
+			exists := false
+			for _, a := range vv {
+				aa, ok := a.(string)
+				if !ok {
+					return nil, fmt.Errorf("aliases field found but its field type is not string: %T", a)
+				}
+				if aa == frontmatter.Alias {
+					exists = true
+				}
+			}
+			if !exists {
+				vv = append(vv, frontmatter.Alias)
+			}
 		}
 	}
 
 	if v, ok := m["tags"]; !ok {
-		m["tags"] = make([]string, len(frontmatter.Tags))
-		if vv, ok := m["tags"].([]string); ok {
-			copy(vv, frontmatter.Tags)
-		} else {
-			return nil, fmt.Errorf("tags field not found and failed to add tags: %w", err)
-		}
+		tags := make([]string, len(frontmatter.Tags))
+		copy(tags, frontmatter.Tags)
+		m["tags"] = tags
 	} else {
-		if vv, ok := v.([]string); ok {
-			vv = append(vv, frontmatter.Tags...)
+		if vv, ok := v.([]interface{}); !ok {
+			return nil, fmt.Errorf("tags field found but its field type is not []interface{}: %T", v)
 		} else {
-			return nil, fmt.Errorf("tags field found but failed to add tags: %w", err)
+			existingTag := make(map[string]bool)
+			for _, a := range vv {
+				aa, ok := a.(string)
+				if !ok {
+					return nil, fmt.Errorf("tags field found but its field type is not string: %T", a)
+				}
+				existingTag[aa] = true
+			}
+			for _, t := range frontmatter.Tags {
+				if !existingTag[t] {
+					vv = append(vv, t)
+				}
+			}
 		}
 	}
 
