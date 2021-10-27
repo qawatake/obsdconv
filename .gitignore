@@ -4,6 +4,7 @@
 !main.go
 !preprocess.go
 !frontmatter.go
+!convert.go
 !walk.go
 !flag.go
 !preprocess_test.go
