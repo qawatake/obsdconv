@@ -110,20 +110,20 @@ func process(vault string, newpath string, flags *flagBundle, file *os.File) err
 func convert(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune) {
 	output = raw
 	if flags.cptag {
-		_ = NewTagFinder(tags).Convert(output)
+		_, _ = NewTagFinder(tags).Convert(output)
 	}
 	if flags.rmtag {
-		output = NewTagRemover().Convert(output)
+		output, _ = NewTagRemover().Convert(output)
 	}
 	if flags.cmmt {
-		output = NewCommentEraser().Convert(output)
+		output, _ = NewCommentEraser().Convert(output)
 	}
 	if flags.link {
-		output = NewLinkConverter(vault).Convert(output)
+		output, _ = NewLinkConverter(vault).Convert(output)
 	}
 	if flags.title {
-		titleFoundFrom := NewTagRemover().Convert(output)
-		_ = NewTitleFinder(title).Convert(titleFoundFrom)
+		titleFoundFrom, _ := NewTagRemover().Convert(output)
+		_, _ = NewTitleFinder(title).Convert(titleFoundFrom)
 	}
 	return output
 }

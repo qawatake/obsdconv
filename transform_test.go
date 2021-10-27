@@ -21,7 +21,11 @@ func TestTransformExternalLink(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if _, got := TransformExternalLinkFunc(TEST_TRANSFORM_EXTERNAL_LINK_ROOT_DIR+tt.root)(tt.raw, 0); string(got) != string(tt.want) {
+		_, got, err := TransformExternalLinkFunc(TEST_TRANSFORM_EXTERNAL_LINK_ROOT_DIR+tt.root)(tt.raw, 0)
+		if err != nil {
+			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)
+		}
+		if string(got) != string(tt.want) {
 			t.Errorf("[ERROR | %v]\ngot: %q, want: %q", tt.name, string(got), string(tt.want))
 		}
 	}

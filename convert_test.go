@@ -18,7 +18,11 @@ func TestTagRemover(t *testing.T) {
 	c := NewTagRemover()
 
 	for _, tt := range cases {
-		if got := c.Convert(tt.raw); string(got) != string(tt.want) {
+		got, err := c.Convert(tt.raw)
+		if err != nil {
+			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)
+		}
+		if string(got) != string(tt.want) {
 			t.Errorf("[ERROR | %v]\n\t got: %q\n\twant: %q", tt.name, string(got), string(tt.want))
 		}
 	}
@@ -38,7 +42,11 @@ func TestTagFinder(t *testing.T) {
 	for _, tt := range cases {
 		tags := make(map[string]struct{})
 		c := NewTagFinder(tags)
-		if got := c.Convert(tt.raw); string(got) != string(tt.raw) {
+		got, err := c.Convert(tt.raw)
+		if err != nil {
+			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)
+		}
+		if string(got) != string(tt.raw) {
 			t.Errorf("[ERROR | ouput - %v]\n\t got: %q\n\twant: %q", tt.name, string(got), string(tt.raw))
 		}
 		for _, tag := range tt.wantTags {
@@ -73,7 +81,11 @@ func TestTitleFinder(t *testing.T) {
 	for _, tt := range cases {
 		gotTitle := ""
 		c := NewTitleFinder(&gotTitle)
-		if got := c.Convert(tt.raw); string(got) != string(tt.raw) {
+		got, err := c.Convert(tt.raw)
+		if err != nil {
+			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)
+		}
+		if string(got) != string(tt.raw) {
 			t.Errorf("[ERROR | output - %v]\n\t got: %q\n\twant: %q", tt.name, got, tt.raw)
 		}
 		if gotTitle != tt.wantTitle {
@@ -210,7 +222,11 @@ func TestLinkConverter(t *testing.T) {
 
 	for _, tt := range cases {
 		c := NewLinkConverter(TEST_LINK_CONVERTER_VAULT_DIR + tt.vault)
-		if got := c.Convert(tt.raw); string(got) != string(tt.want) {
+		got, err := c.Convert(tt.raw)
+		if err != nil {
+			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)
+		}
+		if string(got) != string(tt.want) {
 			t.Errorf("[ERROR | %v]\n\t got: %q\n\twant: %q", tt.name, string(got), string(tt.want))
 		}
 	}
@@ -262,7 +278,11 @@ func TestCommentEraser(t *testing.T) {
 	c := NewCommentEraser()
 
 	for _, tt := range cases {
-		if got := c.Convert(tt.raw); string(got) != string(tt.want) {
+		got, err := c.Convert(tt.raw)
+		if err != nil {
+			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)
+		}
+		if string(got) != string(tt.want) {
 			t.Errorf("[ERROR | %v]\n\tgot: %q\n\twant: %q", tt.name, string(got), string(tt.want))
 		}
 	}
