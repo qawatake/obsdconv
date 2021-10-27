@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	"github.com/qawatake/obsd2hugo/convert"
-	"gopkg.in/yaml.v2"
 )
 
 func walk(flags *flagBundle) error {
@@ -76,32 +75,29 @@ func process(vault string, path string, newpath string, flags *flagBundle) error
 	}
 
 	yml, body := splitMarkdown([]rune(string(content)))
-	frontmatter := new(frontMatter)
 	title := ""
 	tags := make(map[string]struct{})
 
-	newContent, err := converts(body, vault, &title, tags, *flags)
+	body, err = converts(body, vault, &title, tags, *flags)
 	if err != nil {
 		return fmt.Errorf("convert failed: %w", err)
 	}
 
-	if err := yaml.Unmarshal(yml, frontmatter); err != nil {
-		return fmt.Errorf("yaml.Unmarshal failed: %w", err)
-	}
+	var frontmatter frontMatter
 	if flags.title {
 		frontmatter.Title = title
 	}
 	if flags.alias {
-		frontmatter.Aliases = append(frontmatter.Aliases, frontmatter.Title)
+		frontmatter.Alias = frontmatter.Title
 	}
 	if flags.cptag {
 		for key := range tags {
 			frontmatter.Tags = append(frontmatter.Tags, key)
 		}
 	}
-	yml, err = yaml.Marshal(frontmatter)
+	yml, err = convertYAML(yml, frontmatter)
 	if err != nil {
-		return fmt.Errorf("yaml.Marshal failed: %w", err)
+		return fmt.Errorf("failed to convert yaml: %w", err)
 	}
 
 	newfile, err := os.Create(newpath)
@@ -109,7 +105,7 @@ func process(vault string, path string, newpath string, flags *flagBundle) error
 		return fmt.Errorf("failed to create %s: %w", newpath, err)
 	}
 	defer newfile.Close()
-	fmt.Fprintf(newfile, "---\n%s---\n%s", string(yml), string(newContent))
+	fmt.Fprintf(newfile, "---\n%s---\n%s", string(yml), string(body))
 	return nil
 }
 

@@ -8,7 +8,6 @@ import (
 
 type frontMatter struct {
 	Title   string   `yaml:"title,omitempty"`
-	Aliases []string `yaml:"aliases,omitempty"`
 	Tags    []string `yaml:"tags,omitempty"`
 	Alias   string
 }
