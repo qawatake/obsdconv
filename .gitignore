@@ -10,6 +10,8 @@
 !preprocess_test.go
 !flag_test.go
 !frontmatter_test.go
+!README.md
+!LICENSE
 
 !testdata
 !testdata/findpath
