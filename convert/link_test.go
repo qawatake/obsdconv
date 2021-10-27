@@ -39,8 +39,8 @@ func TestSplitFragments(t *testing.T) {
 		{identifier: "# section # subsection", wantFileId: "", wantFragments: []string{"section", "subsection"}, wantErr: nil},
 		{identifier: "211022# section", wantFileId: "211022", wantFragments: []string{"section"}, wantErr: nil},
 		{identifier: "211022# section # subsection", wantFileId: "211022", wantFragments: []string{"section", "subsection"}, wantErr: nil},
-		{identifier: "211022 #section", wantFileId: "", wantFragments: nil, wantErr: newErr(ErrKindInvalidInternalLinkContent)},
-		{identifier: "211022\t#section #subsection", wantFileId: "", wantFragments: nil, wantErr: newErr(ErrKindInvalidInternalLinkContent)},
+		{identifier: "211022 #section", wantFileId: "", wantFragments: nil, wantErr: newErrTransform(err_KIND_INVALID_INTERNAL_LINK_CONTENT)},
+		{identifier: "211022\t#section #subsection", wantFileId: "", wantFragments: nil, wantErr: newErrTransform(err_KIND_INVALID_INTERNAL_LINK_CONTENT)},
 	}
 
 	for _, tt := range cases {
@@ -52,7 +52,7 @@ func TestSplitFragments(t *testing.T) {
 			t.Errorf("[ERROR] mustn't fail with input %v: %v", tt.identifier, gotErr)
 			continue
 		} else if gotErr != nil && tt.wantErr != nil {
-			if ee, ok := gotErr.(ErrInvalidInternalLinkContent); !ok || !ee.IsErrInvalidInternalLinkContent() {
+			if ee, ok := gotErr.(ErrTransform); !ok || !ee.IsErrInvalidInternalLinkContent() {
 				t.Errorf("[ERROR] unexpected error occurred: %v", ee)
 				continue
 			}

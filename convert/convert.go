@@ -2,7 +2,6 @@ package convert
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/qawatake/obsd2hugo/scan"
 )
@@ -34,7 +33,9 @@ func (c *Converter) Convert(raw []rune) (output []rune, err error) {
 			}
 		}
 		if ptr <= org {
-			log.Fatal("pointer did not proceed")
+			err := newErrConvert(fmt.Errorf("caught by no transformer"))
+			err.SetLine(currentLine(raw, ptr))
+			return nil, err
 		}
 	}
 	return output, nil

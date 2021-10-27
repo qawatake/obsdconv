@@ -2,7 +2,7 @@ package convert
 
 import "fmt"
 
-type ErrTransform interface {
+type ErrConvert interface {
 	error
 	Path() string
 	Line() int
@@ -11,36 +11,36 @@ type ErrTransform interface {
 	Cause() error
 }
 
-type errTransformImpl struct {
+type errConvertImpl struct {
 	path   string
 	line   int
 	orgErr error
 }
 
-func (e *errTransformImpl) Path() string {
+func (e *errConvertImpl) Path() string {
 	return e.path
 }
 
-func (e *errTransformImpl) Line() int {
+func (e *errConvertImpl) Line() int {
 	return e.line
 }
 
-func (e *errTransformImpl) SetPath(path string) {
+func (e *errConvertImpl) SetPath(path string) {
 	e.path = path
 }
 
-func (e *errTransformImpl) SetLine(line int) {
+func (e *errConvertImpl) SetLine(line int) {
 	e.line = line
 }
 
-func (e *errTransformImpl) Cause() error {
+func (e *errConvertImpl) Cause() error {
 	return e.orgErr
 }
 
-func (e *errTransformImpl) Error() string {
+func (e *errConvertImpl) Error() string {
 	return fmt.Sprintf("[ERROR] path: %s, line: %d: %v", e.path, e.line, e.orgErr)
 }
 
-func newErrTransform(orgErr error) ErrTransform {
-	return &errTransformImpl{orgErr: orgErr}
+func newErrConvert(orgErr error) ErrConvert {
+	return &errConvertImpl{orgErr: orgErr}
 }

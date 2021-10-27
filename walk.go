@@ -58,11 +58,11 @@ func walk(flags *flagBundle) error {
 
 func handleErr(path string, err error) error {
 	orgErr := errors.Unwrap(err)
-	if e, ok := orgErr.(convert.ErrTransform); !ok {
+	if e, ok := orgErr.(convert.ErrConvert); !ok {
 		return fmt.Errorf("[ERROR] path: %s | %v", path, orgErr)
 	} else {
 		e.SetPath(path)
-		if _, ok := e.(convert.ErrInvalidInternalLinkContent); !ok {
+		if _, ok := e.(convert.ErrTransform); !ok {
 			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", e.Path(), e.Line(), e.Cause())
 		} else {
 			return fmt.Errorf("[ERROR] path: %s, line: %d | invalid internal link content found", e.Path(), e.Line())

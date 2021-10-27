@@ -10,27 +10,27 @@ import (
 type errKind int
 
 const (
-	ErrKindInvalidInternalLinkContent errKind = iota
+	err_KIND_INVALID_INTERNAL_LINK_CONTENT errKind = iota
 )
 
-type Err struct {
+type errTransformImpl struct {
 	kind errKind
 }
 
-type ErrInvalidInternalLinkContent interface {
+type ErrTransform interface {
 	IsErrInvalidInternalLinkContent() bool
 }
 
-func (e *Err) Error() string {
+func (e *errTransformImpl) Error() string {
 	return "invalid internal link content"
 }
 
-func (e *Err) IsErrInvalidInternalLinkContent() bool {
-	return e.kind == ErrKindInvalidInternalLinkContent
+func (e *errTransformImpl) IsErrInvalidInternalLinkContent() bool {
+	return e.kind == err_KIND_INVALID_INTERNAL_LINK_CONTENT
 }
 
-func newErr(kind errKind) *Err {
-	return &Err{kind: kind}
+func newErrTransform(kind errKind) *errTransformImpl {
+	return &errTransformImpl{kind: kind}
 }
 
 func pathMatchScore(path string, filename string) int {
@@ -103,7 +103,7 @@ func splitFragments(identifier string) (fileId string, fragments []string, err e
 	}
 	fileId = strs[0]
 	if len(strings.TrimRight(fileId, " \t")) != len(fileId) {
-		return "", nil, newErr(ErrKindInvalidInternalLinkContent)
+		return "", nil, newErrTransform(err_KIND_INVALID_INTERNAL_LINK_CONTENT)
 	}
 
 	fragments = make([]string, len(strs)-1)

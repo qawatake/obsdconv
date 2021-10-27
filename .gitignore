@@ -2,21 +2,13 @@
 !.gitignore
 !go.mod
 !main.go
-# !convert.go
-# !transform.go
-# !scan.go
-# !link.go
 !preprocess.go
 !frontmatter.go
 !walk.go
 !flag.go
-# !error.go
-# !convert_test.go
-# !transform_test.go
-# !scan_test.go
-# !link_test.go
 !preprocess_test.go
 !flag_test.go
+
 !testdata
 !testdata/findpath
 !testdata/findpath/**
@@ -33,6 +25,7 @@
 !scan
 !scan/scan.go
 !scan/scan_test.go
+
 !convert
 !convert/convert.go
 !convert/transform.go

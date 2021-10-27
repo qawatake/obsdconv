@@ -41,8 +41,6 @@ func followedBy(raw []rune, ptr int, ss []string) bool {
 	return false
 }
 
-
-
 func ScanInlineCode(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "`") && len(raw[ptr:]) > 1) {
 		return 0
