@@ -1,31 +1,46 @@
 package main
 
-type ErrTransform struct {
+import "fmt"
+
+type ErrTransform interface {
+	error
+	Path() string
+	Line() int
+	SetPath(path string)
+	SetLine(line int)
+	Cause() error
+}
+
+type errTransformImpl struct {
 	path   string
 	line   int
 	orgErr error
 }
 
-func (e *ErrTransform) Path() string {
+func (e *errTransformImpl) Path() string {
 	return e.path
 }
 
-func (e *ErrTransform) Line() int {
+func (e *errTransformImpl) Line() int {
 	return e.line
 }
 
-func (e *ErrTransform) SetPath(path string) {
+func (e *errTransformImpl) SetPath(path string) {
 	e.path = path
 }
 
-func (e *ErrTransform) SetLine(line int) {
+func (e *errTransformImpl) SetLine(line int) {
 	e.line = line
 }
 
-func (e *ErrTransform) Error() string {
-	return e.orgErr.Error()
+func (e *errTransformImpl) Cause() error {
+	return e.orgErr
 }
 
-func NewErrTransform(orgErr error) *ErrTransform {
-	return &ErrTransform{orgErr: orgErr}
+func (e *errTransformImpl) Error() string {
+	return fmt.Sprintf("[ERROR] path: %s, line: %d: %v", e.path, e.line, e.orgErr)
+}
+
+func newErrTransform(orgErr error) ErrTransform {
+	return &errTransformImpl{orgErr: orgErr}
 }

@@ -63,13 +63,13 @@ func main() {
 func process(vault string, newpath string, flags *flagBundle, file *os.File) error {
 	fileinfo, err := file.Stat()
 	if err != nil {
-		log.Fatalf("file.Stat failed %v", err)
+		return fmt.Errorf("file.Stat failed %w", err)
 	}
 
 	content := make([]byte, fileinfo.Size())
 	_, err = file.Read(content)
 	if err != nil {
-		log.Fatalf("file.Write failed: %v", err)
+		return fmt.Errorf("file.Write failed: %w", err)
 	}
 
 	yml, body := splitMarkdown([]rune(string(content)))
@@ -77,10 +77,13 @@ func process(vault string, newpath string, flags *flagBundle, file *os.File) err
 	title := ""
 	tags := make(map[string]struct{})
 
-	newContent := convert(body, vault, &title, tags, *flags)
+	newContent, err := convert(body, vault, &title, tags, *flags)
+	if err != nil {
+		return fmt.Errorf("convert failed: %w", err)
+	}
 
 	if err := yaml.Unmarshal(yml, frontmatter); err != nil {
-		log.Fatalf("yaml.Unmarshal failed: %v", err)
+		return fmt.Errorf("yaml.Unmarshal failed: %w", err)
 	}
 	if flags.title {
 		frontmatter.Title = title
@@ -95,35 +98,53 @@ func process(vault string, newpath string, flags *flagBundle, file *os.File) err
 	}
 	yml, err = yaml.Marshal(frontmatter)
 	if err != nil {
-		log.Fatalf("yaml.Marshal failed: %v", err)
+		return fmt.Errorf("yaml.Marshal failed: %w", err)
 	}
 
 	newfile, err := os.Create(newpath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create %s: %w", newpath, err)
 	}
 	defer newfile.Close()
 	fmt.Fprintf(newfile, "---\n%s---\n%s", string(yml), string(newContent))
 	return nil
 }
 
-func convert(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune) {
+func convert(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune, err error) {
 	output = raw
 	if flags.cptag {
-		_, _ = NewTagFinder(tags).Convert(output)
+		_, err = NewTagFinder(tags).Convert(output)
+		if err != nil {
+			return nil, fmt.Errorf("TagFinder failed: %w", err)
+		}
 	}
 	if flags.rmtag {
-		output, _ = NewTagRemover().Convert(output)
+		output, err = NewTagRemover().Convert(output)
+		if err != nil {
+			return nil, fmt.Errorf("TagRemover failed: %w", err)
+		}
 	}
 	if flags.cmmt {
-		output, _ = NewCommentEraser().Convert(output)
+		output, err = NewCommentEraser().Convert(output)
+		if err != nil {
+			return nil, fmt.Errorf("CommentEraser failed: %w", err)
+		}
 	}
 	if flags.link {
-		output, _ = NewLinkConverter(vault).Convert(output)
+		output, err = NewLinkConverter(vault).Convert(output)
+		if err != nil {
+			return nil, fmt.Errorf("LinkConverter failed: %w", err)
+		}
 	}
 	if flags.title {
 		titleFoundFrom, _ := NewTagRemover().Convert(output)
-		_, _ = NewTitleFinder(title).Convert(titleFoundFrom)
+		if err != nil {
+			return nil, fmt.Errorf("preprocess TagRemover for finding titles failed: %w", err)
+		}
+		_, err = NewTitleFinder(title).Convert(titleFoundFrom)
+		if err != nil {
+			return nil, fmt.Errorf("TitleFinder failed: %w", err)
+		}
 	}
-	return output
+	return output, nil
 }

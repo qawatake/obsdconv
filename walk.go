@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -44,10 +46,24 @@ func walk(flags *flagBundle) error {
 			}
 			defer file.Close()
 			if err := process(flags.src, newpath, flags, file); err != nil {
-				return err
+				return handleErr(path, err)
 			}
 		}
 		return nil
 	})
 	return err
+}
+
+func handleErr(path string, err error) error {
+	orgErr := errors.Unwrap(err)
+	if e, ok := orgErr.(ErrTransform); !ok {
+		return fmt.Errorf("[ERROR] path: %s | %v", path, orgErr)
+	} else {
+		e.SetPath(path)
+		if _, ok := e.(ErrInvalidInternalLinkContent); !ok {
+			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", e.Path(), e.Line(), e.Cause())
+		} else {
+			return fmt.Errorf("[ERROR] path: %s, line: %d | invalid internal link content found", e.Path(), e.Line())
+		}
+	}
 }
