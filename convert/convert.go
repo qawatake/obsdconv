@@ -43,9 +43,7 @@ func (c *Converter) Convert(raw []rune) (output []rune, err error) {
 
 type ScannerFunc func(raw []rune, ptr int) (advance int)
 
-type Middleware func(ScannerFunc) TransformerFunc
-
-func DefaultMiddleware(scanner ScannerFunc) TransformerFunc {
+func MiddlewareAsIs(scanner ScannerFunc) TransformerFunc {
 	return TransformerFunc(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance = scanner(raw, ptr)
 		return advance, raw[ptr : ptr+advance], nil
@@ -55,24 +53,24 @@ func DefaultMiddleware(scanner ScannerFunc) TransformerFunc {
 func NewTagRemover() *Converter {
 	c := new(Converter)
 
-	c.Set(DefaultMiddleware(scan.ScanEscaped))
-	c.Set(DefaultMiddleware(scan.ScanCodeBlock))
-	c.Set(DefaultMiddleware(scan.ScanComment))
-	c.Set(DefaultMiddleware(scan.ScanMathBlock))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(scan.ScanEscaped))
+	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
+	c.Set(MiddlewareAsIs(scan.ScanComment))
+	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanInternalLink(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanEmbeds(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(scan.ScanInlineMath))
-	c.Set(DefaultMiddleware(scan.ScanInlineCode))
+	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
+	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
 	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance = scan.ScanRepeat(raw, ptr, "#")
 		if advance <= 1 {
@@ -80,7 +78,10 @@ func NewTagRemover() *Converter {
 		}
 		return advance, raw[ptr : ptr+advance], nil
 	})
-	c.Set(TransformTag)
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
+		advance, _ = scan.ScanTag(raw, ptr)
+		return advance, nil, nil
+	})
 	c.Set(TransformNone)
 	return c
 }
@@ -88,24 +89,24 @@ func NewTagRemover() *Converter {
 func NewTagFinder(tags map[string]struct{}) *Converter {
 	c := new(Converter)
 
-	c.Set(DefaultMiddleware(scan.ScanEscaped))
-	c.Set(DefaultMiddleware(scan.ScanCodeBlock))
-	c.Set(DefaultMiddleware(scan.ScanComment))
-	c.Set(DefaultMiddleware(scan.ScanMathBlock))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(scan.ScanEscaped))
+	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
+	c.Set(MiddlewareAsIs(scan.ScanComment))
+	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanInternalLink(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanEmbeds(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(scan.ScanInlineMath))
-	c.Set(DefaultMiddleware(scan.ScanInlineCode))
+	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
+	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
 	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance = scan.ScanRepeat(raw, ptr, "#")
 		if advance <= 1 {
@@ -127,24 +128,24 @@ func NewTagFinder(tags map[string]struct{}) *Converter {
 func NewTitleFinder(title *string) *Converter {
 	c := new(Converter)
 
-	c.Set(DefaultMiddleware(scan.ScanEscaped))
-	c.Set(DefaultMiddleware(scan.ScanCodeBlock))
-	c.Set(DefaultMiddleware(scan.ScanComment))
-	c.Set(DefaultMiddleware(scan.ScanMathBlock))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(scan.ScanEscaped))
+	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
+	c.Set(MiddlewareAsIs(scan.ScanComment))
+	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanInternalLink(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanEmbeds(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(scan.ScanInlineMath))
-	c.Set(DefaultMiddleware(scan.ScanInlineCode))
+	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
+	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
 	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance, level, headertext := scan.ScanHeader(raw, ptr)
 		if level == 1 && *title == "" {
@@ -159,7 +160,7 @@ func NewTitleFinder(title *string) *Converter {
 		}
 		return advance, raw[ptr : ptr+advance], nil
 	})
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanTag(raw, ptr)
 		return advance
 	}))
@@ -170,15 +171,15 @@ func NewTitleFinder(title *string) *Converter {
 func NewLinkConverter(vault string) *Converter {
 	c := new(Converter)
 
-	c.Set(DefaultMiddleware(scan.ScanEscaped))
-	c.Set(DefaultMiddleware(scan.ScanCodeBlock))
-	c.Set(DefaultMiddleware(scan.ScanComment))
-	c.Set(DefaultMiddleware(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(scan.ScanEscaped))
+	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
+	c.Set(MiddlewareAsIs(scan.ScanComment))
+	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(TransformExternalLinkFunc(vault))
 	c.Set(TransformInternalLinkFunc(vault))
 	c.Set(TransformEmbedsFunc(vault))
-	c.Set(DefaultMiddleware(scan.ScanInlineMath))
-	c.Set(DefaultMiddleware(scan.ScanInlineCode))
+	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
+	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
 	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance = scan.ScanRepeat(raw, ptr, "#")
 		if advance <= 1 {
@@ -186,7 +187,7 @@ func NewLinkConverter(vault string) *Converter {
 		}
 		return advance, raw[ptr : ptr+advance], nil
 	})
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanTag(raw, ptr)
 		return advance
 	}))
@@ -197,24 +198,30 @@ func NewLinkConverter(vault string) *Converter {
 func NewCommentEraser() *Converter {
 	c := new(Converter)
 
-	c.Set(DefaultMiddleware(scan.ScanEscaped))
-	c.Set(DefaultMiddleware(scan.ScanCodeBlock))
-	c.Set(TransformComment)
-	c.Set(DefaultMiddleware(scan.ScanMathBlock))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(scan.ScanEscaped))
+	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
+		advance = scan.ScanComment(raw, ptr)
+		if advance == 0 {
+			return 0, nil, nil
+		}
+		return advance, nil, nil
+	})
+	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanInternalLink(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanEmbeds(raw, ptr)
 		return advance
 	}))
-	c.Set(DefaultMiddleware(scan.ScanInlineMath))
-	c.Set(DefaultMiddleware(scan.ScanInlineCode))
+	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
+	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
 	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance = scan.ScanRepeat(raw, ptr, "#")
 		if advance <= 1 {
@@ -222,7 +229,7 @@ func NewCommentEraser() *Converter {
 		}
 		return advance, raw[ptr : ptr+advance], nil
 	})
-	c.Set(DefaultMiddleware(func(raw []rune, ptr int) (advance int) {
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanTag(raw, ptr)
 		return advance
 	}))

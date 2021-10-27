@@ -54,14 +54,6 @@ func TransformEmbedsFunc(root string) TransformerFunc {
 	}
 }
 
-func TransformTag(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-	advance, _ = scan.ScanTag(raw, ptr)
-	if advance == 0 {
-		return 0, nil, nil
-	}
-	return advance, nil, nil
-}
-
 func TransformExternalLinkFunc(root string) TransformerFunc {
 	return func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance, displayName, ref := scan.ScanExternalLink(raw, ptr)
@@ -122,12 +114,4 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			return 0, nil, err
 		}
 	}
-}
-
-func TransformComment(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-	advance = scan.ScanComment(raw, ptr)
-	if advance == 0 {
-		return 0, nil, nil
-	}
-	return advance, nil, nil
 }
