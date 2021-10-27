@@ -47,7 +47,7 @@ func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	flagset.BoolVar(&flags.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
 	flagset.BoolVar(&flags.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
 	flagset.BoolVar(&flags.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
-	flagset.BoolVar(&flags.publishable, FLAG_PUBLISHABLE, false, "publish: true -> draft: false, publish: false -> draft: true")
+	flagset.BoolVar(&flags.publishable, FLAG_PUBLISHABLE, false, "publish: true -> draft: false, publish: false -> draft: true, no publish field -> draft: true. If draft explicitly specified, then leave it as is.")
 	flagset.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
 	flagset.BoolVar(&flags.cmmn, FLAG_COMMON_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt")
 }

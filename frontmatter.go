@@ -13,6 +13,9 @@ type frontMatter struct {
 }
 
 func convertYAML(raw []byte, frontmatter frontMatter, flags *flagBundle) (output []byte, err error) {
+	if flags == nil {
+		return nil, fmt.Errorf("pointer to flagBundle is nil")
+	}
 	m := make(map[interface{}]interface{})
 	if err := yaml.Unmarshal(raw, m); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal front matter: %w", err)
@@ -64,6 +67,19 @@ func convertYAML(raw []byte, frontmatter frontMatter, flags *flagBundle) (output
 				}
 			}
 			m["tags"] = vv
+		}
+	}
+
+	_, ok := m["draft"]
+	if !ok && flags.publishable {
+		if p, ok := m["publish"]; !ok {
+			m["draft"] = true
+		} else {
+			if publishable, ok := p.(bool); !ok {
+				return nil, fmt.Errorf("publish field found but its field type is not bool: %T", p)
+			} else {
+				m["draft"] = !publishable
+			}
 		}
 	}
 
