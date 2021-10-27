@@ -30,11 +30,11 @@ func TestSetFlags(t *testing.T) {
 			},
 		},
 		{
-			name: "for common usage",
+			name: "for standard usage",
 			cmdflags: map[string]string{
 				FLAG_SOURCE:       "src",
 				FLAG_DESTINATION:  "dst",
-				FLAG_COMMON_USAGE: "1",
+				FLAG_STANDARD_USAGE: "1",
 			},
 			wantflags: flagBundle{
 				src:         "src",
@@ -46,16 +46,16 @@ func TestSetFlags(t *testing.T) {
 				link:        true,
 				publishable: true,
 				cmmt:        true,
-				cmmn:        true,
+				std:        true,
 			},
 		},
 		{
-			name: "common usage overwritten",
+			name: "standard usage overwritten",
 			cmdflags: map[string]string{
 				FLAG_SOURCE:       "src",
 				FLAG_DESTINATION:  "dst",
 				FLAG_REMOVE_TAGS:  "0",
-				FLAG_COMMON_USAGE: "1",
+				FLAG_STANDARD_USAGE: "1",
 			},
 			wantflags: flagBundle{
 				src:         "src",
@@ -68,7 +68,7 @@ func TestSetFlags(t *testing.T) {
 				publishable: true,
 				cmmt:        true,
 				obs:         false,
-				cmmn:        true,
+				std:        true,
 			},
 		},
 		{

@@ -16,7 +16,7 @@ const (
 	FLAG_REMOVE_COMMENT = "cmmt"
 	FLAG_PUBLISHABLE    = "pub"
 	FLAG_OBSIDIAN_USAGE = "obs"
-	FLAG_COMMON_USAGE   = "cmmn"
+	FLAG_STANDARD_USAGE   = "std"
 )
 
 type flagBundle struct {
@@ -30,7 +30,7 @@ type flagBundle struct {
 	cmmt        bool
 	publishable bool
 	obs         bool
-	cmmn        bool
+	std        bool
 }
 
 var (
@@ -49,7 +49,7 @@ func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	flagset.BoolVar(&flags.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
 	flagset.BoolVar(&flags.publishable, FLAG_PUBLISHABLE, false, "publish: true -> draft: false, publish: false -> draft: true, no publish field -> draft: true. If draft explicitly specified, then leave it as is.")
 	flagset.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
-	flagset.BoolVar(&flags.cmmn, FLAG_COMMON_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt")
+	flagset.BoolVar(&flags.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt")
 }
 
 // 実行前に↓が必要
@@ -70,12 +70,12 @@ func setFlags(flagset *flag.FlagSet, flags *flagBundle) error {
 		return ErrFlagDestinationNotSet
 	}
 
-	if flags.obs || flags.cmmn {
+	if flags.obs || flags.std {
 		flags.cptag = true
 		flags.title = true
 		flags.alias = true
 	}
-	if flags.cmmn {
+	if flags.std {
 		flags.rmtag = true
 		flags.link = true
 		flags.cmmt = true
