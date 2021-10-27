@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	RuneDollar = 0x24 // "$"
+	rune_DOLLAR = 0x24 // "$"
 )
 
 func unescaped(raw []rune, ptr int, substr string) bool {
@@ -65,7 +65,7 @@ func ScanInlineMath(raw []rune, ptr int) (advance int) {
 
 	cur := ptr + 1
 	for cur < len(raw)-1 && !unescaped(raw, cur, "$") {
-		pos := strings.IndexRune(string(raw[cur+1:]), RuneDollar)
+		pos := strings.IndexRune(string(raw[cur+1:]), rune_DOLLAR)
 		if pos < 0 {
 			return 0
 		}
