@@ -1,6 +1,6 @@
 # obsdconv
 Obsdconv is a CLI program and a Go package to convert [Obsidian](https://obsidian.md/) files in several ways.
-You can use the program both for exporting Obsidian files to static site generator link Hugo, and for modifying front matters.
+You can use the program both for exporting Obsidian files to static site generators (e.g., Hugo), and for modifying front matters.
 
 Obsdconv enables you to
 - remove tags from text,
