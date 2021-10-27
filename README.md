@@ -1,5 +1,5 @@
 # obsdconv
-Obsdconv is a CLI program and a Go package to convert Obsidian files in several ways.
+Obsdconv is a CLI program and a Go package to convert [Obsidian](https://obsidian.md/) files in several ways.
 You can use the program both for exporting Obsidian files to static site generator link Hugo, and for modifying front matters.
 
 Obsdconv enables you to
@@ -16,7 +16,7 @@ Or if you have a go runtime, you can build a binary by running
 Remenber to set `PATH` for the binary.
 
 ## Quick Start
-Run:
+Run
 ```bash
 obsdconv -src src -dst dst -std
 ```
