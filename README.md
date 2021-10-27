@@ -33,8 +33,8 @@ That is, obsdconv
 ## Options
 Available options are as follows:
 
-flag | meaning |
--- | -- | --
+flag | meaning | \*
+--- | --- | ---
 `src` | directory containing Obsidian files  | **required**
 `dst` | destination to which generated files located | **required**
 `rmtag` | remove tags from text | optional
@@ -55,7 +55,7 @@ That is, if you specify `-title=0` and `-obs`, `-title=0` wins and `title` field
 
 ## Customization
 The main program is based on two packages `github.com/qawatake/obsdconv/scan` and `github.com/qawatake/obsdconv/convert`.
-If you would link to customize the program,
+If you would like to customize the program,
 - combine existing `Converters`, or
 - create new scanning functions to get a new `Converter`.
 
