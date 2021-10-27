@@ -56,23 +56,21 @@ func walk(flags *flagBundle) error {
 	return err
 }
 
-func process(vault string, path string, newpath string, flags *flagBundle) error {
-	file, err := os.Open(path)
+func process(vault string, path string, newpath string, flags *flagBundle) (err error) {
+	readFrom, err := os.Open(path)
 	if err != nil {
 		return fmt.Errorf("failed to open %s", path)
 	}
-	defer file.Close()
-
-	fileinfo, err := file.Stat()
+	content, err := io.ReadAll(readFrom)
 	if err != nil {
-		return fmt.Errorf("file.Stat failed %w", err)
+		return fmt.Errorf("failed to read file")
 	}
-
-	content := make([]byte, fileinfo.Size())
-	_, err = file.Read(content)
+	readFrom.Close()
+	writeTo, err := os.Create(newpath)
 	if err != nil {
-		return fmt.Errorf("file.Write failed: %w", err)
+		return fmt.Errorf("failed to create %s: %w", newpath, err)
 	}
+	defer writeTo.Close()
 
 	yml, body := splitMarkdown([]rune(string(content)))
 	title := ""
@@ -95,28 +93,23 @@ func process(vault string, path string, newpath string, flags *flagBundle) error
 			frontmatter.tags = append(frontmatter.tags, key)
 		}
 	}
-	yml, err = convertYAML(yml, frontmatter, nil)
+	yml, err = convertYAML(yml, frontmatter, flags)
 	if err != nil {
 		return fmt.Errorf("failed to convert yaml: %w", err)
 	}
 
-	newfile, err := os.Create(newpath)
-	if err != nil {
-		return fmt.Errorf("failed to create %s: %w", newpath, err)
-	}
-	defer newfile.Close()
-	fmt.Fprintf(newfile, "---\n%s---\n%s", string(yml), string(body))
+	fmt.Fprintf(writeTo, "---\n%s---\n%s", string(yml), string(body))
 	return nil
 }
 
 func handleErr(path string, err error) error {
 	orgErr := errors.Unwrap(err)
 	if e, ok := orgErr.(convert.ErrConvert); !ok {
-		return fmt.Errorf("[ERROR] path: %s | %v", path, orgErr)
+		return fmt.Errorf("[ERROR] path: %s | %v", path, err)
 	} else {
 		e.SetPath(path)
 		if _, ok := e.(convert.ErrTransform); !ok {
-			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", e.Path(), e.Line(), e.Cause())
+			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", e.Path(), e.Line(), err)
 		} else {
 			return fmt.Errorf("[ERROR] path: %s, line: %d | invalid internal link content found", e.Path(), e.Line())
 		}
