@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"path/filepath"
 	"testing"
 )
 
@@ -99,9 +100,7 @@ func TestPathMatchScore(t *testing.T) {
 }
 
 func TestFindPath(t *testing.T) {
-	const (
-		TEST_FIND_PATH_ROOT_DIR = "../testdata/findpath/"
-	)
+	testFindPathRootDir := filepath.Join("..", "testdata", "findpath")
 	cases := []struct {
 		name   string
 		root   string // テストで設定する vault のプロジェクトディレクトリ
@@ -120,7 +119,7 @@ func TestFindPath(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		got, err := findPath(TEST_FIND_PATH_ROOT_DIR+tt.root, tt.fileId)
+		got, err := findPath(filepath.Join(testFindPathRootDir, tt.root), tt.fileId)
 		if err != nil {
 			t.Errorf("[FAIL | %v] %v", tt.name, err)
 			continue

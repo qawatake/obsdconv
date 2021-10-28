@@ -10,8 +10,8 @@ import (
 )
 
 func pathMatchScore(path string, filename string) int {
-	pp := strings.Split(path, "/")
-	ff := strings.Split(filename, "/")
+	pp := strings.Split(filepath.ToSlash(path), "/")
+	ff := strings.Split(filepath.ToSlash(filename), "/")
 	lpp := len(pp)
 	lff := len(ff)
 	if lpp < lff {
@@ -57,7 +57,7 @@ func findPath(root string, fileId string) (path string, err error) {
 	if err != nil {
 		return "", newErrTransform(ERR_KIND_UNEXPECTED, fmt.Sprintf("filepath.Rel failed: %v", err))
 	}
-	return path, nil
+	return filepath.ToSlash(path), nil
 }
 
 func splitDisplayName(fullname string) (identifier string, displayname string) {

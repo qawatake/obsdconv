@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"path/filepath"
 	"testing"
 )
 
@@ -95,9 +96,7 @@ func TestTitleFinder(t *testing.T) {
 }
 
 func TestLinkConverter(t *testing.T) {
-	const (
-		TEST_LINK_CONVERTER_VAULT_DIR = "../testdata/linkconverter/"
-	)
+	testLinkConverterVaultDir := filepath.Join("..", "testdata", "linkconverter")
 	cases := []struct {
 		name  string
 		vault string
@@ -221,7 +220,7 @@ func TestLinkConverter(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		c := NewLinkConverter(TEST_LINK_CONVERTER_VAULT_DIR + tt.vault)
+		c := NewLinkConverter(filepath.Join(testLinkConverterVaultDir, tt.vault))
 		got, err := c.Convert(tt.raw)
 		if err != nil {
 			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)

@@ -1,11 +1,12 @@
 package convert
 
-import "testing"
+import (
+	"path/filepath"
+	"testing"
+)
 
 func TestTransformExternalLink(t *testing.T) {
-	const (
-		TEST_TRANSFORM_EXTERNAL_LINK_ROOT_DIR = "../testdata/transformexternallink/"
-	)
+	testTransformExternalLinkRootDir := filepath.Join("..", "testdata", "transformexternallink")
 	cases := []struct {
 		name string
 		root string
@@ -21,7 +22,7 @@ func TestTransformExternalLink(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		_, got, err := TransformExternalLinkFunc(TEST_TRANSFORM_EXTERNAL_LINK_ROOT_DIR+tt.root)(tt.raw, 0)
+		_, got, err := TransformExternalLinkFunc(filepath.Join(testTransformExternalLinkRootDir, tt.root))(tt.raw, 0)
 		if err != nil {
 			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)
 		}

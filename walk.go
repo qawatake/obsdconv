@@ -18,8 +18,7 @@ func walk(flags *flagBundle) error {
 		if err != nil {
 			return err
 		}
-		rpath = filepath.Clean(rpath)
-		newpath := flags.dst + "/" + rpath
+		newpath := filepath.Join(flags.dst, rpath)
 		if info.IsDir() {
 			if _, err := os.Stat(newpath); !os.IsNotExist(err) {
 				return nil
