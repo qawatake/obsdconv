@@ -115,26 +115,27 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 
 func handleErr(path string, err error) (public error, debug error) {
 	orgErr := errors.Cause(err)
-	if e, ok := orgErr.(convert.ErrConvert); !ok {
+	e, ok := orgErr.(convert.ErrConvert)
+	if !ok {
 		e := fmt.Errorf("[FATAL] path: %s | %v", path, err)
 		return e, e
-	} else {
-		line := e.Line()
-		ee := errors.Cause(e.Source())
-		if ee, ok := ee.(convert.ErrTransform); !ok {
-			public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
-			debug = fmt.Errorf("[FATAL] path: %s, around line: %d | cause of source of ErrConvert does not implement ErrTransform: ErrConvert: %w", path, line, e)
-			return public, debug
-		} else {
-			switch ee.Kind() {
-			case convert.ERR_KIND_INVALID_INTERNAL_LINK_CONTENT:
-				fmt.Fprintf(os.Stderr, "[ERROR] path: %s, around line: %d | invalid internal link content found\n", path, line)
-				return nil, nil
-			default:
-				public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
-				debug = fmt.Errorf("[FATAL] path: %s, around line: %d | undefined kind of ErrTransform: ErrTransform: %w", path, line, ee)
-				return public, debug
-			}
-		}
 	}
+
+	line := e.Line()
+	ee, ok := errors.Cause(e.Source()).(convert.ErrTransform)
+	if !ok {
+		public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
+		debug = fmt.Errorf("[FATAL] path: %s, around line: %d | cause of source of ErrConvert does not implement ErrTransform: ErrConvert: %w", path, line, e)
+		return public, debug
+	}
+
+	if ee.Kind() >= convert.ERR_KIND_UNEXPECTED {
+		public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
+		debug = fmt.Errorf("[FATAL] path: %s, around line: %d | undefined kind of ErrTransform: ErrTransform: %w", path, line, ee)
+		return public, debug
+	}
+
+	// 想定済みのエラー
+	fmt.Fprintf(os.Stderr, "[ERROR] path: %s, around line: %d | %v\n", path, line, ee)
+	return nil, nil
 }

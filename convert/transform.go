@@ -60,7 +60,7 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 
 		u, err := url.Parse(ref)
 		if err != nil {
-			return 0, nil, errors.Wrap(err, "url.Parse failed in TransformExternalLinkFunc")
+			return 0, nil, newErrTransform(ERR_KIND_UNEXPECTED, fmt.Sprintf("url.Parse failed in TransformExternalLinkFunc: %v", err))
 		}
 
 		if (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" {
@@ -70,7 +70,7 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			q := u.Query()
 			fileId := q.Get("file")
 			if fileId == "" {
-				return 0, nil, errors.Errorf("query file does not exits in obsidian url: %s", ref)
+				return 0, nil, newErrTransform(ERR_KIND_NO_REF_SPECIFIED_IN_OBSIDIAN_URL, fmt.Sprintf("no ref file specified in obsidian url: %s", ref))
 			}
 			path, err := findPath(root, fileId)
 			if err != nil {
@@ -96,7 +96,7 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, newref)), nil
 
 		} else {
-			return 0, nil, errors.Errorf("unexpected href: %s", ref)
+			return 0, nil, newErrTransform(ERR_KIND_UNEXPECTED_HREF, fmt.Sprintf("unexpected href: %s", ref))
 		}
 	}
 }

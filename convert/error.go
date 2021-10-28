@@ -32,3 +32,33 @@ func (e *errConvertImpl) Error() string {
 func newErrConvert(cause error) ErrConvert {
 	return &errConvertImpl{cause: cause}
 }
+
+type ErrKind uint
+
+const (
+	ERR_KIND_INVALID_INTERNAL_LINK_CONTENT ErrKind = iota
+	ERR_KIND_NO_REF_SPECIFIED_IN_OBSIDIAN_URL
+	ERR_KIND_UNEXPECTED_HREF
+	ERR_KIND_UNEXPECTED
+)
+
+type errTransformImpl struct {
+	kind    ErrKind
+	message string
+}
+
+type ErrTransform interface {
+	Kind() ErrKind
+}
+
+func (e *errTransformImpl) Error() string {
+	return e.message
+}
+
+func (e *errTransformImpl) Kind() ErrKind {
+	return e.kind
+}
+
+func newErrTransform(kind ErrKind, msg string) *errTransformImpl {
+	return &errTransformImpl{kind: kind, message: msg}
+}

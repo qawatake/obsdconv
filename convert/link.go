@@ -9,32 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type ErrKind int
-
-const (
-	ERR_KIND_INVALID_INTERNAL_LINK_CONTENT ErrKind = iota
-)
-
-type errTransformImpl struct {
-	kind ErrKind
-}
-
-type ErrTransform interface {
-	Kind() ErrKind
-}
-
-func (e *errTransformImpl) Error() string {
-	return "invalid internal link content"
-}
-
-func (e *errTransformImpl) Kind() ErrKind {
-	return e.kind
-}
-
-func newErrTransform(kind ErrKind) *errTransformImpl {
-	return &errTransformImpl{kind: kind}
-}
-
 func pathMatchScore(path string, filename string) int {
 	pp := strings.Split(path, "/")
 	ff := strings.Split(filename, "/")
@@ -74,14 +48,14 @@ func findPath(root string, fileId string) (path string, err error) {
 		return nil
 	})
 	if err != nil {
-		return "", fmt.Errorf("filepath.Walk failed: %w", err)
+		return "", newErrTransform(ERR_KIND_UNEXPECTED, fmt.Sprintf("filepath.Walk failed: %v", err))
 	}
 	if bestscore < 0 {
 		return "", nil
 	}
 	path, err = filepath.Rel(root, bestmatch)
 	if err != nil {
-		return "", fmt.Errorf("filepath.Rel failed: %w", err)
+		return "", newErrTransform(ERR_KIND_UNEXPECTED, fmt.Sprintf("filepath.Rel failed: %v", err))
 	}
 	return path, nil
 }
@@ -105,7 +79,7 @@ func splitFragments(identifier string) (fileId string, fragments []string, err e
 	}
 	fileId = strs[0]
 	if len(strings.TrimRight(fileId, " \t")) != len(fileId) {
-		return "", nil, newErrTransform(ERR_KIND_INVALID_INTERNAL_LINK_CONTENT)
+		return "", nil, newErrTransform(ERR_KIND_INVALID_INTERNAL_LINK_CONTENT, fmt.Sprintf("invalid internal link content: %q", identifier))
 	}
 
 	fragments = make([]string, len(strs)-1)
