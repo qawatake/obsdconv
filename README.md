@@ -1,5 +1,5 @@
 # obsdconv
-Obsdconv is a CLI program and a Go package to convert [Obsidian](https://obsidian.md/) files in several ways.
+CLI program and a Go package to convert [Obsidian](https://obsidian.md/) files in several ways.
 You can use the program both for exporting Obsidian files to static site generators (e.g., Hugo), and for modifying front matters.
 
 Obsdconv enables you to
@@ -12,7 +12,7 @@ Obsdconv enables you to
 We provide binaries for several platforms.
 Please download the one suitable to your environment.
 Or if you have a go runtime, you can build a binary by running
-`go mod tidy && go build`, to get `obsdconf`.
+`go mod tidy && go build`, to get `obsdconv`.
 Remenber to set `PATH` for the binary.
 
 ## Quick Start
@@ -29,6 +29,9 @@ That is, obsdconv
 - remove comment blocks,
 - convert internal links, embeds, and Obsidian URI's,
 - set front matter `draft` to be consistent with `publish`
+
+See `sample` directory.
+We can get `sample/ouput.md` from `sample/input.md` by running `obsdconv -src sample -dst sample -std` (and renaming the generated file).
 
 ## Options
 Available options are as follows:

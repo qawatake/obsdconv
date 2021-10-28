@@ -4,7 +4,7 @@
 !LICENSE
 !test.sh
 !sample
-!sample/obsidian.md
+!sample/input.md
 !sample/output.md
 
 !go.mod
