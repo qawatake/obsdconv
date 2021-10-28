@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/qawatake/obsd2hugo/scan"
+	"github.com/qawatake/obsdconv/scan"
 )
 
 type TransformerFunc func(raw []rune, ptr int) (advance int, tobewritten []rune, err error)

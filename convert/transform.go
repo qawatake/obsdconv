@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
-	"github.com/qawatake/obsd2hugo/scan"
+	"github.com/qawatake/obsdconv/scan"
 )
 
 func currentLine(raw []rune, ptr int) (linenum int) {

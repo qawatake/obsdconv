@@ -9,7 +9,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/qawatake/obsd2hugo/convert"
+	"github.com/qawatake/obsdconv/convert"
 )
 
 func walk(flags *flagBundle) error {

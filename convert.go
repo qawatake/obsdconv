@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/pkg/errors"
-	"github.com/qawatake/obsd2hugo/convert"
+	"github.com/qawatake/obsdconv/convert"
 )
 
 func converts(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune, err error) {
