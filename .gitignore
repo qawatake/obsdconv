@@ -1,5 +1,12 @@
 *
 !.gitignore
+!README.md
+!LICENSE
+!test.sh
+!sample
+!sample/obsidian.md
+!sample/output.md
+
 !go.mod
 !main.go
 !preprocess.go
@@ -10,8 +17,6 @@
 !preprocess_test.go
 !flag_test.go
 !frontmatter_test.go
-!README.md
-!LICENSE
 
 !testdata
 !testdata/findpath
