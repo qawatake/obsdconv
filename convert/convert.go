@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"github.com/pkg/errors"
 	"fmt"
 
 	"github.com/qawatake/obsd2hugo/scan"
@@ -24,7 +25,10 @@ func (c *Converter) Convert(raw []rune) (output []rune, err error) {
 		for _, transformer := range c.transformers {
 			advance, tobewritten, err := transformer(raw, ptr)
 			if err != nil {
-				return nil, fmt.Errorf("transformation failed: %w", err)
+				err := newErrConvert(err)
+				err.SetLine(currentLine(raw, ptr))
+				return nil, errors.Wrap(err, "transformation failed")
+				// return nil, errors.Errorf("transformation failed: %w", err)
 			}
 			if advance > 0 {
 				output = append(output, tobewritten...)

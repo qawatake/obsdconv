@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"path/filepath"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type errKind int
@@ -134,11 +136,11 @@ func genExternalLink(root string, content string) (link string, err error) {
 	identifier, displayName := splitDisplayName(content)
 	fileId, fragments, err := splitFragments(identifier)
 	if err != nil {
-		return "", fmt.Errorf("splitFragments failed: %w", err)
+		return "", errors.Wrap(err, "splitFragments failed")
 	}
 	path, err := findPath(root, fileId)
 	if err != nil {
-		return "", fmt.Errorf("findPath failed: %w", err)
+		return "", errors.Wrap(err, "findPath failed")
 	}
 
 	linktext := buildLinkText(displayName, fileId, fragments)

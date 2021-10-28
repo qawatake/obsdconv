@@ -1,12 +1,11 @@
 package convert
 
-import "fmt"
-
 type ErrConvert interface {
 	error
 	Line() int
 	SetLine(line int)
-	Cause() error
+	// Cause だと errors.Cause ですべて展開されてしまうため
+	Source() error
 }
 
 type errConvertImpl struct {
@@ -22,12 +21,13 @@ func (e *errConvertImpl) SetLine(line int) {
 	e.line = line
 }
 
-func (e *errConvertImpl) Cause() error {
+func (e *errConvertImpl) Source() error {
 	return e.cause
 }
 
 func (e *errConvertImpl) Error() string {
-	return fmt.Sprintf("line: %d: %v", e.line, e.cause)
+	// return fmt.Sprintf("line: %d: %v", e.line, e.cause)
+	return e.cause.Error()
 }
 
 func newErrConvert(cause error) ErrConvert {

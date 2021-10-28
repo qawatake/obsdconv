@@ -1,12 +1,13 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 
 	"github.com/qawatake/obsd2hugo/convert"
 )
@@ -59,11 +60,11 @@ func walk(flags *flagBundle) error {
 func process(vault string, path string, newpath string, flags *flagBundle) (err error) {
 	readFrom, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("failed to open %s", path)
+		return errors.Errorf("failed to open %s", path)
 	}
 	content, err := io.ReadAll(readFrom)
 	if err != nil {
-		return fmt.Errorf("failed to read file")
+		return errors.New("failed to read file")
 	}
 	readFrom.Close()
 
@@ -73,7 +74,8 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 
 	body, err = converts(body, vault, &title, tags, *flags)
 	if err != nil {
-		return fmt.Errorf("convert failed: %w", err)
+		// return fmt.Errorf("convert failed: %w", err)
+		return errors.Wrap(err, "failed to convert")
 	}
 
 	var frontmatter frontMatter
@@ -90,14 +92,16 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 	}
 	yml, err = convertYAML(yml, frontmatter, flags)
 	if err != nil {
-		return fmt.Errorf("failed to convert yaml: %w", err)
+		// return fmt.Errorf("failed to convert yaml: %w", err)
+		return errors.Wrap(err, "failed to convert yaml")
 	}
 
 	// os.Create によってファイルの内容は削除されるので,
 	// 変換がすべて正常に行われた後で, 書き込み先のファイルを開く
 	writeTo, err := os.Create(newpath)
 	if err != nil {
-		return fmt.Errorf("failed to create %s: %w", newpath, err)
+		// return fmt.Errorf("failed to create %s: %w", newpath, err)
+		return errors.Wrapf(err, "failed to create %s", newpath)
 	}
 	defer writeTo.Close()
 
@@ -106,14 +110,17 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 }
 
 func handleErr(path string, err error) error {
-	orgErr := errors.Unwrap(err)
+	orgErr := errors.Cause(err)
 	if e, ok := orgErr.(convert.ErrConvert); !ok {
 		return fmt.Errorf("[ERROR] path: %s | %v", path, err)
 	} else {
-		if _, ok := e.(convert.ErrTransform); !ok {
-			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", path, e.Line(), err)
+		line := e.Line()
+		fmt.Println(e)
+		ee := errors.Cause(e.Source())
+		if _, ok := ee.(convert.ErrTransform); !ok {
+			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", path, line, ee)
 		} else {
-			return fmt.Errorf("[ERROR] path: %s, line: %d | invalid internal link content found", path, e.Line())
+			return fmt.Errorf("[ERROR] path: %s, line: %d | invalid internal link content found", path, line)
 		}
 	}
 }
