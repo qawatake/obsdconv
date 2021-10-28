@@ -96,7 +96,7 @@ func TestTitleFinder(t *testing.T) {
 
 func TestLinkConverter(t *testing.T) {
 	const (
-		TEST_LINK_CONVERTER_VAULT_DIR = "testdata/linkconverter/"
+		TEST_LINK_CONVERTER_VAULT_DIR = "../testdata/linkconverter/"
 	)
 	cases := []struct {
 		name  string

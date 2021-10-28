@@ -4,7 +4,7 @@ import "testing"
 
 func TestTransformExternalLink(t *testing.T) {
 	const (
-		TEST_TRANSFORM_EXTERNAL_LINK_ROOT_DIR = "testdata/transformexternallink/"
+		TEST_TRANSFORM_EXTERNAL_LINK_ROOT_DIR = "../testdata/transformexternallink/"
 	)
 	cases := []struct {
 		name string

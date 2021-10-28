@@ -39,8 +39,8 @@ func TestSplitFragments(t *testing.T) {
 		{identifier: "# section # subsection", wantFileId: "", wantFragments: []string{"section", "subsection"}, wantErr: nil},
 		{identifier: "211022# section", wantFileId: "211022", wantFragments: []string{"section"}, wantErr: nil},
 		{identifier: "211022# section # subsection", wantFileId: "211022", wantFragments: []string{"section", "subsection"}, wantErr: nil},
-		{identifier: "211022 #section", wantFileId: "", wantFragments: nil, wantErr: newErrTransform(ERR_KIND_INVALID_INTERNAL_LINK_CONTENT)},
-		{identifier: "211022\t#section #subsection", wantFileId: "", wantFragments: nil, wantErr: newErrTransform(ERR_KIND_INVALID_INTERNAL_LINK_CONTENT)},
+		{identifier: "211022 #section", wantFileId: "", wantFragments: nil, wantErr: newErrTransform(ERR_KIND_INVALID_INTERNAL_LINK_CONTENT, "")},
+		{identifier: "211022\t#section #subsection", wantFileId: "", wantFragments: nil, wantErr: newErrTransform(ERR_KIND_INVALID_INTERNAL_LINK_CONTENT, "")},
 	}
 
 	for _, tt := range cases {
@@ -100,7 +100,7 @@ func TestPathMatchScore(t *testing.T) {
 
 func TestFindPath(t *testing.T) {
 	const (
-		TEST_FIND_PATH_ROOT_DIR = "testdata/findpath/"
+		TEST_FIND_PATH_ROOT_DIR = "../testdata/findpath/"
 	)
 	cases := []struct {
 		name   string
