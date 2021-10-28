@@ -74,7 +74,6 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 
 	body, err = converts(body, vault, &title, tags, *flags)
 	if err != nil {
-		// return fmt.Errorf("convert failed: %w", err)
 		return errors.Wrap(err, "failed to convert")
 	}
 
@@ -92,7 +91,6 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 	}
 	yml, err = convertYAML(yml, frontmatter, flags)
 	if err != nil {
-		// return fmt.Errorf("failed to convert yaml: %w", err)
 		return errors.Wrap(err, "failed to convert yaml")
 	}
 
@@ -100,7 +98,6 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 	// 変換がすべて正常に行われた後で, 書き込み先のファイルを開く
 	writeTo, err := os.Create(newpath)
 	if err != nil {
-		// return fmt.Errorf("failed to create %s: %w", newpath, err)
 		return errors.Wrapf(err, "failed to create %s", newpath)
 	}
 	defer writeTo.Close()
@@ -115,12 +112,17 @@ func handleErr(path string, err error) error {
 		return fmt.Errorf("[ERROR] path: %s | %v", path, err)
 	} else {
 		line := e.Line()
-		fmt.Println(e)
-		ee := errors.Cause(e.Source())
-		if _, ok := ee.(convert.ErrTransform); !ok {
-			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", path, line, ee)
+		e := errors.Cause(e.Source())
+		if ee, ok := e.(convert.ErrTransform); !ok {
+			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", path, line, e)
 		} else {
-			return fmt.Errorf("[ERROR] path: %s, line: %d | invalid internal link content found", path, line)
+			switch ee.Kind() {
+			case convert.ERR_KIND_INVALID_INTERNAL_LINK_CONTENT:
+				fmt.Fprintf(os.Stderr, "[ERROR] path: %s, line: %d | invalid internal link content found\n", path, line)
+				return nil
+			default:
+				return fmt.Errorf("[ERROR] path: %s, line: %d | unexpected error occurred: %w", path, line, e)
+			}
 		}
 	}
 }

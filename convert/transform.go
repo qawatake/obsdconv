@@ -28,8 +28,7 @@ func TransformInternalLinkFunc(root string) TransformerFunc {
 		}
 		link, err := genExternalLink(root, content)
 		if err != nil {
-			err := errors.Wrap(err, "genExternalLink failed in TransformInternalLinkFunc")
-			return 0, nil, err
+			return 0, nil, errors.Wrap(err, "genExternalLink failed in TransformInternalLinkFunc")
 		}
 		return advance, []rune(link), nil
 	}
@@ -46,8 +45,7 @@ func TransformEmbedsFunc(root string) TransformerFunc {
 		}
 		link, err := genExternalLink(root, content)
 		if err != nil {
-			err := errors.Wrap(err, "genExternalLink failed in TransformEmbedsFunc")
-			return 0, nil, err
+			return 0, nil, errors.Wrap(err, "genExternalLink failed in TransformEmbedsFunc")
 		}
 		return advance, []rune("!" + link), nil
 	}
@@ -62,8 +60,7 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 
 		u, err := url.Parse(ref)
 		if err != nil {
-			err := errors.Wrap(err, "url.Parse failed in TransformExternalLinkFunc")
-			return 0, nil, err
+			return 0, nil, errors.Wrap(err, "url.Parse failed in TransformExternalLinkFunc")
 		}
 
 		if (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" {
@@ -73,26 +70,22 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			q := u.Query()
 			fileId := q.Get("file")
 			if fileId == "" {
-				err := errors.Errorf("query file does not exits in obsidian url: %s", ref)
-				return 0, nil, err
+				return 0, nil, errors.Errorf("query file does not exits in obsidian url: %s", ref)
 			}
 			path, err := findPath(root, fileId)
 			if err != nil {
-				err := errors.Wrap(err, "findPath failed in TransformExternalLinkFunc")
-				return 0, nil, err
+				return 0, nil, errors.Wrap(err, "findPath failed in TransformExternalLinkFunc")
 			}
 			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, path)), nil
 
 		} else if u.Scheme == "" && u.Host == "" {
 			fileId, fragments, err := splitFragments(ref)
 			if err != nil {
-				err := errors.Wrap(err, "splitFragments failed in TransformExternalLinkFunc")
-				return 0, nil, err
+				return 0, nil, errors.Wrap(err, "splitFragments failed in TransformExternalLinkFunc")
 			}
 			path, err := findPath(root, fileId)
 			if err != nil {
-				err := errors.Wrap(err, "findPath failed in TransformExternalLinkFunc")
-				return 0, nil, err
+				return 0, nil, errors.Wrap(err, "findPath failed in TransformExternalLinkFunc")
 			}
 			var newref string
 			if fragments == nil {
@@ -103,8 +96,7 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 			return advance, []rune(fmt.Sprintf("[%s](%s)", displayName, newref)), nil
 
 		} else {
-			err := errors.Errorf("unexpected href: %s", ref)
-			return 0, nil, err
+			return 0, nil, errors.Errorf("unexpected href: %s", ref)
 		}
 	}
 }

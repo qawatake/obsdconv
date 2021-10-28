@@ -28,18 +28,6 @@ func converts(raw []rune, vault string, title *string, tags map[string]struct{},
 	if flags.link {
 		output, err = convert.NewLinkConverter(vault).Convert(output)
 		if err != nil {
-			// fmt.Println(err)
-			// e := errors.Cause(err)
-			// // e := errors.Cause
-			// fmt.Println(e)
-			// if _, ok := e.(convert.ErrConvert); ok {
-			// 	fmt.Println("success")
-			// } else {
-			// 	fmt.Println("failed")
-			// }
-			// os.Exit(1)
-			// panic("done")
-
 			return nil, errors.Wrap(err, "LinkConverter failed")
 		}
 	}

@@ -26,7 +26,6 @@ func (e *errConvertImpl) Source() error {
 }
 
 func (e *errConvertImpl) Error() string {
-	// return fmt.Sprintf("line: %d: %v", e.line, e.cause)
 	return e.cause.Error()
 }
 

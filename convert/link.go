@@ -9,29 +9,29 @@ import (
 	"github.com/pkg/errors"
 )
 
-type errKind int
+type ErrKind int
 
 const (
-	err_KIND_INVALID_INTERNAL_LINK_CONTENT errKind = iota
+	ERR_KIND_INVALID_INTERNAL_LINK_CONTENT ErrKind = iota
 )
 
 type errTransformImpl struct {
-	kind errKind
+	kind ErrKind
 }
 
 type ErrTransform interface {
-	IsErrInvalidInternalLinkContent() bool
+	Kind() ErrKind
 }
 
 func (e *errTransformImpl) Error() string {
 	return "invalid internal link content"
 }
 
-func (e *errTransformImpl) IsErrInvalidInternalLinkContent() bool {
-	return e.kind == err_KIND_INVALID_INTERNAL_LINK_CONTENT
+func (e *errTransformImpl) Kind() ErrKind {
+	return e.kind
 }
 
-func newErrTransform(kind errKind) *errTransformImpl {
+func newErrTransform(kind ErrKind) *errTransformImpl {
 	return &errTransformImpl{kind: kind}
 }
 
@@ -105,7 +105,7 @@ func splitFragments(identifier string) (fileId string, fragments []string, err e
 	}
 	fileId = strs[0]
 	if len(strings.TrimRight(fileId, " \t")) != len(fileId) {
-		return "", nil, newErrTransform(err_KIND_INVALID_INTERNAL_LINK_CONTENT)
+		return "", nil, newErrTransform(ERR_KIND_INVALID_INTERNAL_LINK_CONTENT)
 	}
 
 	fragments = make([]string, len(strs)-1)
