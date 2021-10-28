@@ -1,5 +1,7 @@
 # obsdconv
-CLI program and a Go package to convert [Obsidian](https://obsidian.md/) files in several ways.
+[![test](https://github.com/qawatake/obsdconv/actions/workflows/test.yml/badge.svg)](https://github.com/qawatake/obsdconv/actions/workflows/test.yml)
+
+CLI program and a Go package to convert [Obsidian](https://obsidian.md/) files in multiple ways.
 You can use the program both for exporting Obsidian files to static site generators (e.g., Hugo), and for modifying front matters.
 
 Obsdconv enables you to
@@ -9,7 +11,7 @@ Obsdconv enables you to
 - convert internal links `[[file]]` , embeds `![[image]]`, and external links with Obsidian URI `[text](obsidian://open?vault=notes&file=filename)` to the standard format, and etc.
 
 ## Installation
-We provide binaries for several platforms.
+We provide binaries for multiple platforms.
 Please download the one suitable to your environment.
 Or if you have a go runtime, you can build a binary by running
 `go mod tidy && go build`, to get `obsdconv`.
