@@ -66,11 +66,6 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 		return fmt.Errorf("failed to read file")
 	}
 	readFrom.Close()
-	writeTo, err := os.Create(newpath)
-	if err != nil {
-		return fmt.Errorf("failed to create %s: %w", newpath, err)
-	}
-	defer writeTo.Close()
 
 	yml, body := splitMarkdown([]rune(string(content)))
 	title := ""
@@ -97,6 +92,14 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 	if err != nil {
 		return fmt.Errorf("failed to convert yaml: %w", err)
 	}
+
+	// os.Create によってファイルの内容は削除されるので,
+	// 変換がすべて正常に行われた後で, 書き込み先のファイルを開く
+	writeTo, err := os.Create(newpath)
+	if err != nil {
+		return fmt.Errorf("failed to create %s: %w", newpath, err)
+	}
+	defer writeTo.Close()
 
 	fmt.Fprintf(writeTo, "---\n%s---\n%s", string(yml), string(body))
 	return nil
