@@ -110,11 +110,10 @@ func handleErr(path string, err error) error {
 	if e, ok := orgErr.(convert.ErrConvert); !ok {
 		return fmt.Errorf("[ERROR] path: %s | %v", path, err)
 	} else {
-		e.SetPath(path)
 		if _, ok := e.(convert.ErrTransform); !ok {
-			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", e.Path(), e.Line(), err)
+			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", path, e.Line(), err)
 		} else {
-			return fmt.Errorf("[ERROR] path: %s, line: %d | invalid internal link content found", e.Path(), e.Line())
+			return fmt.Errorf("[ERROR] path: %s, line: %d | invalid internal link content found", path, e.Line())
 		}
 	}
 }

@@ -4,29 +4,18 @@ import "fmt"
 
 type ErrConvert interface {
 	error
-	Path() string
 	Line() int
-	SetPath(path string)
 	SetLine(line int)
 	Cause() error
 }
 
 type errConvertImpl struct {
-	path   string
-	line   int
-	orgErr error
-}
-
-func (e *errConvertImpl) Path() string {
-	return e.path
+	line  int
+	cause error
 }
 
 func (e *errConvertImpl) Line() int {
 	return e.line
-}
-
-func (e *errConvertImpl) SetPath(path string) {
-	e.path = path
 }
 
 func (e *errConvertImpl) SetLine(line int) {
@@ -34,13 +23,13 @@ func (e *errConvertImpl) SetLine(line int) {
 }
 
 func (e *errConvertImpl) Cause() error {
-	return e.orgErr
+	return e.cause
 }
 
 func (e *errConvertImpl) Error() string {
-	return fmt.Sprintf("[ERROR] path: %s, line: %d: %v", e.path, e.line, e.orgErr)
+	return fmt.Sprintf("line: %d: %v", e.line, e.cause)
 }
 
-func newErrConvert(orgErr error) ErrConvert {
-	return &errConvertImpl{orgErr: orgErr}
+func newErrConvert(cause error) ErrConvert {
+	return &errConvertImpl{cause: cause}
 }
