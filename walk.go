@@ -49,7 +49,14 @@ func walk(flags *flagBundle) error {
 			}
 			defer file.Close()
 			if err := process(flags.src, path, newpath, flags); err != nil {
-				return handleErr(path, err)
+				if public, debug := handleErr(path, err); public != nil || debug != nil {
+					if flags.debug {
+						return debug
+					} else {
+						return public
+					}
+				}
+
 			}
 		}
 		return nil
@@ -106,22 +113,27 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 	return nil
 }
 
-func handleErr(path string, err error) error {
+func handleErr(path string, err error) (public error, debug error) {
 	orgErr := errors.Cause(err)
 	if e, ok := orgErr.(convert.ErrConvert); !ok {
-		return fmt.Errorf("[ERROR] path: %s | %v", path, err)
+		e := fmt.Errorf("[FATAL] path: %s | %v", path, err)
+		return e, e
 	} else {
 		line := e.Line()
-		e := errors.Cause(e.Source())
-		if ee, ok := e.(convert.ErrTransform); !ok {
-			return fmt.Errorf("[ERROR] path: %s, line: %d | %w", path, line, e)
+		ee := errors.Cause(e.Source())
+		if ee, ok := ee.(convert.ErrTransform); !ok {
+			public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
+			debug = fmt.Errorf("[FATAL] path: %s, around line: %d | cause of source of ErrConvert does not implement ErrTransform: ErrConvert: %w", path, line, e)
+			return public, debug
 		} else {
 			switch ee.Kind() {
 			case convert.ERR_KIND_INVALID_INTERNAL_LINK_CONTENT:
-				fmt.Fprintf(os.Stderr, "[ERROR] path: %s, line: %d | invalid internal link content found\n", path, line)
-				return nil
+				fmt.Fprintf(os.Stderr, "[ERROR] path: %s, around line: %d | invalid internal link content found\n", path, line)
+				return nil, nil
 			default:
-				return fmt.Errorf("[ERROR] path: %s, line: %d | unexpected error occurred: %w", path, line, e)
+				public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
+				debug = fmt.Errorf("[FATAL] path: %s, around line: %d | undefined kind of ErrTransform: ErrTransform: %w", path, line, ee)
+				return public, debug
 			}
 		}
 	}
