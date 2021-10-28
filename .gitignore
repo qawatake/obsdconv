@@ -2,6 +2,9 @@
 !.gitignore
 !README.md
 !LICENSE
+!.github
+!.github/workflows
+!.github/workflows/test.yml
 !test.sh
 !sample
 !sample/input.md
