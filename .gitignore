@@ -5,6 +5,8 @@
 !.github
 !.github/workflows
 !.github/workflows/test.yml
+!.github/workflows/release.yml
+!.goreleaser.yml
 !test.sh
 !sample
 !sample/input.md
