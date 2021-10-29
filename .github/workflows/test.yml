@@ -1,6 +1,14 @@
 on:
   push:
+    paths:
+      - '.github/workflows/test.yml'
+      - 'test.sh'
+      - '**.go'
   pull_request:
+    paths:
+      - '.github/workflows/test.yml'
+      - 'test.sh'
+      - '**.go'
   workflow_dispatch:
 name: test
 jobs:
