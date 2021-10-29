@@ -17,6 +17,7 @@ const (
 	FLAG_PUBLISHABLE    = "pub"
 	FLAG_OBSIDIAN_USAGE = "obs"
 	FLAG_STANDARD_USAGE = "std"
+	FLAG_VERSION        = "version"
 	FLAG_DEBUG          = "debug"
 )
 
@@ -32,6 +33,7 @@ type flagBundle struct {
 	publishable bool
 	obs         bool
 	std         bool
+	ver         bool
 	debug       bool
 }
 
@@ -52,6 +54,7 @@ func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	flagset.BoolVar(&flags.publishable, FLAG_PUBLISHABLE, false, "publish: true -> draft: false, publish: false -> draft: true, no publish field -> draft: true. If draft explicitly specified, then leave it as is.")
 	flagset.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
 	flagset.BoolVar(&flags.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -pub")
+	flagset.BoolVar(&flags.ver, FLAG_VERSION, false, "display the version currently installed")
 	flagset.BoolVar(&flags.debug, FLAG_DEBUG, false, "display error message for developers")
 }
 

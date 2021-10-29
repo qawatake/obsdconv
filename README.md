@@ -51,6 +51,7 @@ flag | meaning | \*
 `pub` | `publish: true` -> `draft: false`, `publish: false` -> `draft: true`, no `publish` field -> draft: true. If `draft` field explicityly specified, then leave it as is. | optional
 `obs` | = `-cptag -title -alias` | optional
 `std` | = `-cptag -title -alias -rmtag -link -cmmt -pub` | optional
+`verions` | = display the version currently installed | optional
 `debug` | display error messages for developers | optional
 
 Note that
