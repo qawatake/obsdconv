@@ -78,7 +78,7 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 	title := ""
 	tags := make(map[string]struct{})
 
-	body, err = converts(body, vault, &title, tags, *flags)
+	body, err = convertBody(body, vault, &title, tags, *flags)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert")
 	}

@@ -5,7 +5,7 @@ import (
 	"github.com/qawatake/obsdconv/convert"
 )
 
-func converts(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune, err error) {
+func convertBody(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune, err error) {
 	output = raw
 	if flags.cptag {
 		_, err = convert.NewTagFinder(tags).Convert(output)
