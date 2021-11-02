@@ -20,10 +20,14 @@ func convertYAML(raw []byte, frontmatter frontMatter, flags *flagBundle) (output
 	if err := yaml.Unmarshal(raw, m); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal front matter: %w", err)
 	}
-	m["title"] = frontmatter.title
+	if frontmatter.title != "" {
+		m["title"] = frontmatter.title
+	}
 
 	if v, ok := m["aliases"]; !ok {
-		m["aliases"] = []string{frontmatter.alias}
+		if frontmatter.alias != "" {
+			m["aliases"] = []string{frontmatter.alias}
+		}
 	} else {
 		if vv, ok := v.([]interface{}); !ok {
 			return nil, fmt.Errorf("aliases field found but its field type is not []interface{}: %T", v)
@@ -46,9 +50,11 @@ func convertYAML(raw []byte, frontmatter frontMatter, flags *flagBundle) (output
 	}
 
 	if v, ok := m["tags"]; !ok {
-		tags := make([]string, len(frontmatter.tags))
-		copy(tags, frontmatter.tags)
-		m["tags"] = tags
+		if len(frontmatter.tags) > 0 {
+			tags := make([]string, len(frontmatter.tags))
+			copy(tags, frontmatter.tags)
+			m["tags"] = tags
+		}
 	} else {
 		if vv, ok := v.([]interface{}); !ok {
 			return nil, fmt.Errorf("tags field found but its field type is not []interface{}: %T", v)
