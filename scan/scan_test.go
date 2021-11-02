@@ -111,8 +111,6 @@ func TestFollowedBy(t *testing.T) {
 	}
 }
 
-
-
 func TestScanTag(t *testing.T) {
 	cases := []struct {
 		argRaw      []rune
@@ -807,6 +805,35 @@ func TestScanHeader(t *testing.T) {
 		}
 		if gotHeaderText != tt.wantHeaderText {
 			t.Errorf("[ERROR | header text - %s] got: %q, want: %q", tt.name, gotHeaderText, tt.wantHeaderText)
+		}
+	}
+}
+
+func TestScanNormalComment(t *testing.T) {
+	cases := []struct {
+		name        string
+		raw         []rune
+		ptr         int
+		wantAdvance int
+	}{
+		{
+			name:        "simple",
+			raw:         []rune("<!--\ncomment\n-->"),
+			ptr:         0,
+			wantAdvance: 16,
+		},
+		{
+			name:        "escaped",
+			raw:         []rune("\\<!--\ncomment\n-->"),
+			ptr:         1,
+			wantAdvance: 0,
+		},
+	}
+
+	for _, tt := range cases {
+		gotAdvance := ScanNormalComment(tt.raw, tt.ptr)
+		if gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR | %s] got: %q, want: %q with input: %q", tt.name, gotAdvance, tt.wantAdvance, tt.raw)
 		}
 	}
 }

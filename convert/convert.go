@@ -62,6 +62,7 @@ func NewTagRemover() *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
 	c.Set(MiddlewareAsIs(scan.ScanComment))
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
@@ -98,6 +99,7 @@ func NewTagFinder(tags map[string]struct{}) *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
 	c.Set(MiddlewareAsIs(scan.ScanComment))
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
@@ -137,6 +139,7 @@ func NewTitleFinder(title *string) *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
 	c.Set(MiddlewareAsIs(scan.ScanComment))
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
@@ -180,6 +183,7 @@ func NewLinkConverter(vault string) *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
 	c.Set(MiddlewareAsIs(scan.ScanComment))
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(TransformExternalLinkFunc(vault))
 	c.Set(TransformInternalLinkFunc(vault))
 	c.Set(TransformEmbedsFunc(vault))
@@ -213,6 +217,7 @@ func NewCommentEraser() *Converter {
 		return advance, nil, nil
 	})
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance

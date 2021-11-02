@@ -343,3 +343,15 @@ func ScanEscaped(raw []rune, ptr int) (advance int) {
 	}
 	return 2
 }
+
+func ScanNormalComment(raw []rune, ptr int) (advance int) {
+	if !(unescaped(raw, ptr, "<!--")) {
+		return 0
+	}
+	pos := strings.Index(string(raw[ptr:]), "-->")
+	if pos < 0 {
+		return len(raw) - ptr
+	}
+	cur := ptr + len([]rune(string(string(raw[ptr:])[:pos]))) + 3
+	return cur - ptr
+}
