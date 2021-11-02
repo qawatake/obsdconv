@@ -77,13 +77,7 @@ func NewTagRemover() *Converter {
 	}))
 	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
 	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
-	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance = scan.ScanRepeat(raw, ptr, "#")
-		if advance <= 1 {
-			return 0, nil, nil
-		}
-		return advance, raw[ptr : ptr+advance], nil
-	})
+	c.Set(TransformRepeatingTagsFunc())
 	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance, _ = scan.ScanTag(raw, ptr)
 		return advance, nil, nil
@@ -114,13 +108,7 @@ func NewTagFinder(tags map[string]struct{}) *Converter {
 	}))
 	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
 	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
-	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance = scan.ScanRepeat(raw, ptr, "#")
-		if advance <= 1 {
-			return 0, nil, nil
-		}
-		return advance, raw[ptr : ptr+advance], nil
-	})
+	c.Set(TransformRepeatingTagsFunc())
 	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance, t := scan.ScanTag(raw, ptr)
 		if advance > 0 {
@@ -161,13 +149,7 @@ func NewTitleFinder(title *string) *Converter {
 		}
 		return advance, raw[ptr : ptr+advance], nil
 	})
-	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance = scan.ScanRepeat(raw, ptr, "#")
-		if advance <= 1 {
-			return 0, nil, nil
-		}
-		return advance, raw[ptr : ptr+advance], nil
-	})
+	c.Set(TransformRepeatingTagsFunc())
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanTag(raw, ptr)
 		return advance
@@ -189,13 +171,7 @@ func NewLinkConverter(vault string) *Converter {
 	c.Set(TransformEmbedsFunc(vault))
 	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
 	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
-	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance = scan.ScanRepeat(raw, ptr, "#")
-		if advance <= 1 {
-			return 0, nil, nil
-		}
-		return advance, raw[ptr : ptr+advance], nil
-	})
+	c.Set(TransformRepeatingTagsFunc())
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanTag(raw, ptr)
 		return advance
@@ -232,13 +208,7 @@ func NewCommentEraser() *Converter {
 	}))
 	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
 	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
-	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance = scan.ScanRepeat(raw, ptr, "#")
-		if advance <= 1 {
-			return 0, nil, nil
-		}
-		return advance, raw[ptr : ptr+advance], nil
-	})
+	c.Set(TransformRepeatingTagsFunc())
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanTag(raw, ptr)
 		return advance
@@ -266,13 +236,7 @@ func NewInternalLinkPlainConverter() *Converter {
 	}))
 	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
 	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
-	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance = scan.ScanRepeat(raw, ptr, "#")
-		if advance <= 1 {
-			return 0, nil, nil
-		}
-		return advance, raw[ptr : ptr+advance], nil
-	})
+	c.Set(TransformRepeatingTagsFunc())
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanTag(raw, ptr)
 		return advance
