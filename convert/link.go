@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"golang.org/x/text/unicode/norm"
 )
 
 func pathMatchScore(path string, filename string) int {
@@ -38,6 +39,7 @@ func findPath(root string, fileId string) (path string, err error) {
 	bestmatch := ""
 
 	err = filepath.Walk(root, func(pth string, info fs.FileInfo, err error) error {
+		pth = norm.NFC.String(pth)
 		if score := pathMatchScore(pth, filename); score < 0 {
 			return nil
 		} else if bestscore < 0 || score < bestscore || (score == bestscore && strings.Compare(pth, bestmatch) < 0) {

@@ -116,6 +116,7 @@ func TestFindPath(t *testing.T) {
 		{name: "not found", root: "simple", fileId: "not_found", want: ""},
 		{name: "with ext", root: "simple", fileId: "test.md", want: "test.md"},
 		{name: "image", root: "image", fileId: "test.png", want: "test.png"},
+		{name: "書記素クラスタ", root: "dakuten", fileId: "だくてん", want: "だくてん.md"},
 	}
 
 	for _, tt := range cases {
