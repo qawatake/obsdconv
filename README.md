@@ -15,7 +15,6 @@ We provide binaries for multiple platforms.
 Please download the one suitable to your environment.
 Or if you have a go runtime, you can build a binary by running
 `go mod tidy && go build`, to get `obsdconv`.
-Remenber to set `PATH` for the binary.
 
 ## Quick Start
 Run
@@ -58,12 +57,3 @@ Note that
 - individual flag overrides `obs` and `std`.
 That is, if you specify `-title=0` and `-obs`, `-title=0` wins and `title` field will not copied from H1 content.
 - if `src` = `dst`, then original files will be overwritten. Be careful!!
-
-
-## Customization
-The main program is based on two packages `github.com/qawatake/obsdconv/scan` and `github.com/qawatake/obsdconv/convert`.
-If you would like to customize the program,
-- combine existing `Converters`, or
-- create new scanning functions to get a new `Converter`.
-
-Please request new features that will be commonly used.
