@@ -246,3 +246,37 @@ func NewCommentEraser() *Converter {
 	c.Set(TransformNone)
 	return c
 }
+
+func NewInternalLinkPlainConverter() *Converter {
+	c := new(Converter)
+
+	c.Set(MiddlewareAsIs(scan.ScanEscaped))
+	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
+	c.Set(MiddlewareAsIs(scan.ScanComment))
+	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance, _, _ = scan.ScanExternalLink(raw, ptr)
+		return advance
+	}))
+	c.Set(TransformInternalLinkToPlain)
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance, _ = scan.ScanEmbeds(raw, ptr)
+		return advance
+	}))
+	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
+	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
+		advance = scan.ScanRepeat(raw, ptr, "#")
+		if advance <= 1 {
+			return 0, nil, nil
+		}
+		return advance, raw[ptr : ptr+advance], nil
+	})
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance, _ = scan.ScanTag(raw, ptr)
+		return advance
+	}))
+	c.Set(TransformNone)
+	return c
+}

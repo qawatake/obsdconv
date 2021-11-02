@@ -100,3 +100,25 @@ func TransformExternalLinkFunc(root string) TransformerFunc {
 		}
 	}
 }
+
+func TransformInternalLinkToPlain(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
+	advance, content := scan.ScanInternalLink(raw, ptr)
+	if advance == 0 {
+		return 0, nil, nil
+	}
+	if content == "" { // [[ ]] はスキップ
+		return advance, nil, nil
+	}
+
+	identifier, displayName := splitDisplayName(content)
+	if displayName != "" {
+		return advance, []rune(displayName), nil
+	}
+	fileId, fragments, err := splitFragments(identifier)
+	if err != nil {
+		return 0, nil, errors.Wrap(err, "splitFragments failed in TransformInternalLinkFunc")
+	}
+
+	linktext := buildLinkText(displayName, fileId, fragments)
+	return advance, []rune(linktext), nil
+}

@@ -25,20 +25,24 @@ func convertBody(raw []rune, vault string, title *string, tags map[string]struct
 			return nil, errors.Wrap(err, "CommentEraser failed")
 		}
 	}
-	if flags.link {
-		output, err = convert.NewLinkConverter(vault).Convert(output)
-		if err != nil {
-			return nil, errors.Wrap(err, "LinkConverter failed")
-		}
-	}
 	if flags.title {
-		titleFoundFrom, _ := convert.NewTagRemover().Convert(output)
+		titleFoundFrom, err := convert.NewTagRemover().Convert(output)
 		if err != nil {
 			return nil, errors.Wrap(err, "preprocess TagRemover for finding titles failed")
+		}
+		titleFoundFrom, err = convert.NewInternalLinkPlainConverter().Convert(titleFoundFrom)
+		if err != nil {
+			return nil, errors.Wrap(err, "preprocess InternalLinkPlainConverter for finding titles failed")
 		}
 		_, err = convert.NewTitleFinder(title).Convert(titleFoundFrom)
 		if err != nil {
 			return nil, errors.Wrap(err, "TitleFinder failed")
+		}
+	}
+	if flags.link {
+		output, err = convert.NewLinkConverter(vault).Convert(output)
+		if err != nil {
+			return nil, errors.Wrap(err, "LinkConverter failed")
 		}
 	}
 	return output, nil
