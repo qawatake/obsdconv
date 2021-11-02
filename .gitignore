@@ -22,6 +22,7 @@
 !preprocess_test.go
 !flag_test.go
 !frontmatter_test.go
+!convert_test.go
 
 !testdata
 !testdata/findpath
@@ -35,6 +36,8 @@
 !testdata/linkconverter/internal/**
 !testdata/linkconverter/embeds
 !testdata/linkconverter/embeds/**
+!testdata/convertbody
+!testdata/convertbody/**
 
 !scan
 !scan/scan.go
