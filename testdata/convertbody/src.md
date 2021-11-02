@@ -23,6 +23,11 @@ $$
 %%
 - ↑ this comment block will disappear.
 
+### Normal Comment Block
+<!--
+	#normal-comment-block
+-->
+
 ### Inlines
 - `#inline-code`
 - $#inline-math$

@@ -32,7 +32,7 @@ func TestConvertBody(t *testing.T) {
 				cptag: true,
 				title: true,
 			},
-			wantTitle:    "test source file",
+			wantTitle:    "test source file <<>>",
 			wantTags:     []string{"obsidian", "test"},
 			wantFileName: "want.md",
 		},
@@ -83,6 +83,37 @@ func TestConvertBody(t *testing.T) {
 		},
 	}
 
+	// src ディレクトリ作成
+	originalPath := filepath.Join(test_CONVERT_BODY_DIR, "src.md")
+	originalFile, err := os.Open(originalPath)
+	if err != nil {
+		t.Fatalf("[FATAL] failed to open: %v", err)
+	}
+	originalContent, err := io.ReadAll(originalFile)
+	originalFile.Close()
+	if err != nil {
+		t.Fatalf("[FATAL] failed to read: %v", err)
+	}
+	for _, tt := range cases {
+		srcDirPath := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, "src")
+		if err := os.RemoveAll(srcDirPath); err != nil {
+			t.Fatalf("[FATAL] failed to remove tmp dir at the beginning: %v", err)
+		}
+		if err := os.Mkdir(srcDirPath, 0o777); err != nil {
+			t.Fatalf("[FATAL] failed to create tmp dir: %v", err)
+		}
+		if err := os.WriteFile(filepath.Join(srcDirPath, "image.png"), nil, 0o666); err != nil {
+			t.Fatalf("[FATAL] failed to write: %v", err)
+		}
+		if err := os.WriteFile(filepath.Join(srcDirPath, "test.md"), nil, 0o666); err != nil {
+			t.Fatalf("[FATAL] failed to write: %v", err)
+		}
+		if err := os.WriteFile(filepath.Join(srcDirPath, "src.md"), originalContent, 0o666); err != nil {
+			t.Fatalf("[FATAL] failed to write: %v", err)
+		}
+	}
+
+	// テスト部
 	for _, tt := range cases {
 		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
 		srcFileName := filepath.Join(vault, tt.rawFileName)
@@ -145,6 +176,14 @@ func TestConvertBody(t *testing.T) {
 			if !errDisplayed {
 				t.Errorf("[ERROR | %s] output differs from wanted output, but couldn't catch the error line", tt.name)
 			}
+		}
+	}
+
+	// src ディレクトリを削除
+	for _, tt := range cases {
+		srcDirPath := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, "src")
+		if err := os.RemoveAll(srcDirPath); err != nil {
+			t.Fatalf("[FATAL] failed to remove tmp dir at the end: %v", err)
 		}
 	}
 }
