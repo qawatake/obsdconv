@@ -10,6 +10,68 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+type PathFinder interface {
+	FindPath(fileId string) (path string, err error)
+}
+
+type PathFinderImpl struct {
+	vault     string
+	vaultdict map[string][]string
+}
+
+func NewPathFinderImpl(vault string) *PathFinderImpl {
+	f := new(PathFinderImpl)
+	f.vault = vault
+	f.vaultdict = make(map[string][]string)
+	filepath.Walk(vault, func(path string, info fs.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+
+		base := filepath.Base(path)
+		f.vaultdict[base] = append(f.vaultdict[base], path)
+		return nil
+	})
+	return f
+}
+
+func (f *PathFinderImpl) FindPath(fileId string) (path string, err error) {
+	var filename string
+	if filepath.Ext(fileId) == "" {
+		filename = fileId + ".md"
+	} else {
+		filename = fileId
+	}
+
+	base := filepath.Base(filename)
+	paths, ok := f.vaultdict[base]
+	if !ok || len(paths) == 0 {
+		return "", nil
+	}
+
+	bestscore := -1
+	bestmatch := ""
+	for _, pth := range paths {
+		pth = norm.NFC.String(pth)
+		if score := pathMatchScore(pth, filename); score < 0 {
+			continue
+		} else if bestmatch == "" || score < bestscore || (score == bestscore && strings.Compare(pth, bestmatch) < 0) {
+			bestscore = score
+			bestmatch = pth
+			continue
+		}
+	}
+
+	if bestscore < 0 {
+		return "", nil
+	}
+	path, err = filepath.Rel(f.vault, bestmatch)
+	if err != nil {
+		return "", newErrTransform(ERR_KIND_UNEXPECTED, fmt.Sprintf("filepath.Rel failed: %v", err))
+	}
+	return filepath.ToSlash(path), nil
+}
+
 var vaultdict map[string][]string
 
 // findPath で検索するためのデータを設定する
@@ -134,6 +196,42 @@ func genExternalLink(root string, content string) (link string, err error) {
 		return "", errors.Wrap(err, "splitFragments failed")
 	}
 	path, err := findPath(root, fileId)
+	if err != nil {
+		return "", errors.Wrap(err, "findPath failed")
+	}
+
+	linktext := buildLinkText(displayName, fileId, fragments)
+	var ref string
+	if fragments == nil {
+		ref = path
+	} else {
+		ref = path + "#" + fragments[len(fragments)-1]
+	}
+
+	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
+}
+
+type ExternalLinkGenerator interface {
+	GenExternalLink(content string) (externalLink string, err error)
+}
+
+type ExternalLinkGeneratorImpl struct {
+	PathFinder
+}
+
+func NewExternalLinkGeneratorImpl(finder PathFinder) *ExternalLinkGeneratorImpl {
+	return &ExternalLinkGeneratorImpl{
+		PathFinder: finder,
+	}
+}
+
+func (g *ExternalLinkGeneratorImpl) GenExternalLink(content string) (externalLink string, err error) {
+	identifier, displayName := splitDisplayName(content)
+	fileId, fragments, err := splitFragments(identifier)
+	if err != nil {
+		return "", errors.Wrap(err, "splitFragments failed")
+	}
+	path, err := g.FindPath(fileId)
 	if err != nil {
 		return "", errors.Wrap(err, "findPath failed")
 	}

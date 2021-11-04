@@ -220,7 +220,12 @@ func TestLinkConverter(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		c := NewLinkConverter(filepath.Join(testLinkConverterVaultDir, tt.vault))
+		finder := NewPathFinderImpl(filepath.Join(testLinkConverterVaultDir, tt.vault))
+		it := &InternalLinkTransformerImpl{ExternalLinkGenerator: NewExternalLinkGeneratorImpl(finder)}
+		emt := &EmbedsTransformerImpl{ExternalLinkGenerator: NewExternalLinkGeneratorImpl(finder)}
+		ext := &ExternalLinkTransformerImpl{PathFinder: finder}
+		c := NewLinkConverter(it, emt, ext)
+		c.Convert(tt.raw)
 		got, err := c.Convert(tt.raw)
 		if err != nil {
 			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)

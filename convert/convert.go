@@ -158,7 +158,7 @@ func NewTitleFinder(title *string) *Converter {
 	return c
 }
 
-func NewLinkConverter(vault string) *Converter {
+func NewLinkConverter(it InternalLinkTransformer, emt EmbedsTransformer, ext ExternalLinkTransformer) *Converter {
 	c := new(Converter)
 
 	c.Set(MiddlewareAsIs(scan.ScanEscaped))
@@ -166,9 +166,9 @@ func NewLinkConverter(vault string) *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanComment))
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
-	c.Set(TransformExternalLinkFunc(vault))
-	c.Set(TransformInternalLinkFunc(vault))
-	c.Set(TransformEmbedsFunc(vault))
+	c.Set(TransformExternalLinkFunc(ext))
+	c.Set(TransformInternalLinkFunc(it))
+	c.Set(TransformEmnbedsFunc(emt))
 	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
 	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
 	c.Set(TransformRepeatingTagsFunc())
