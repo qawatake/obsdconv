@@ -10,6 +10,22 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+var vaultdict map[string][]string
+
+// findPath で検索するためのデータを設定する
+func PrepareVault(vault string) {
+	vaultdict = make(map[string][]string)
+	filepath.Walk(vault, func(path string, info fs.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+
+		base := filepath.Base(path)
+		vaultdict[base] = append(vaultdict[base], path)
+		return nil
+	})
+}
+
 func pathMatchScore(path string, filename string) int {
 	pp := strings.Split(filepath.ToSlash(path), "/")
 	ff := strings.Split(filepath.ToSlash(filename), "/")
@@ -27,6 +43,7 @@ func pathMatchScore(path string, filename string) int {
 	return lpp - cur
 }
 
+// 実行前に PrepareVault を呼ぶ必要がある
 func findPath(root string, fileId string) (path string, err error) {
 	var filename string
 	if filepath.Ext(fileId) == "" {
@@ -35,23 +52,25 @@ func findPath(root string, fileId string) (path string, err error) {
 		filename = fileId
 	}
 
+	base := filepath.Base(filename)
+	paths, ok := vaultdict[base]
+	if !ok || len(paths) == 0 {
+		return "", nil
+	}
+
 	bestscore := -1
 	bestmatch := ""
-
-	err = filepath.Walk(root, func(pth string, info fs.FileInfo, err error) error {
+	for _, pth := range paths {
 		pth = norm.NFC.String(pth)
 		if score := pathMatchScore(pth, filename); score < 0 {
-			return nil
-		} else if bestscore < 0 || score < bestscore || (score == bestscore && strings.Compare(pth, bestmatch) < 0) {
+			continue
+		} else if bestmatch == "" || score < bestscore || (score == bestscore && strings.Compare(pth, bestmatch) < 0) {
 			bestscore = score
 			bestmatch = pth
-			return nil
+			continue
 		}
-		return nil
-	})
-	if err != nil {
-		return "", newErrTransform(ERR_KIND_UNEXPECTED, fmt.Sprintf("filepath.Walk failed: %v", err))
 	}
+
 	if bestscore < 0 {
 		return "", nil
 	}

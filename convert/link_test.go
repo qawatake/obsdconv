@@ -120,6 +120,7 @@ func TestFindPath(t *testing.T) {
 	}
 
 	for _, tt := range cases {
+		PrepareVault(filepath.Join(testFindPathRootDir, tt.root))
 		got, err := findPath(filepath.Join(testFindPathRootDir, tt.root), tt.fileId)
 		if err != nil {
 			t.Errorf("[FAIL | %v] %v", tt.name, err)

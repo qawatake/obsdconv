@@ -22,6 +22,7 @@ func TestTransformExternalLink(t *testing.T) {
 	}
 
 	for _, tt := range cases {
+		PrepareVault(filepath.Join(testTransformExternalLinkRootDir, tt.root))
 		_, got, err := TransformExternalLinkFunc(filepath.Join(testTransformExternalLinkRootDir, tt.root))(tt.raw, 0)
 		if err != nil {
 			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)

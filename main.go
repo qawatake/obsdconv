@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+
+	"github.com/qawatake/obsdconv/convert"
 )
 
 var (
@@ -21,6 +23,7 @@ func main() {
 	if err := setFlags(flag.CommandLine, &flags); err != nil {
 		log.Fatal(err)
 	}
+	convert.PrepareVault(flags.src)
 	if err := cwalk(&flags); err != nil {
 		log.Fatal(err)
 	}
