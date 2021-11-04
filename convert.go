@@ -5,28 +5,52 @@ import (
 	"github.com/qawatake/obsdconv/convert"
 )
 
-func convertBody(raw []rune, vault string, title *string, tags map[string]struct{}, flags flagBundle) (output []rune, err error) {
-	output = raw
-	if flags.cptag {
-		_, err = convert.NewTagFinder(tags).Convert(output)
+type BodyConverter interface {
+	ConvertBody(raw []rune) (output *ConvertBodyOutput, err error)
+}
+
+type BodyConverterImpl struct {
+	flags *flagBundle
+	convert.InternalLinkTransformer
+	convert.EmbedsTransformer
+	convert.ExternalLinkTransformer
+}
+
+type ConvertBodyOutput struct {
+	text  []rune
+	title string
+	tags  map[string]struct{}
+}
+
+func NewConvertBodyOutput() *ConvertBodyOutput {
+	output := new(ConvertBodyOutput)
+	output.tags = make(map[string]struct{})
+	return output
+}
+
+func (c *BodyConverterImpl) ConvertBody(raw []rune) (output *ConvertBodyOutput, err error) {
+	output = NewConvertBodyOutput()
+	text := raw
+	if c.flags.cptag {
+		_, err = convert.NewTagFinder(output.tags).Convert(text)
 		if err != nil {
 			return nil, errors.Wrap(err, "TagFinder failed")
 		}
 	}
-	if flags.rmtag {
-		output, err = convert.NewTagRemover().Convert(output)
+	if c.flags.rmtag {
+		text, err = convert.NewTagRemover().Convert(text)
 		if err != nil {
 			return nil, errors.Wrap(err, "TagRemover failed")
 		}
 	}
-	if flags.cmmt {
-		output, err = convert.NewCommentEraser().Convert(output)
+	if c.flags.cmmt {
+		text, err = convert.NewCommentEraser().Convert(text)
 		if err != nil {
 			return nil, errors.Wrap(err, "CommentEraser failed")
 		}
 	}
-	if flags.title {
-		titleFoundFrom, err := convert.NewTagRemover().Convert(output)
+	if c.flags.title {
+		titleFoundFrom, err := convert.NewTagRemover().Convert(text)
 		if err != nil {
 			return nil, errors.Wrap(err, "preprocess TagRemover for finding titles failed")
 		}
@@ -34,16 +58,17 @@ func convertBody(raw []rune, vault string, title *string, tags map[string]struct
 		if err != nil {
 			return nil, errors.Wrap(err, "preprocess InternalLinkPlainConverter for finding titles failed")
 		}
-		_, err = convert.NewTitleFinder(title).Convert(titleFoundFrom)
+		_, err = convert.NewTitleFinder(&output.title).Convert(titleFoundFrom)
 		if err != nil {
 			return nil, errors.Wrap(err, "TitleFinder failed")
 		}
 	}
-	if flags.link {
-		output, err = convert.NewLinkConverter(vault).Convert(output)
+	if c.flags.link {
+		text, err = convert.NewLinkConverter(c.InternalLinkTransformer, c.EmbedsTransformer, c.ExternalLinkTransformer).Convert(text)
 		if err != nil {
 			return nil, errors.Wrap(err, "LinkConverter failed")
 		}
 	}
+	output.text = text
 	return output, nil
 }

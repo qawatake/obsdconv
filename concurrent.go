@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/qawatake/obsdconv/convert"
 )
 
 const (
@@ -13,6 +15,16 @@ const (
 )
 
 func cwalk(flags *flagBundle) error {
+	bc := new(BodyConverterImpl)
+	bc.flags = flags
+	finder := convert.NewPathFinderImpl(flags.src)
+	bc.InternalLinkTransformer = &convert.InternalLinkTransformerImpl{ExternalLinkGenerator: convert.NewExternalLinkGeneratorImpl(finder)}
+	bc.EmbedsTransformer = &convert.EmbedsTransformerImpl{ExternalLinkGenerator: convert.NewExternalLinkGeneratorImpl(finder)}
+	bc.ExternalLinkTransformer = &convert.ExternalLinkTransformerImpl{PathFinder: finder}
+	p := new(ProcessorImpl)
+	p.flags = flags
+	p.BodyConverter = bc
+
 	errs := make(chan error, NUM_CONCURRENT)
 	lock := make(chan struct{}, NUM_CONCURRENT)
 	passedAll := make(chan struct{})
@@ -60,7 +72,7 @@ func cwalk(flags *flagBundle) error {
 		case lock <- struct{}{}:
 			wg.Add(1)
 			go func() {
-				err := process(flags.src, path, newpath, flags)
+				err := p.Process(path, newpath)
 				if err == nil {
 					errs <- nil
 					wg.Done()

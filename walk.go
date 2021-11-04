@@ -3,67 +3,23 @@ package main
 import (
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
-	"path/filepath"
 
 	"github.com/pkg/errors"
 
 	"github.com/qawatake/obsdconv/convert"
 )
 
-func walk(flags *flagBundle) error {
-	err := filepath.Walk(flags.src, func(path string, info fs.FileInfo, err error) error {
-		rpath, err := filepath.Rel(flags.src, path)
-		if err != nil {
-			return err
-		}
-		newpath := filepath.Join(flags.dst, rpath)
-		if info.IsDir() {
-			if _, err := os.Stat(newpath); !os.IsNotExist(err) {
-				return nil
-			}
-			if err := os.Mkdir(newpath, 0o777); err == nil {
-				return nil
-			} else {
-				return err
-			}
-		}
-		if filepath.Ext(path) != ".md" {
-			file, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-			newfile, err := os.Create(newpath)
-			if err != nil {
-				return err
-			}
-			defer newfile.Close()
-			io.Copy(newfile, file)
-		} else {
-			file, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-			if err := process(flags.src, path, newpath, flags); err != nil {
-				if public, debug := handleErr(path, err); public != nil || debug != nil {
-					if flags.debug {
-						return debug
-					} else {
-						return public
-					}
-				}
-
-			}
-		}
-		return nil
-	})
-	return err
+type Processor interface {
+	Process(path, newpath string) (err error)
 }
 
-func process(vault string, path string, newpath string, flags *flagBundle) (err error) {
+type ProcessorImpl struct {
+	flags *flagBundle
+	BodyConverter
+}
+
+func (p *ProcessorImpl) Process(path, newpath string) (err error) {
 	readFrom, err := os.Open(path)
 	if err != nil {
 		return errors.Errorf("failed to open %s", path)
@@ -75,27 +31,25 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 	readFrom.Close()
 
 	yml, body := splitMarkdown([]rune(string(content)))
-	title := ""
-	tags := make(map[string]struct{})
 
-	body, err = convertBody(body, vault, &title, tags, *flags)
+	bodyOutput, err := p.ConvertBody(body)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert")
 	}
 
 	var frontmatter frontMatter
-	if flags.title {
-		frontmatter.title = title
+	if p.flags.title {
+		frontmatter.title = bodyOutput.title
 	}
-	if flags.alias {
-		frontmatter.alias = frontmatter.title
+	if p.flags.alias {
+		frontmatter.alias = bodyOutput.title
 	}
-	if flags.cptag {
-		for key := range tags {
+	if p.flags.cptag {
+		for key := range bodyOutput.tags {
 			frontmatter.tags = append(frontmatter.tags, key)
 		}
 	}
-	yml, err = convertYAML(yml, frontmatter, flags)
+	yml, err = convertYAML(yml, frontmatter, p.flags)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert yaml")
 	}
@@ -108,7 +62,7 @@ func process(vault string, path string, newpath string, flags *flagBundle) (err 
 	}
 	defer writeTo.Close()
 
-	fmt.Fprintf(writeTo, "---\n%s---\n%s", string(yml), string(body))
+	fmt.Fprintf(writeTo, "---\n%s---\n%s", string(yml), string(bodyOutput.text))
 	return nil
 }
 

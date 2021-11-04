@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/qawatake/obsdconv/convert"
 )
 
 func TestConvertBody(t *testing.T) {
@@ -116,6 +118,13 @@ func TestConvertBody(t *testing.T) {
 	// テスト部
 	for _, tt := range cases {
 		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
+		finder := convert.NewPathFinderImpl(vault)
+		c := &BodyConverterImpl{}
+		c.InternalLinkTransformer = &convert.InternalLinkTransformerImpl{ExternalLinkGenerator: convert.NewExternalLinkGeneratorImpl(finder)}
+		c.EmbedsTransformer = &convert.EmbedsTransformerImpl{ExternalLinkGenerator: convert.NewExternalLinkGeneratorImpl(finder)}
+		c.ExternalLinkTransformer = &convert.ExternalLinkTransformerImpl{PathFinder: finder}
+		c.flags = &tt.flags
+
 		srcFileName := filepath.Join(vault, tt.rawFileName)
 		srcFile, err := os.Open(srcFileName)
 		if err != nil {
@@ -127,26 +136,25 @@ func TestConvertBody(t *testing.T) {
 		}
 		srcFile.Close()
 
-		// 取得した title の確認
-		title := ""
-		tags := make(map[string]struct{})
-		gotOutput, err := convertBody([]rune(string(raw)), vault, &title, tags, tt.flags)
+		output, err := c.ConvertBody([]rune(string(raw)))
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 		}
-		if title != tt.wantTitle {
-			t.Errorf("[ERROR | title - %s] got: %q, want: %q", tt.name, title, tt.wantTitle)
+
+		// 取得した title の確認
+		if output.title != tt.wantTitle {
+			t.Errorf("[ERROR | title - %s] got: %q, want: %q", tt.name, output.title, tt.wantTitle)
 		}
 
 		// 取得した tag のチェック
 		for _, tag := range tt.wantTags {
-			if _, ok := tags[tag]; !ok {
+			if _, ok := output.tags[tag]; !ok {
 				t.Errorf("[ERROR | tag - %s] tag: %s not found", tt.name, tag)
 			}
-			delete(tags, tag)
+			delete(output.tags, tag)
 		}
-		if len(tags) > 0 {
-			t.Errorf("[ERROR | tag - %s] got unexpected tags: %v", tt.name, tags)
+		if len(output.tags) > 0 {
+			t.Errorf("[ERROR | tag - %s] got unexpected tags: %v", tt.name, output.tags)
 		}
 
 		// file content の確認
@@ -155,14 +163,14 @@ func TestConvertBody(t *testing.T) {
 		if err != nil {
 			t.Fatalf("[FATAL | %s] failed to open %s: %v", tt.name, wantFileName, err)
 		}
-		wantOutput, err := io.ReadAll(wantFile)
+		wantText, err := io.ReadAll(wantFile)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] failed to read: %s", tt.name, wantFileName)
 		}
 		wantFile.Close()
-		if string(gotOutput) != string(wantOutput) {
-			gotscanner := bufio.NewScanner(bytes.NewReader([]byte(string(gotOutput))))
-			wantscanner := bufio.NewScanner(bytes.NewReader(wantOutput))
+		if string(output.text) != string(wantText) {
+			gotscanner := bufio.NewScanner(bytes.NewReader([]byte(string(output.text))))
+			wantscanner := bufio.NewScanner(bytes.NewReader(wantText))
 			linenum := 1
 			errDisplayed := false
 			for gotscanner.Scan() && wantscanner.Scan() {
