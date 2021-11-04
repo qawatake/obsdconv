@@ -19,6 +19,7 @@
 !convert.go
 !walk.go
 !flag.go
+!concurrent.go
 !preprocess_test.go
 !flag_test.go
 !frontmatter_test.go
