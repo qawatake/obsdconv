@@ -21,7 +21,7 @@ func main() {
 	if err := setFlags(flag.CommandLine, &flags); err != nil {
 		log.Fatal(err)
 	}
-	if err := walk(&flags); err != nil {
+	if err := cwalk(&flags); err != nil {
 		log.Fatal(err)
 	}
 }

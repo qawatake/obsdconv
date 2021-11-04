@@ -5,10 +5,11 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 const (
-	NUM_CONCURRENT = 50 // 同時に処理するファイル数
+	NUM_CONCURRENT = 50 // 同時に処理できるファイル数
 )
 
 func cwalk(flags *flagBundle) error {
@@ -16,6 +17,7 @@ func cwalk(flags *flagBundle) error {
 	lock := make(chan struct{}, NUM_CONCURRENT)
 	passedAll := make(chan struct{})
 	stopWalking, totalErr := handleProcesses(flags.debug, errs, lock, passedAll)
+	var wg sync.WaitGroup
 
 	// walk を抜けるのは, ↓の2通り
 	// 1. walk 中にエラーが発生しなかった -> totalErr に nil が送信されている
@@ -56,16 +58,19 @@ func cwalk(flags *flagBundle) error {
 		case <-stopWalking:
 			return filepath.SkipDir
 		case lock <- struct{}{}:
+			wg.Add(1)
 			go func() {
 				err := process(flags.src, path, newpath, flags)
 				if err == nil {
 					errs <- nil
+					wg.Done()
 					return
 				}
 
 				public, debug := handleErr(path, err)
 				if public == nil && debug == nil {
 					errs <- nil
+					wg.Done()
 					return
 				}
 
@@ -74,12 +79,14 @@ func cwalk(flags *flagBundle) error {
 				} else {
 					errs <- public
 				}
+				wg.Done()
 			}()
 		}
 		return nil
 	})
 
 	// walk の終了を handleProcesses に伝える
+	wg.Wait()
 	close(passedAll)
 
 	if err != nil {
