@@ -21,12 +21,10 @@ type ProcessorImpl struct {
 }
 
 func NewProcessorImpl(flags *flagBundle) *ProcessorImpl {
-	bc := new(BodyConverterImpl)
-	bc.db = convert.NewPathDB(flags.src)
-	bc.flags = flags
 	p := new(ProcessorImpl)
+	db := convert.NewPathDB(flags.src)
+	p.BodyConverter = NewBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link)
 	p.flags = flags
-	p.BodyConverter = bc
 	return p
 }
 
@@ -67,7 +65,7 @@ func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
 		return errors.Wrap(err, "failed to convert")
 	}
 
-	yc := NewYamlConverterImpl(p.flags)
+	yc := NewYamlConverterImpl(p.flags.publishable)
 	newtags := make([]string, 0, len(tags))
 	for tg := range tags {
 		newtags = append(newtags, tg)

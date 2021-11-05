@@ -11,19 +11,17 @@ type YamlConverter interface {
 }
 
 type YamlConverterImpl struct {
-	flags *flagBundle
+	publishable bool
 }
 
-func NewYamlConverterImpl(flags *flagBundle) *YamlConverterImpl {
+func NewYamlConverterImpl(publishable bool) *YamlConverterImpl {
 	return &YamlConverterImpl{
-		flags: flags,
+		publishable: publishable,
 	}
 }
 
 func (c *YamlConverterImpl) convertYAML(raw []byte, title string, alias string, newtags []string) (output []byte, err error) {
-	if c.flags == nil {
-		return nil, fmt.Errorf("pointer to flagBundle is nil")
-	}
+
 	m := make(map[interface{}]interface{})
 	if err := yaml.Unmarshal(raw, m); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal front matter: %w", err)
@@ -85,7 +83,7 @@ func (c *YamlConverterImpl) convertYAML(raw []byte, title string, alias string, 
 	}
 
 	_, ok := m["draft"]
-	if !ok && c.flags.publishable {
+	if !ok && c.publishable {
 		if p, ok := m["publish"]; !ok {
 			m["draft"] = true
 		} else {

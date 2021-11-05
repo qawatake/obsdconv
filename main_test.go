@@ -59,65 +59,61 @@ func TestConvertBody(t *testing.T) {
 		rootDir      string
 		srcDir       string
 		rawFileName  string
-		flags        flagBundle
+		cptag        bool
+		rmtag        bool
+		cmmt         bool
+		title        bool
+		link         bool
 		wantTitle    string
 		wantTags     []string
 		wantFileName string
 	}{
 		{
-			name:        "-cptag -title",
-			rootDir:     "cptag_title",
-			srcDir:      "src",
-			rawFileName: "src.md",
-			flags: flagBundle{
-				cptag: true,
-				title: true,
-			},
+			name:         "-cptag -title",
+			rootDir:      "cptag_title",
+			srcDir:       "src",
+			rawFileName:  "src.md",
+			cptag:        true,
+			title:        true,
 			wantTitle:    "test source file <<>>",
 			wantTags:     []string{"obsidian", "test"},
 			wantFileName: "want.md",
 		},
 		{
-			name:        "-rmtag -title -cptag",
-			rootDir:     "rmtag_title_cptag",
-			srcDir:      "src",
-			rawFileName: "src.md",
-			flags: flagBundle{
-				rmtag: true,
-				title: true,
-				cptag: true,
-			},
+			name:         "-rmtag -title -cptag",
+			rootDir:      "rmtag_title_cptag",
+			srcDir:       "src",
+			rawFileName:  "src.md",
+			rmtag:        true,
+			title:        true,
+			cptag:        true,
 			wantTitle:    "test source file <<>>",
 			wantTags:     []string{"obsidian", "test"},
 			wantFileName: "want.md",
 		},
 		{
-			name:        "-rmtag -title -cptag -cmmt",
-			rootDir:     "rmtag_title_cptag_cmmt",
-			srcDir:      "src",
-			rawFileName: "src.md",
-			flags: flagBundle{
-				rmtag: true,
-				title: true,
-				cptag: true,
-				cmmt:  true,
-			},
+			name:         "-rmtag -title -cptag -cmmt",
+			rootDir:      "rmtag_title_cptag_cmmt",
+			srcDir:       "src",
+			rawFileName:  "src.md",
+			rmtag:        true,
+			title:        true,
+			cptag:        true,
+			cmmt:         true,
 			wantTitle:    "test source file <<>>",
 			wantTags:     []string{"obsidian", "test"},
 			wantFileName: "want.md",
 		},
 		{
-			name:        "-rmtag -title -cptag -cmmt -link",
-			rootDir:     "rmtag_title_cptag_cmmt_link",
-			srcDir:      "src",
-			rawFileName: "src.md",
-			flags: flagBundle{
-				rmtag: true,
-				title: true,
-				cptag: true,
-				cmmt:  true,
-				link:  true,
-			},
+			name:         "-rmtag -title -cptag -cmmt -link",
+			rootDir:      "rmtag_title_cptag_cmmt_link",
+			srcDir:       "src",
+			rawFileName:  "src.md",
+			rmtag:        true,
+			title:        true,
+			cptag:        true,
+			cmmt:         true,
+			link:         true,
 			wantTitle:    "test source file <<>>",
 			wantTags:     []string{"obsidian", "test"},
 			wantFileName: "want.md",
@@ -157,9 +153,8 @@ func TestConvertBody(t *testing.T) {
 	// テスト部
 	for _, tt := range cases {
 		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
-		c := new(BodyConverterImpl)
-		c.db = convert.NewPathDB(vault)
-		c.flags = &tt.flags
+		db := convert.NewPathDB(vault)
+		c := NewBodyConverterImpl(db, tt.cptag, tt.rmtag, tt.cmmt, tt.title, tt.link)
 
 		srcFileName := filepath.Join(vault, tt.rawFileName)
 		srcFile, err := os.Open(srcFileName)
@@ -234,14 +229,13 @@ func TestConvertBody(t *testing.T) {
 
 func TestConvertYAML(t *testing.T) {
 	cases := []struct {
-		name      string
-		raw       []byte
-		title     string
-		alias     string
-		tags      []string
-		flags     *flagBundle
-		converter *YamlConverterImpl
-		want      string
+		name        string
+		publishable bool
+		raw         []byte
+		title       string
+		alias       string
+		tags        []string
+		want        string
 	}{
 		{
 			name: "no overlap",
@@ -250,7 +244,6 @@ publish: true`),
 			title: "211027",
 			alias: "today",
 			tags:  []string{"todo", "math"},
-			flags: &flagBundle{},
 			want: `aliases:
 - today
 cssclass: index-page
@@ -270,7 +263,6 @@ title: 211026`),
 			title: "211027",
 			alias: "today",
 			tags:  []string{"todo", "math"},
-			flags: &flagBundle{},
 			want: `aliases:
 - today
 cssclass: index-page
@@ -292,7 +284,6 @@ aliases:
 			title: "211027",
 			alias: "birthday",
 			tags:  []string{"todo", "math"},
-			flags: &flagBundle{},
 			want: `aliases:
 - today
 - birthday
@@ -315,7 +306,6 @@ aliases:
 			title: "211027",
 			alias: "today",
 			tags:  []string{"todo", "math"},
-			flags: &flagBundle{},
 			want: `aliases:
 - today
 cssclass: index-page
@@ -337,7 +327,6 @@ tags:
 			title: "211027",
 			alias: "today",
 			tags:  []string{"todo", "math"},
-			flags: &flagBundle{},
 			want: `aliases:
 - today
 cssclass: index-page
@@ -361,7 +350,6 @@ tags:
 			title: "211027",
 			alias: "today",
 			tags:  []string{"todo", "math"},
-			flags: &flagBundle{},
 			want: `aliases:
 - today
 cssclass: index-page
@@ -379,10 +367,10 @@ title: "211027"
 			raw: []byte(`cssclass: index-page
 publish: true
 `),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			flags: &flagBundle{publishable: true},
+			title:       "211027",
+			alias:       "today",
+			tags:        []string{"todo", "math"},
+			publishable: true,
 			want: `aliases:
 - today
 cssclass: index-page
@@ -399,10 +387,10 @@ title: "211027"
 			name: "not publishable",
 			raw: []byte(`cssclass: index-page
 publish: false`),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			flags: &flagBundle{publishable: true},
+			title:       "211027",
+			alias:       "today",
+			tags:        []string{"todo", "math"},
+			publishable: true,
 			want: `aliases:
 - today
 cssclass: index-page
@@ -419,10 +407,10 @@ title: "211027"
 			name: "no publish field",
 			raw: []byte(`cssclass: index-page
 `),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			flags: &flagBundle{publishable: true},
+			title:       "211027",
+			alias:       "today",
+			tags:        []string{"todo", "math"},
+			publishable: true,
 			want: `aliases:
 - today
 cssclass: index-page
@@ -439,10 +427,10 @@ title: "211027"
 			raw: []byte(`cssclass: index-page
 publish: true
 draft: true`),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			flags: &flagBundle{publishable: true},
+			title:       "211027",
+			alias:       "today",
+			tags:        []string{"todo", "math"},
+			publishable: true,
 			want: `aliases:
 - today
 cssclass: index-page
@@ -463,7 +451,7 @@ publish: true
 			title: "211027",
 			alias: "today",
 			tags:  []string{"todo", "math"},
-			flags: &flagBundle{},
+			// flags: &flagBundle{},
 			want: `aliases:
 - today
 cssclass: index-page
@@ -477,7 +465,7 @@ title: "211027"
 	}
 
 	for _, tt := range cases {
-		yc := NewYamlConverterImpl(tt.flags)
+		yc := NewYamlConverterImpl(tt.publishable)
 		got, err := yc.convertYAML(tt.raw, tt.title, tt.alias, tt.tags)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)

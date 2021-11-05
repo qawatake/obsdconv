@@ -10,8 +10,23 @@ type BodyConverter interface {
 }
 
 type BodyConverterImpl struct {
-	flags *flagBundle
 	db    convert.PathDB
+	cptag bool
+	rmtag bool
+	cmmt  bool
+	title bool
+	link  bool
+}
+
+func NewBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, title bool, link bool) *BodyConverterImpl {
+	c := new(BodyConverterImpl)
+	c.db = db
+	c.cptag = cptag
+	c.rmtag = rmtag
+	c.cmmt = cmmt
+	c.title = title
+	c.link = link
+	return c
 }
 
 func (c *BodyConverterImpl) ConvertBody(raw []rune) (output []rune, title string, tags map[string]struct{}, err error) {
@@ -19,25 +34,25 @@ func (c *BodyConverterImpl) ConvertBody(raw []rune) (output []rune, title string
 	title = ""
 	tags = make(map[string]struct{})
 
-	if c.flags.cptag {
+	if c.cptag {
 		_, err = convert.NewTagFinder(tags).Convert(output)
 		if err != nil {
 			return nil, "", nil, errors.Wrap(err, "TagFinder failed")
 		}
 	}
-	if c.flags.rmtag {
+	if c.rmtag {
 		output, err = convert.NewTagRemover().Convert(output)
 		if err != nil {
 			return nil, "", nil, errors.Wrap(err, "TagRemover failed")
 		}
 	}
-	if c.flags.cmmt {
+	if c.cmmt {
 		output, err = convert.NewCommentEraser().Convert(output)
 		if err != nil {
 			return nil, "", nil, errors.Wrap(err, "CommentEraser failed")
 		}
 	}
-	if c.flags.title {
+	if c.title {
 		titleFoundFrom, err := convert.NewTagRemover().Convert(output)
 		if err != nil {
 			return nil, "", nil, errors.Wrap(err, "preprocess TagRemover for finding titles failed")
@@ -51,7 +66,7 @@ func (c *BodyConverterImpl) ConvertBody(raw []rune) (output []rune, title string
 			return nil, "", nil, errors.Wrap(err, "TitleFinder failed")
 		}
 	}
-	if c.flags.link {
+	if c.link {
 		output, err = convert.NewLinkConverter(c.db).Convert(output)
 		if err != nil {
 			return nil, "", nil, errors.Wrap(err, "LinkConverter failed")
