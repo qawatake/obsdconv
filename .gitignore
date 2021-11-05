@@ -14,16 +14,14 @@
 
 !go.mod
 !main.go
-!preprocess.go
-!frontmatter.go
-!convert.go
-!walk.go
 !flag.go
+!walk.go
+!process.go
+!convertbody.go
+!convertyaml.go
 !concurrent.go
-!preprocess_test.go
+!main_test.go
 !flag_test.go
-!frontmatter_test.go
-!convert_test.go
 
 !testdata
 !testdata/findpath
