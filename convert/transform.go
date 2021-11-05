@@ -140,9 +140,13 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 		return "", newErrTransform(ERR_KIND_UNEXPECTED, fmt.Sprintf("url.Parse failed: %v", err))
 	}
 
+	// ref = 通常のリンク
 	if (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" {
 		return fmt.Sprintf("[%s](%s)", displayName, ref), nil
-	} else if u.Scheme == "obsidian" {
+	}
+
+	// ref = obsidian URI
+	if u.Scheme == "obsidian" {
 		q := u.Query()
 		fileId := q.Get("file")
 		if fileId == "" {
@@ -153,7 +157,10 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 			return "", errors.Wrap(err, "FindPath failed")
 		}
 		return fmt.Sprintf("[%s](%s)", displayName, path), nil
-	} else if u.Scheme == "" && u.Host == "" {
+	}
+
+	// ref = fileId
+	if u.Scheme == "" && u.Host == "" {
 		fileId, fragments, err := splitFragments(ref)
 		if err != nil {
 			return "", errors.Wrap(err, "splitFragments failed")
@@ -169,7 +176,7 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 			newref = path + "#" + strings.Join(fragments, "#")
 		}
 		return fmt.Sprintf("[%s](%s)", displayName, newref), nil
-	} else {
-		return "", newErrTransform(ERR_KIND_UNEXPECTED_HREF, fmt.Sprintf("unexpected href: %s", ref))
 	}
+
+	return "", newErrTransform(ERR_KIND_UNEXPECTED_HREF, fmt.Sprintf("unexpected href: %s", ref))
 }
