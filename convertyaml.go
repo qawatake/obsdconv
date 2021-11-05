@@ -7,13 +7,10 @@ import (
 )
 
 type YamlConverter interface {
-	ConvertYAML(raw []byte) (output []byte, err error)
+	ConvertYAML(raw []byte, title string, alias string, newtags []string) (output []byte, err error)
 }
 
 type YamlConverterImpl struct {
-	title string
-	tags  []string
-	alias string
 	flags *flagBundle
 }
 
@@ -23,7 +20,7 @@ func NewYamlConverterImpl(flags *flagBundle) *YamlConverterImpl {
 	}
 }
 
-func (c *YamlConverterImpl) convertYAML(raw []byte) (output []byte, err error) {
+func (c *YamlConverterImpl) convertYAML(raw []byte, title string, alias string, newtags []string) (output []byte, err error) {
 	if c.flags == nil {
 		return nil, fmt.Errorf("pointer to flagBundle is nil")
 	}
@@ -31,13 +28,13 @@ func (c *YamlConverterImpl) convertYAML(raw []byte) (output []byte, err error) {
 	if err := yaml.Unmarshal(raw, m); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal front matter: %w", err)
 	}
-	if c.title != "" {
-		m["title"] = c.title
+	if title != "" {
+		m["title"] = title
 	}
 
 	if v, ok := m["aliases"]; !ok {
-		if c.alias != "" {
-			m["aliases"] = []string{c.alias}
+		if alias != "" {
+			m["aliases"] = []string{alias}
 		}
 	} else {
 		if vv, ok := v.([]interface{}); !ok {
@@ -49,21 +46,21 @@ func (c *YamlConverterImpl) convertYAML(raw []byte) (output []byte, err error) {
 				if !ok {
 					return nil, fmt.Errorf("aliases field found but its field type is not string: %T", a)
 				}
-				if aa == c.alias {
+				if aa == alias {
 					exists = true
 				}
 			}
 			if !exists {
-				vv = append(vv, c.alias)
+				vv = append(vv, alias)
 			}
 			m["aliases"] = vv
 		}
 	}
 
 	if v, ok := m["tags"]; !ok {
-		if len(c.tags) > 0 {
-			tags := make([]string, len(c.tags))
-			copy(tags, c.tags)
+		if len(newtags) > 0 {
+			tags := make([]string, len(newtags))
+			copy(tags, newtags)
 			m["tags"] = tags
 		}
 	} else {
@@ -78,7 +75,7 @@ func (c *YamlConverterImpl) convertYAML(raw []byte) (output []byte, err error) {
 				}
 				existingTag[aa] = true
 			}
-			for _, t := range c.tags {
+			for _, t := range newtags {
 				if !existingTag[t] {
 					vv = append(vv, t)
 				}

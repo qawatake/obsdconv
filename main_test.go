@@ -11,7 +11,6 @@ import (
 	"github.com/qawatake/obsdconv/convert"
 )
 
-
 func TestSplitMarkdown(t *testing.T) {
 	cases := []struct {
 		input           string
@@ -50,7 +49,6 @@ func TestSplitMarkdown(t *testing.T) {
 		}
 	}
 }
-
 
 func TestConvertBody(t *testing.T) {
 	const (
@@ -174,25 +172,25 @@ func TestConvertBody(t *testing.T) {
 		}
 		srcFile.Close()
 
-		output, err := c.ConvertBody([]rune(string(raw)))
+		output, gotTitle, gotTags, err := c.ConvertBody([]rune(string(raw)))
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 		}
 
 		// 取得した title の確認
-		if output.title != tt.wantTitle {
-			t.Errorf("[ERROR | title - %s] got: %q, want: %q", tt.name, output.title, tt.wantTitle)
+		if gotTitle != tt.wantTitle {
+			t.Errorf("[ERROR | title - %s] got: %q, want: %q", tt.name, gotTitle, tt.wantTitle)
 		}
 
 		// 取得した tag のチェック
 		for _, tag := range tt.wantTags {
-			if _, ok := output.tags[tag]; !ok {
+			if _, ok := gotTags[tag]; !ok {
 				t.Errorf("[ERROR | tag - %s] tag: %s not found", tt.name, tag)
 			}
-			delete(output.tags, tag)
+			delete(gotTags, tag)
 		}
-		if len(output.tags) > 0 {
-			t.Errorf("[ERROR | tag - %s] got unexpected tags: %v", tt.name, output.tags)
+		if len(gotTags) > 0 {
+			t.Errorf("[ERROR | tag - %s] got unexpected tags: %v", tt.name, gotTags)
 		}
 
 		// file content の確認
@@ -206,8 +204,8 @@ func TestConvertBody(t *testing.T) {
 			t.Fatalf("[FATAL | %s] failed to read: %s", tt.name, wantFileName)
 		}
 		wantFile.Close()
-		if string(output.text) != string(wantText) {
-			gotscanner := bufio.NewScanner(bytes.NewReader([]byte(string(output.text))))
+		if string(output) != string(wantText) {
+			gotscanner := bufio.NewScanner(bytes.NewReader([]byte(string(output))))
 			wantscanner := bufio.NewScanner(bytes.NewReader(wantText))
 			linenum := 1
 			errDisplayed := false
@@ -234,14 +232,13 @@ func TestConvertBody(t *testing.T) {
 	}
 }
 
-
 func TestConvertYAML(t *testing.T) {
 	cases := []struct {
-		name  string
-		raw   []byte
-		title string
-		alias string
-		tags  []string
+		name      string
+		raw       []byte
+		title     string
+		alias     string
+		tags      []string
 		flags     *flagBundle
 		converter *YamlConverterImpl
 		want      string
@@ -481,10 +478,7 @@ title: "211027"
 
 	for _, tt := range cases {
 		yc := NewYamlConverterImpl(tt.flags)
-		yc.title = tt.title
-		yc.alias = tt.alias
-		yc.tags = tt.tags
-		got, err := yc.convertYAML(tt.raw)
+		got, err := yc.convertYAML(tt.raw, tt.title, tt.alias, tt.tags)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 		}

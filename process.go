@@ -62,24 +62,18 @@ func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
 
 	yml, body := splitMarkdown([]rune(string(content)))
 
-	bodyOutput, err := p.ConvertBody(body)
+	output, title, tags, err := p.ConvertBody(body)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert")
 	}
 
 	yc := NewYamlConverterImpl(p.flags)
-	if p.flags.title {
-		yc.title = bodyOutput.title
+	newtags := make([]string, 0, len(tags))
+	for tg := range tags {
+		newtags = append(newtags, tg)
 	}
-	if p.flags.alias {
-		yc.alias = bodyOutput.title
-	}
-	if p.flags.cptag {
-		for key := range bodyOutput.tags {
-			yc.tags = append(yc.tags, key)
-		}
-	}
-	yml, err = yc.convertYAML(yml)
+
+	yml, err = yc.convertYAML(yml, title, title, newtags)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert yaml")
 	}
@@ -92,7 +86,7 @@ func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
 	}
 	defer writeTo.Close()
 
-	fmt.Fprintf(writeTo, "---\n%s---\n%s", string(yml), string(bodyOutput.text))
+	fmt.Fprintf(writeTo, "---\n%s---\n%s", string(yml), string(output))
 	return nil
 }
 
