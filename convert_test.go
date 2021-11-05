@@ -120,8 +120,8 @@ func TestConvertBody(t *testing.T) {
 		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
 		finder := convert.NewPathFinderImpl(vault)
 		c := &BodyConverterImpl{}
-		c.InternalLinkTransformer = &convert.InternalLinkTransformerImpl{ExternalLinkGenerator: convert.NewExternalLinkGeneratorImpl(finder)}
-		c.EmbedsTransformer = &convert.EmbedsTransformerImpl{ExternalLinkGenerator: convert.NewExternalLinkGeneratorImpl(finder)}
+		c.InternalLinkTransformer = &convert.InternalLinkTransformerImpl{PathFinder: finder}
+		c.EmbedsTransformer = &convert.EmbedsTransformerImpl{PathFinder: finder}
 		c.ExternalLinkTransformer = &convert.ExternalLinkTransformerImpl{PathFinder: finder}
 		c.flags = &tt.flags
 

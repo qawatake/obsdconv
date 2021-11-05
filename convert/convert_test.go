@@ -221,8 +221,8 @@ func TestLinkConverter(t *testing.T) {
 
 	for _, tt := range cases {
 		finder := NewPathFinderImpl(filepath.Join(testLinkConverterVaultDir, tt.vault))
-		it := &InternalLinkTransformerImpl{ExternalLinkGenerator: NewExternalLinkGeneratorImpl(finder)}
-		emt := &EmbedsTransformerImpl{ExternalLinkGenerator: NewExternalLinkGeneratorImpl(finder)}
+		it := &InternalLinkTransformerImpl{PathFinder: finder}
+		emt := &EmbedsTransformerImpl{PathFinder: finder}
 		ext := &ExternalLinkTransformerImpl{PathFinder: finder}
 		c := NewLinkConverter(it, emt, ext)
 		c.Convert(tt.raw)

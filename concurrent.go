@@ -18,8 +18,8 @@ func cwalk(flags *flagBundle) error {
 	bc := new(BodyConverterImpl)
 	bc.flags = flags
 	finder := convert.NewPathFinderImpl(flags.src)
-	bc.InternalLinkTransformer = &convert.InternalLinkTransformerImpl{ExternalLinkGenerator: convert.NewExternalLinkGeneratorImpl(finder)}
-	bc.EmbedsTransformer = &convert.EmbedsTransformerImpl{ExternalLinkGenerator: convert.NewExternalLinkGeneratorImpl(finder)}
+	bc.InternalLinkTransformer = &convert.InternalLinkTransformerImpl{PathFinder: finder}
+	bc.EmbedsTransformer = &convert.EmbedsTransformerImpl{PathFinder: finder}
 	bc.ExternalLinkTransformer = &convert.ExternalLinkTransformerImpl{PathFinder: finder}
 	p := new(ProcessorImpl)
 	p.flags = flags

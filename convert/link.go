@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pkg/errors"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -187,62 +186,4 @@ func buildLinkText(displayName string, fileId string, fragments []string) (linkt
 	} else {
 		return strings.Join(fragments, " > ")
 	}
-}
-
-func genExternalLink(root string, content string) (link string, err error) {
-	identifier, displayName := splitDisplayName(content)
-	fileId, fragments, err := splitFragments(identifier)
-	if err != nil {
-		return "", errors.Wrap(err, "splitFragments failed")
-	}
-	path, err := findPath(root, fileId)
-	if err != nil {
-		return "", errors.Wrap(err, "findPath failed")
-	}
-
-	linktext := buildLinkText(displayName, fileId, fragments)
-	var ref string
-	if fragments == nil {
-		ref = path
-	} else {
-		ref = path + "#" + fragments[len(fragments)-1]
-	}
-
-	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
-}
-
-type ExternalLinkGenerator interface {
-	GenExternalLink(content string) (externalLink string, err error)
-}
-
-type ExternalLinkGeneratorImpl struct {
-	PathFinder
-}
-
-func NewExternalLinkGeneratorImpl(finder PathFinder) *ExternalLinkGeneratorImpl {
-	return &ExternalLinkGeneratorImpl{
-		PathFinder: finder,
-	}
-}
-
-func (g *ExternalLinkGeneratorImpl) GenExternalLink(content string) (externalLink string, err error) {
-	identifier, displayName := splitDisplayName(content)
-	fileId, fragments, err := splitFragments(identifier)
-	if err != nil {
-		return "", errors.Wrap(err, "splitFragments failed")
-	}
-	path, err := g.FindPath(fileId)
-	if err != nil {
-		return "", errors.Wrap(err, "findPath failed")
-	}
-
-	linktext := buildLinkText(displayName, fileId, fragments)
-	var ref string
-	if fragments == nil {
-		ref = path
-	} else {
-		ref = path + "#" + fragments[len(fragments)-1]
-	}
-
-	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
 }

@@ -33,9 +33,6 @@ func TransformInternalLinkFunc(t InternalLinkTransformer) TransformerFunc {
 		if advance == 0 {
 			return 0, nil, nil
 		}
-		if content == "" { // [[ ]] はスキップ
-			return advance, nil, nil
-		}
 		link, err := t.TransformInternalLink(content)
 		if err != nil {
 			return 0, nil, errors.Wrap(err, "genExternalLink failed in TransformInternalLinkFunc")
@@ -49,9 +46,6 @@ func TransformEmnbedsFunc(t EmbedsTransformer) TransformerFunc {
 		advance, content := scan.ScanEmbeds(raw, ptr)
 		if advance == 0 {
 			return 0, nil, nil
-		}
-		if content == "" {
-			return advance, nil, nil
 		}
 		link, err := t.TransformEmbeds(content)
 		if err != nil {
@@ -103,11 +97,33 @@ type InternalLinkTransformer interface {
 }
 
 type InternalLinkTransformerImpl struct {
-	ExternalLinkGenerator
+	PathFinder
 }
 
 func (t *InternalLinkTransformerImpl) TransformInternalLink(content string) (externalLink string, err error) {
-	return t.GenExternalLink(content)
+	if content == "" {
+		return "", nil // [[ ]] はスキップ
+	}
+
+	identifier, displayName := splitDisplayName(content)
+	fileId, fragments, err := splitFragments(identifier)
+	if err != nil {
+		return "", errors.Wrap(err, "splitFragments failed")
+	}
+	path, err := t.FindPath(fileId)
+	if err != nil {
+		return "", errors.Wrap(err, "findPath failed")
+	}
+
+	linktext := buildLinkText(displayName, fileId, fragments)
+	var ref string
+	if fragments == nil {
+		ref = path
+	} else {
+		ref = path + "#" + fragments[len(fragments)-1]
+	}
+
+	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
 }
 
 type EmbedsTransformer interface {
@@ -115,15 +131,33 @@ type EmbedsTransformer interface {
 }
 
 type EmbedsTransformerImpl struct {
-	ExternalLinkGenerator
+	PathFinder
 }
 
 func (t *EmbedsTransformerImpl) TransformEmbeds(content string) (emnbeddedLink string, err error) {
-	externalLink, err := t.GenExternalLink(content)
-	if err != nil {
-		return "", err
+	if content == "" {
+		return "", nil // [[ ]] はスキップ
 	}
-	return "!" + externalLink, nil
+
+	identifier, displayName := splitDisplayName(content)
+	fileId, fragments, err := splitFragments(identifier)
+	if err != nil {
+		return "", errors.Wrap(err, "splitFragments failed")
+	}
+	path, err := t.FindPath(fileId)
+	if err != nil {
+		return "", errors.Wrap(err, "findPath failed")
+	}
+
+	linktext := buildLinkText(displayName, fileId, fragments)
+	var ref string
+	if fragments == nil {
+		ref = path
+	} else {
+		ref = path + "#" + fragments[len(fragments)-1]
+	}
+
+	return fmt.Sprintf("![%s](%s)", linktext, ref), nil
 }
 
 type ExternalLinkTransformer interface {
