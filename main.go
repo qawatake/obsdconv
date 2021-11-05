@@ -25,7 +25,7 @@ func main() {
 		log.Fatal(err)
 	}
 	processor := NewProcessorImpl(&flags)
-	if err := walk(&flags, processor); err != nil {
+	if err := walk(flags.src, flags.dst, processor); err != nil {
 		log.Fatal(err)
 	}
 }

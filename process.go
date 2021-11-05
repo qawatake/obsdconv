@@ -12,7 +12,7 @@ import (
 )
 
 type Processor interface {
-	Process(path, newpath string) (err error)
+	Process(orgpath, newpath string) (err error)
 }
 
 type ProcessorImpl struct {
@@ -30,10 +30,29 @@ func NewProcessorImpl(flags *flagBundle) *ProcessorImpl {
 	return p
 }
 
-func (p *ProcessorImpl) Process(path, newpath string) (err error) {
-	readFrom, err := os.Open(path)
+func (p *ProcessorImpl) Process(orgpath, newpath string) error {
+	err := p.generate(orgpath, newpath)
+	if err == nil {
+		return nil
+	}
+
+	// 予想済みのエラーの場合は処理を止めずに, エラー出力だけする
+	public, debug := handleErr(orgpath, err)
+	if public == nil && debug == nil {
+		return nil
+	}
+
+	if p.flags.debug {
+		return debug
+	} else {
+		return public
+	}
+}
+
+func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
+	readFrom, err := os.Open(orgpath)
 	if err != nil {
-		return errors.Errorf("failed to open %s", path)
+		return errors.Errorf("failed to open %s", orgpath)
 	}
 	content, err := io.ReadAll(readFrom)
 	if err != nil {
@@ -112,4 +131,31 @@ func splitMarkdown(content []rune) (yml []byte, body []rune) {
 		body = append(body, '\n')
 	}
 	return []byte(string(frontMatter)), body
+}
+
+func handleErr(path string, err error) (public error, debug error) {
+	orgErr := errors.Cause(err)
+	e, ok := orgErr.(convert.ErrConvert)
+	if !ok {
+		e := fmt.Errorf("[FATAL] path: %s | %v", path, err)
+		return e, e
+	}
+
+	line := e.Line()
+	ee, ok := errors.Cause(e.Source()).(convert.ErrTransform)
+	if !ok {
+		public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
+		debug = fmt.Errorf("[FATAL] path: %s, around line: %d | cause of source of ErrConvert does not implement ErrTransform: ErrConvert: %w", path, line, e)
+		return public, debug
+	}
+
+	if ee.Kind() >= convert.ERR_KIND_UNEXPECTED {
+		public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
+		debug = fmt.Errorf("[FATAL] path: %s, around line: %d | undefined kind of ErrTransform: ErrTransform: %w", path, line, ee)
+		return public, debug
+	}
+
+	// 想定済みのエラー
+	fmt.Fprintf(os.Stderr, "[ERROR] path: %s, around line: %d | %v\n", path, line, ee)
+	return nil, nil
 }
