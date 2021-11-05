@@ -4,21 +4,22 @@ import "testing"
 
 func TestConvertYAML(t *testing.T) {
 	cases := []struct {
-		name        string
-		raw         []byte
-		frontmatter frontMatter
-		flags       *flagBundle
-		want        string
+		name  string
+		raw   []byte
+		title string
+		alias string
+		tags  []string
+		flags     *flagBundle
+		converter *YamlConverterImpl
+		want      string
 	}{
 		{
 			name: "no overlap",
 			raw: []byte(`cssclass: index-page
 publish: true`),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{},
 			want: `aliases:
 - today
@@ -36,11 +37,9 @@ title: "211027"
 			raw: []byte(`cssclass: index-page
 publish: true
 title: 211026`),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{},
 			want: `aliases:
 - today
@@ -60,11 +59,9 @@ publish: true
 aliases:
 - today
 `),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "birthday",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "birthday",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{},
 			want: `aliases:
 - today
@@ -85,11 +82,9 @@ publish: true
 aliases:
 - today
 `),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{},
 			want: `aliases:
 - today
@@ -109,11 +104,9 @@ publish: true
 tags:
 - book
 `),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{},
 			want: `aliases:
 - today
@@ -135,11 +128,9 @@ tags:
 - book
 - math
 `),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{},
 			want: `aliases:
 - today
@@ -158,11 +149,9 @@ title: "211027"
 			raw: []byte(`cssclass: index-page
 publish: true
 `),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{publishable: true},
 			want: `aliases:
 - today
@@ -180,11 +169,9 @@ title: "211027"
 			name: "not publishable",
 			raw: []byte(`cssclass: index-page
 publish: false`),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{publishable: true},
 			want: `aliases:
 - today
@@ -202,11 +189,9 @@ title: "211027"
 			name: "no publish field",
 			raw: []byte(`cssclass: index-page
 `),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{publishable: true},
 			want: `aliases:
 - today
@@ -224,11 +209,9 @@ title: "211027"
 			raw: []byte(`cssclass: index-page
 publish: true
 draft: true`),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{publishable: true},
 			want: `aliases:
 - today
@@ -247,11 +230,9 @@ title: "211027"
 			raw: []byte(`cssclass: index-page
 publish: true
 `),
-			frontmatter: frontMatter{
-				title: "211027",
-				alias: "today",
-				tags:  []string{"todo", "math"},
-			},
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
 			flags: &flagBundle{},
 			want: `aliases:
 - today
@@ -266,7 +247,11 @@ title: "211027"
 	}
 
 	for _, tt := range cases {
-		got, err := convertYAML(tt.raw, tt.frontmatter, tt.flags)
+		yc := NewYamlConverterImpl(tt.flags)
+		yc.title = tt.title
+		yc.alias = tt.alias
+		yc.tags = tt.tags
+		got, err := yc.convertYAML(tt.raw)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 		}

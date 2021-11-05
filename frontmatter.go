@@ -6,27 +6,38 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type frontMatter struct {
+type YamlConverter interface {
+	ConvertYAML(raw []byte) (output []byte, err error)
+}
+
+type YamlConverterImpl struct {
 	title string
 	tags  []string
 	alias string
+	flags *flagBundle
 }
 
-func convertYAML(raw []byte, frontmatter frontMatter, flags *flagBundle) (output []byte, err error) {
-	if flags == nil {
+func NewYamlConverterImpl(flags *flagBundle) *YamlConverterImpl {
+	return &YamlConverterImpl{
+		flags: flags,
+	}
+}
+
+func (c *YamlConverterImpl) convertYAML(raw []byte) (output []byte, err error) {
+	if c.flags == nil {
 		return nil, fmt.Errorf("pointer to flagBundle is nil")
 	}
 	m := make(map[interface{}]interface{})
 	if err := yaml.Unmarshal(raw, m); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal front matter: %w", err)
 	}
-	if frontmatter.title != "" {
-		m["title"] = frontmatter.title
+	if c.title != "" {
+		m["title"] = c.title
 	}
 
 	if v, ok := m["aliases"]; !ok {
-		if frontmatter.alias != "" {
-			m["aliases"] = []string{frontmatter.alias}
+		if c.alias != "" {
+			m["aliases"] = []string{c.alias}
 		}
 	} else {
 		if vv, ok := v.([]interface{}); !ok {
@@ -38,21 +49,21 @@ func convertYAML(raw []byte, frontmatter frontMatter, flags *flagBundle) (output
 				if !ok {
 					return nil, fmt.Errorf("aliases field found but its field type is not string: %T", a)
 				}
-				if aa == frontmatter.alias {
+				if aa == c.alias {
 					exists = true
 				}
 			}
 			if !exists {
-				vv = append(vv, frontmatter.alias)
+				vv = append(vv, c.alias)
 			}
 			m["aliases"] = vv
 		}
 	}
 
 	if v, ok := m["tags"]; !ok {
-		if len(frontmatter.tags) > 0 {
-			tags := make([]string, len(frontmatter.tags))
-			copy(tags, frontmatter.tags)
+		if len(c.tags) > 0 {
+			tags := make([]string, len(c.tags))
+			copy(tags, c.tags)
 			m["tags"] = tags
 		}
 	} else {
@@ -67,7 +78,7 @@ func convertYAML(raw []byte, frontmatter frontMatter, flags *flagBundle) (output
 				}
 				existingTag[aa] = true
 			}
-			for _, t := range frontmatter.tags {
+			for _, t := range c.tags {
 				if !existingTag[t] {
 					vv = append(vv, t)
 				}
@@ -77,7 +88,7 @@ func convertYAML(raw []byte, frontmatter frontMatter, flags *flagBundle) (output
 	}
 
 	_, ok := m["draft"]
-	if !ok && flags.publishable {
+	if !ok && c.flags.publishable {
 		if p, ok := m["publish"]; !ok {
 			m["draft"] = true
 		} else {

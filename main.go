@@ -21,7 +21,8 @@ func main() {
 	if err := setFlags(flag.CommandLine, &flags); err != nil {
 		log.Fatal(err)
 	}
-	if err := cwalk(&flags); err != nil {
+	processor := NewProcessorImpl(&flags)
+	if err := walk(&flags, processor); err != nil {
 		log.Fatal(err)
 	}
 }
