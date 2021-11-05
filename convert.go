@@ -10,8 +10,8 @@ type BodyConverter interface {
 }
 
 type BodyConverterImpl struct {
-	flags         *flagBundle
-	linkconverter *convert.Converter
+	flags  *flagBundle
+	finder convert.PathFinder
 }
 
 type ConvertBodyOutput struct {
@@ -62,7 +62,7 @@ func (c *BodyConverterImpl) ConvertBody(raw []rune) (output *ConvertBodyOutput, 
 		}
 	}
 	if c.flags.link {
-		text, err = c.linkconverter.Convert(text)
+		text, err = convert.NewLinkConverter(c.finder).Convert(text)
 		if err != nil {
 			return nil, errors.Wrap(err, "LinkConverter failed")
 		}

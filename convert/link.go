@@ -18,7 +18,7 @@ type pathFinderImpl struct {
 	vaultdict map[string][]string
 }
 
-func NewPathFinderImpl(vault string) *pathFinderImpl {
+func NewPathFinder(vault string) PathFinder {
 	f := new(pathFinderImpl)
 	f.vault = vault
 	f.vaultdict = make(map[string][]string)
@@ -32,19 +32,6 @@ func NewPathFinderImpl(vault string) *pathFinderImpl {
 		return nil
 	})
 	return f
-}
-
-var defaultPathFinder *pathFinderImpl
-var setupcalled bool
-
-// グローバル変数の defaultPathFinder の初期化を行う
-// 1回だけしか有効に動作しないようにしている
-func Setup(vault string) {
-	if setupcalled {
-		return
-	}
-	defaultPathFinder = NewPathFinderImpl(vault)
-	setupcalled = true
 }
 
 func (f *pathFinderImpl) FindPath(fileId string) (path string, err error) {

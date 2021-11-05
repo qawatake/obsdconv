@@ -158,7 +158,7 @@ func NewTitleFinder(title *string) *Converter {
 	return c
 }
 
-func NewLinkConverter(it InternalLinkTransformer, emt EmbedsTransformer, ext ExternalLinkTransformer) *Converter {
+func newLinkConverter(internal, embeds, external TransformerFunc) *Converter {
 	c := new(Converter)
 
 	c.Set(MiddlewareAsIs(scan.ScanEscaped))
@@ -166,9 +166,9 @@ func NewLinkConverter(it InternalLinkTransformer, emt EmbedsTransformer, ext Ext
 	c.Set(MiddlewareAsIs(scan.ScanComment))
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
-	c.Set(TransformExternalLinkFunc(ext))
-	c.Set(TransformInternalLinkFunc(it))
-	c.Set(TransformEmnbedsFunc(emt))
+	c.Set(external)
+	c.Set(internal)
+	c.Set(embeds)
 	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
 	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
 	c.Set(TransformRepeatingTagsFunc())
@@ -180,14 +180,11 @@ func NewLinkConverter(it InternalLinkTransformer, emt EmbedsTransformer, ext Ext
 	return c
 }
 
-func NewDefaultLinkConverter() *Converter {
-	if defaultPathFinder == nil {
-		panic("no SetupPathFinder was not called before NewDefaultLinkConverter")
-	}
-	it := &InternalLinkTransformerImpl{PathFinder: defaultPathFinder}
-	emt := &EmbedsTransformerImpl{PathFinder: defaultPathFinder}
-	ext := &ExternalLinkTransformerImpl{PathFinder: defaultPathFinder}
-	return NewLinkConverter(it, emt, ext)
+func NewLinkConverter(finder PathFinder) *Converter {
+	internal := defaultTransformInternalLinkFunc(finder)
+	embeds := defaultTransformEmbedsFunc(finder)
+	external := defaultTransformExternalLinkFunc(finder)
+	return newLinkConverter(internal, embeds, external)
 }
 
 func NewCommentEraser() *Converter {

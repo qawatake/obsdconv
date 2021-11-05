@@ -41,6 +41,10 @@ func TransformInternalLinkFunc(t InternalLinkTransformer) TransformerFunc {
 	}
 }
 
+func defaultTransformInternalLinkFunc(finder PathFinder) TransformerFunc {
+	return TransformInternalLinkFunc(newInternalLinkTransformerImpl(finder))
+}
+
 func TransformEmnbedsFunc(t EmbedsTransformer) TransformerFunc {
 	return func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance, content := scan.ScanEmbeds(raw, ptr)
@@ -53,6 +57,10 @@ func TransformEmnbedsFunc(t EmbedsTransformer) TransformerFunc {
 		}
 		return advance, []rune(link), nil
 	}
+}
+
+func defaultTransformEmbedsFunc(finder PathFinder) TransformerFunc {
+	return TransformEmnbedsFunc(newEmbedsTransformerImpl(finder))
 }
 
 func TransformExternalLinkFunc(t ExternalLinkTransformer) TransformerFunc {
@@ -68,6 +76,10 @@ func TransformExternalLinkFunc(t ExternalLinkTransformer) TransformerFunc {
 		}
 		return advance, []rune(externalLink), nil
 	}
+}
+
+func defaultTransformExternalLinkFunc(finder PathFinder) TransformerFunc {
+	return TransformExternalLinkFunc(newExternalLinkTransformerImpl(finder))
 }
 
 func TransformInternalLinkToPlain(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
@@ -98,6 +110,12 @@ type InternalLinkTransformer interface {
 
 type InternalLinkTransformerImpl struct {
 	PathFinder
+}
+
+func newInternalLinkTransformerImpl(finder PathFinder) *InternalLinkTransformerImpl {
+	return &InternalLinkTransformerImpl{
+		PathFinder: finder,
+	}
 }
 
 func (t *InternalLinkTransformerImpl) TransformInternalLink(content string) (externalLink string, err error) {
@@ -134,6 +152,12 @@ type EmbedsTransformerImpl struct {
 	PathFinder
 }
 
+func newEmbedsTransformerImpl(finder PathFinder) *EmbedsTransformerImpl {
+	return &EmbedsTransformerImpl{
+		PathFinder: finder,
+	}
+}
+
 func (t *EmbedsTransformerImpl) TransformEmbeds(content string) (emnbeddedLink string, err error) {
 	if content == "" {
 		return "", nil // [[ ]] はスキップ
@@ -166,6 +190,12 @@ type ExternalLinkTransformer interface {
 
 type ExternalLinkTransformerImpl struct {
 	PathFinder
+}
+
+func newExternalLinkTransformerImpl(finder PathFinder) *ExternalLinkTransformerImpl {
+	return &ExternalLinkTransformerImpl{
+		PathFinder: finder,
+	}
 }
 
 func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref string) (externalLink string, err error) {
