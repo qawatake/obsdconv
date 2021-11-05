@@ -9,10 +9,6 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-type PathFinder interface {
-	FindPath(fileId string) (path string, err error)
-}
-
 type PathDB interface {
 	Get(fileId string) (path string, err error)
 }
@@ -31,7 +27,7 @@ func NewPathDB(vault string) PathDB {
 			return nil
 		}
 
-		base := filepath.Base(path)
+		base := norm.NFC.String(filepath.Base(path))
 		db.vaultdict[base] = append(db.vaultdict[base], path)
 		return nil
 	})
