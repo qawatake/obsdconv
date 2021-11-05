@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
+	"strings"
 )
 
 const (
@@ -108,6 +110,16 @@ func setFlags(flagset *flag.FlagSet, flags *flagBundle) error {
 	}
 	if _, ok := setflags[FLAG_PUBLISHABLE]; ok {
 		flags.publishable = orgFlag.publishable
+	}
+	return nil
+}
+
+func verifyFlags(flags *flagBundle) error {
+	if strings.HasPrefix(flags.src, "-") {
+		return errors.New(`src shouldn't begin with "-"`)
+	}
+	if strings.HasPrefix(flags.dst, "-") {
+		return errors.New(`dst shouldn't begin with "-"`)
 	}
 	return nil
 }
