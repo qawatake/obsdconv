@@ -96,7 +96,7 @@ func TestTitleFinder(t *testing.T) {
 }
 
 func TestLinkConverter(t *testing.T) {
-	testLinkConverterVaultDir := filepath.Join("..", "testdata", "linkconverter")
+	testLinkConverterVaultDir := filepath.Join("testdata", "linkconverter")
 	cases := []struct {
 		name  string
 		vault string

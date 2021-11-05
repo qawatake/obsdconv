@@ -100,7 +100,7 @@ func TestPathMatchScore(t *testing.T) {
 }
 
 func TestPathDBGet(t *testing.T) {
-	testFindPathRootDir := filepath.Join("..", "testdata", "findpath")
+	testFindPathRootDir := filepath.Join("testdata", "pathdbget")
 	cases := []struct {
 		name   string
 		root   string // テストで設定する vault のプロジェクトディレクトリ

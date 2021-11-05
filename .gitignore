@@ -23,17 +23,6 @@
 !process_test.go
 
 !testdata
-!testdata/findpath
-!testdata/findpath/**
-!testdata/transformexternallink
-!testdata/transformexternallink/**
-!testdata/linkconverter
-!testdata/linkconverter/external
-!testdata/linkconverter/external/**
-!testdata/linkconverter/internal
-!testdata/linkconverter/internal/**
-!testdata/linkconverter/embeds
-!testdata/linkconverter/embeds/**
 !testdata/convertbody
 !testdata/convertbody/**
 
@@ -49,3 +38,10 @@
 !convert/convert_test.go
 !convert/transform_test.go
 !convert/link_test.go
+!convert/testdata
+!convert/testdata/linkconverter
+!convert/testdata/linkconverter/**
+!convert/testdata/pathdbget
+!convert/testdata/pathdbget/**
+!convert/testdata/transformexternallink
+!convert/testdata/transformexternallink/**

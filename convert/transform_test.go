@@ -6,7 +6,7 @@ import (
 )
 
 func TestTransformExternalLink(t *testing.T) {
-	testTransformExternalLinkRootDir := filepath.Join("..", "testdata", "transformexternallink")
+	testTransformExternalLinkRootDir := filepath.Join("testdata", "transformexternallink")
 	cases := []struct {
 		name             string
 		root             string
