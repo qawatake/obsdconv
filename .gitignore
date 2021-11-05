@@ -19,9 +19,8 @@
 !process.go
 !convertbody.go
 !convertyaml.go
-!concurrent.go
-!main_test.go
 !flag_test.go
+!process_test.go
 
 !testdata
 !testdata/findpath

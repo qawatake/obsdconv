@@ -21,7 +21,7 @@ type ProcessorImpl struct {
 	YamlConverter
 }
 
-func NewProcessorImpl(flags *flagBundle) *ProcessorImpl {
+func NewProcessor(flags *flagBundle) Processor {
 	p := new(ProcessorImpl)
 	p.debug = flags.debug
 	db := convert.NewPathDB(flags.src)

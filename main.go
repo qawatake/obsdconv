@@ -24,7 +24,7 @@ func main() {
 	if err := verifyFlags(&flags); err != nil {
 		log.Fatal(err)
 	}
-	processor := NewProcessorImpl(&flags)
+	processor := NewProcessor(&flags)
 	if err := walk(flags.src, flags.dst, processor); err != nil {
 		log.Fatal(err)
 	}
