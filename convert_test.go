@@ -119,7 +119,7 @@ func TestConvertBody(t *testing.T) {
 	for _, tt := range cases {
 		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
 		c := new(BodyConverterImpl)
-		c.finder = convert.NewPathFinder(vault)
+		c.db = convert.NewPathDB(vault)
 		c.flags = &tt.flags
 
 		srcFileName := filepath.Join(vault, tt.rawFileName)

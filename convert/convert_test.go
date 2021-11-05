@@ -220,8 +220,8 @@ func TestLinkConverter(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		finder := NewPathFinder(filepath.Join(testLinkConverterVaultDir, tt.vault))
-		c := NewLinkConverter(finder)
+		db := NewPathDB(filepath.Join(testLinkConverterVaultDir, tt.vault))
+		c := NewLinkConverter(db)
 		c.Convert(tt.raw)
 		got, err := c.Convert(tt.raw)
 		if err != nil {

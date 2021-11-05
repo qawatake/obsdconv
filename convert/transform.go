@@ -41,8 +41,8 @@ func TransformInternalLinkFunc(t InternalLinkTransformer) TransformerFunc {
 	}
 }
 
-func defaultTransformInternalLinkFunc(finder PathFinder) TransformerFunc {
-	return TransformInternalLinkFunc(newInternalLinkTransformerImpl(finder))
+func defaultTransformInternalLinkFunc(db PathDB) TransformerFunc {
+	return TransformInternalLinkFunc(newInternalLinkTransformerImpl(db))
 }
 
 func TransformEmnbedsFunc(t EmbedsTransformer) TransformerFunc {
@@ -59,8 +59,8 @@ func TransformEmnbedsFunc(t EmbedsTransformer) TransformerFunc {
 	}
 }
 
-func defaultTransformEmbedsFunc(finder PathFinder) TransformerFunc {
-	return TransformEmnbedsFunc(newEmbedsTransformerImpl(finder))
+func defaultTransformEmbedsFunc(db PathDB) TransformerFunc {
+	return TransformEmnbedsFunc(newEmbedsTransformerImpl(db))
 }
 
 func TransformExternalLinkFunc(t ExternalLinkTransformer) TransformerFunc {
@@ -78,8 +78,8 @@ func TransformExternalLinkFunc(t ExternalLinkTransformer) TransformerFunc {
 	}
 }
 
-func defaultTransformExternalLinkFunc(finder PathFinder) TransformerFunc {
-	return TransformExternalLinkFunc(newExternalLinkTransformerImpl(finder))
+func defaultTransformExternalLinkFunc(db PathDB) TransformerFunc {
+	return TransformExternalLinkFunc(newExternalLinkTransformerImpl(db))
 }
 
 func TransformInternalLinkToPlain(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
@@ -109,12 +109,12 @@ type InternalLinkTransformer interface {
 }
 
 type InternalLinkTransformerImpl struct {
-	PathFinder
+	PathDB
 }
 
-func newInternalLinkTransformerImpl(finder PathFinder) *InternalLinkTransformerImpl {
+func newInternalLinkTransformerImpl(db PathDB) *InternalLinkTransformerImpl {
 	return &InternalLinkTransformerImpl{
-		PathFinder: finder,
+		PathDB: db,
 	}
 }
 
@@ -128,9 +128,9 @@ func (t *InternalLinkTransformerImpl) TransformInternalLink(content string) (ext
 	if err != nil {
 		return "", errors.Wrap(err, "splitFragments failed")
 	}
-	path, err := t.FindPath(fileId)
+	path, err := t.Get(fileId)
 	if err != nil {
-		return "", errors.Wrap(err, "findPath failed")
+		return "", errors.Wrap(err, "PathDB.Get failed")
 	}
 
 	linktext := buildLinkText(displayName, fileId, fragments)
@@ -149,12 +149,12 @@ type EmbedsTransformer interface {
 }
 
 type EmbedsTransformerImpl struct {
-	PathFinder
+	PathDB
 }
 
-func newEmbedsTransformerImpl(finder PathFinder) *EmbedsTransformerImpl {
+func newEmbedsTransformerImpl(db PathDB) *EmbedsTransformerImpl {
 	return &EmbedsTransformerImpl{
-		PathFinder: finder,
+		PathDB: db,
 	}
 }
 
@@ -168,9 +168,9 @@ func (t *EmbedsTransformerImpl) TransformEmbeds(content string) (emnbeddedLink s
 	if err != nil {
 		return "", errors.Wrap(err, "splitFragments failed")
 	}
-	path, err := t.FindPath(fileId)
+	path, err := t.Get(fileId)
 	if err != nil {
-		return "", errors.Wrap(err, "findPath failed")
+		return "", errors.Wrap(err, "PathDB.Get failed")
 	}
 
 	linktext := buildLinkText(displayName, fileId, fragments)
@@ -189,12 +189,12 @@ type ExternalLinkTransformer interface {
 }
 
 type ExternalLinkTransformerImpl struct {
-	PathFinder
+	PathDB
 }
 
-func newExternalLinkTransformerImpl(finder PathFinder) *ExternalLinkTransformerImpl {
+func newExternalLinkTransformerImpl(db PathDB) *ExternalLinkTransformerImpl {
 	return &ExternalLinkTransformerImpl{
-		PathFinder: finder,
+		PathDB: db,
 	}
 }
 
@@ -216,9 +216,9 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 		if fileId == "" {
 			return "", newErrTransform(ERR_KIND_NO_REF_SPECIFIED_IN_OBSIDIAN_URL, fmt.Sprintf("no ref file specified in obsidian url: %s", ref))
 		}
-		path, err := t.FindPath(fileId)
+		path, err := t.Get(fileId)
 		if err != nil {
-			return "", errors.Wrap(err, "FindPath failed")
+			return "", errors.Wrap(err, "PathDB.Get failed")
 		}
 		return fmt.Sprintf("[%s](%s)", displayName, path), nil
 	}
@@ -229,9 +229,9 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 		if err != nil {
 			return "", errors.Wrap(err, "splitFragments failed")
 		}
-		path, err := t.FindPath(fileId)
+		path, err := t.Get(fileId)
 		if err != nil {
-			return "", errors.Wrap(err, "findPath failed")
+			return "", errors.Wrap(err, "PathDB.Get failed")
 		}
 		var newref string
 		if fragments == nil {

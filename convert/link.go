@@ -13,28 +13,32 @@ type PathFinder interface {
 	FindPath(fileId string) (path string, err error)
 }
 
-type pathFinderImpl struct {
+type PathDB interface {
+	Get(fileId string) (path string, err error)
+}
+
+type pathDbImpl struct {
 	vault     string
 	vaultdict map[string][]string
 }
 
-func NewPathFinder(vault string) PathFinder {
-	f := new(pathFinderImpl)
-	f.vault = vault
-	f.vaultdict = make(map[string][]string)
+func NewPathDB(vault string) PathDB {
+	db := new(pathDbImpl)
+	db.vault = vault
+	db.vaultdict = make(map[string][]string)
 	filepath.Walk(vault, func(path string, info fs.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
 
 		base := filepath.Base(path)
-		f.vaultdict[base] = append(f.vaultdict[base], path)
+		db.vaultdict[base] = append(db.vaultdict[base], path)
 		return nil
 	})
-	return f
+	return db
 }
 
-func (f *pathFinderImpl) FindPath(fileId string) (path string, err error) {
+func (f *pathDbImpl) Get(fileId string) (path string, err error) {
 	var filename string
 	if filepath.Ext(fileId) == "" {
 		filename = fileId + ".md"

@@ -180,10 +180,10 @@ func newLinkConverter(internal, embeds, external TransformerFunc) *Converter {
 	return c
 }
 
-func NewLinkConverter(finder PathFinder) *Converter {
-	internal := defaultTransformInternalLinkFunc(finder)
-	embeds := defaultTransformEmbedsFunc(finder)
-	external := defaultTransformExternalLinkFunc(finder)
+func NewLinkConverter(db PathDB) *Converter {
+	internal := defaultTransformInternalLinkFunc(db)
+	embeds := defaultTransformEmbedsFunc(db)
+	external := defaultTransformExternalLinkFunc(db)
 	return newLinkConverter(internal, embeds, external)
 }
 

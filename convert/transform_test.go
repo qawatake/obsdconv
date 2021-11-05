@@ -23,8 +23,8 @@ func TestTransformExternalLink(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		finder := NewPathFinder(filepath.Join(testTransformExternalLinkRootDir, tt.root))
-		transformer := &ExternalLinkTransformerImpl{PathFinder: finder}
+		db := NewPathDB(filepath.Join(testTransformExternalLinkRootDir, tt.root))
+		transformer := &ExternalLinkTransformerImpl{PathDB: db}
 		got, err := transformer.TransformExternalLink(tt.displayName, tt.ref)
 		if err != nil {
 			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)

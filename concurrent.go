@@ -16,7 +16,7 @@ const (
 
 func cwalk(flags *flagBundle) error {
 	bc := new(BodyConverterImpl)
-	bc.finder = convert.NewPathFinder(flags.src)
+	bc.db = convert.NewPathDB(flags.src)
 	bc.flags = flags
 	p := new(ProcessorImpl)
 	p.flags = flags
