@@ -119,10 +119,11 @@ func TestConvertBody(t *testing.T) {
 	for _, tt := range cases {
 		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
 		finder := convert.NewPathFinderImpl(vault)
-		c := &BodyConverterImpl{}
-		c.InternalLinkTransformer = &convert.InternalLinkTransformerImpl{PathFinder: finder}
-		c.EmbedsTransformer = &convert.EmbedsTransformerImpl{PathFinder: finder}
-		c.ExternalLinkTransformer = &convert.ExternalLinkTransformerImpl{PathFinder: finder}
+		c := new(BodyConverterImpl)
+		it := &convert.InternalLinkTransformerImpl{PathFinder: finder}
+		emt := &convert.EmbedsTransformerImpl{PathFinder: finder}
+		ext := &convert.ExternalLinkTransformerImpl{PathFinder: finder}
+		c.linkconverter = convert.NewLinkConverter(it, emt, ext)
 		c.flags = &tt.flags
 
 		srcFileName := filepath.Join(vault, tt.rawFileName)

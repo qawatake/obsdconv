@@ -13,13 +13,13 @@ type PathFinder interface {
 	FindPath(fileId string) (path string, err error)
 }
 
-type PathFinderImpl struct {
+type pathFinderImpl struct {
 	vault     string
 	vaultdict map[string][]string
 }
 
-func NewPathFinderImpl(vault string) *PathFinderImpl {
-	f := new(PathFinderImpl)
+func NewPathFinderImpl(vault string) *pathFinderImpl {
+	f := new(pathFinderImpl)
 	f.vault = vault
 	f.vaultdict = make(map[string][]string)
 	filepath.Walk(vault, func(path string, info fs.FileInfo, err error) error {
@@ -34,7 +34,20 @@ func NewPathFinderImpl(vault string) *PathFinderImpl {
 	return f
 }
 
-func (f *PathFinderImpl) FindPath(fileId string) (path string, err error) {
+var defaultPathFinder *pathFinderImpl
+var setupcalled bool
+
+// グローバル変数の defaultPathFinder の初期化を行う
+// 1回だけしか有効に動作しないようにしている
+func Setup(vault string) {
+	if setupcalled {
+		return
+	}
+	defaultPathFinder = NewPathFinderImpl(vault)
+	setupcalled = true
+}
+
+func (f *pathFinderImpl) FindPath(fileId string) (path string, err error) {
 	var filename string
 	if filepath.Ext(fileId) == "" {
 		filename = fileId + ".md"

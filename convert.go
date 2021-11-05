@@ -10,10 +10,8 @@ type BodyConverter interface {
 }
 
 type BodyConverterImpl struct {
-	flags *flagBundle
-	convert.InternalLinkTransformer
-	convert.EmbedsTransformer
-	convert.ExternalLinkTransformer
+	flags         *flagBundle
+	linkconverter *convert.Converter
 }
 
 type ConvertBodyOutput struct {
@@ -64,7 +62,7 @@ func (c *BodyConverterImpl) ConvertBody(raw []rune) (output *ConvertBodyOutput, 
 		}
 	}
 	if c.flags.link {
-		text, err = convert.NewLinkConverter(c.InternalLinkTransformer, c.EmbedsTransformer, c.ExternalLinkTransformer).Convert(text)
+		text, err = c.linkconverter.Convert(text)
 		if err != nil {
 			return nil, errors.Wrap(err, "LinkConverter failed")
 		}

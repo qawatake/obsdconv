@@ -180,6 +180,16 @@ func NewLinkConverter(it InternalLinkTransformer, emt EmbedsTransformer, ext Ext
 	return c
 }
 
+func NewDefaultLinkConverter() *Converter {
+	if defaultPathFinder == nil {
+		panic("no SetupPathFinder was not called before NewDefaultLinkConverter")
+	}
+	it := &InternalLinkTransformerImpl{PathFinder: defaultPathFinder}
+	emt := &EmbedsTransformerImpl{PathFinder: defaultPathFinder}
+	ext := &ExternalLinkTransformerImpl{PathFinder: defaultPathFinder}
+	return NewLinkConverter(it, emt, ext)
+}
+
 func NewCommentEraser() *Converter {
 	c := new(Converter)
 
