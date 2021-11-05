@@ -16,15 +16,17 @@ type Processor interface {
 }
 
 type ProcessorImpl struct {
-	flags *flagBundle
+	debug bool
 	BodyConverter
+	YamlConverter
 }
 
 func NewProcessorImpl(flags *flagBundle) *ProcessorImpl {
 	p := new(ProcessorImpl)
+	p.debug = flags.debug
 	db := convert.NewPathDB(flags.src)
 	p.BodyConverter = NewBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link)
-	p.flags = flags
+	p.YamlConverter = NewYamlConverterImpl(flags.publishable)
 	return p
 }
 
@@ -40,7 +42,7 @@ func (p *ProcessorImpl) Process(orgpath, newpath string) error {
 		return nil
 	}
 
-	if p.flags.debug {
+	if p.debug {
 		return debug
 	} else {
 		return public
@@ -65,13 +67,12 @@ func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
 		return errors.Wrap(err, "failed to convert")
 	}
 
-	yc := NewYamlConverterImpl(p.flags.publishable)
 	newtags := make([]string, 0, len(tags))
 	for tg := range tags {
 		newtags = append(newtags, tg)
 	}
 
-	yml, err = yc.convertYAML(yml, title, title, newtags)
+	yml, err = p.ConvertYAML(yml, title, title, newtags)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert yaml")
 	}

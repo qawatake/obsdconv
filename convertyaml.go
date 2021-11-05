@@ -20,7 +20,7 @@ func NewYamlConverterImpl(publishable bool) *YamlConverterImpl {
 	}
 }
 
-func (c *YamlConverterImpl) convertYAML(raw []byte, title string, alias string, newtags []string) (output []byte, err error) {
+func (c *YamlConverterImpl) ConvertYAML(raw []byte, title string, alias string, newtags []string) (output []byte, err error) {
 
 	m := make(map[interface{}]interface{})
 	if err := yaml.Unmarshal(raw, m); err != nil {

@@ -466,7 +466,7 @@ title: "211027"
 
 	for _, tt := range cases {
 		yc := NewYamlConverterImpl(tt.publishable)
-		got, err := yc.convertYAML(tt.raw, tt.title, tt.alias, tt.tags)
+		got, err := yc.ConvertYAML(tt.raw, tt.title, tt.alias, tt.tags)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 		}
