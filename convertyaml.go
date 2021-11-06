@@ -1,26 +1,54 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"gopkg.in/yaml.v2"
 )
 
-type YamlConverter interface {
-	ConvertYAML(raw []byte, title string, alias string, newtags []string) (output []byte, err error)
+type YamlConvAuxIn interface{}
+
+type yamlConvAuxInImpl struct {
+	title   string
+	alias   string
+	newtags []string
 }
 
-type YamlConverterImpl struct {
+func newYamlConvAuxInImpl(title string, alias string, newtags []string) *yamlConvAuxInImpl {
+	return &yamlConvAuxInImpl{
+		title:   title,
+		alias:   alias,
+		newtags: newtags,
+	}
+}
+
+type YamlConverter interface {
+	ConvertYAML(raw []byte, aux YamlConvAuxIn) (output []byte, err error)
+}
+
+type yamlConverterImpl struct {
 	publishable bool
 }
 
-func NewYamlConverterImpl(publishable bool) *YamlConverterImpl {
-	return &YamlConverterImpl{
+func newYamlConverterImpl(publishable bool) *yamlConverterImpl {
+	return &yamlConverterImpl{
 		publishable: publishable,
 	}
 }
 
-func (c *YamlConverterImpl) ConvertYAML(raw []byte, title string, alias string, newtags []string) (output []byte, err error) {
+func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux YamlConvAuxIn) (output []byte, err error) {
+	title := ""
+	alias := ""
+	var newtags []string
+
+	if v, ok := aux.(*yamlConvAuxInImpl); !ok {
+		return nil, errors.New("input (YamlConverterInput) cannot be converted to yamlConverterInputImpl")
+	} else {
+		title = v.title
+		alias = v.alias
+		newtags = v.newtags
+	}
 
 	m := make(map[interface{}]interface{})
 	if err := yaml.Unmarshal(raw, m); err != nil {

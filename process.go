@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -19,19 +20,24 @@ type ProcessorImpl struct {
 	debug bool
 	BodyConverter
 	YamlConverter
+	ArgPasser
 }
 
-func NewProcessor(flags *flagBundle) Processor {
-	p := new(ProcessorImpl)
-	p.debug = flags.debug
-	db := convert.NewPathDB(flags.src)
-	p.BodyConverter = NewBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link)
-	p.YamlConverter = NewYamlConverterImpl(flags.publishable)
-	return p
+type processorImplWithErrHandling struct {
+	debug bool
+	sub   Processor
 }
 
-func (p *ProcessorImpl) Process(orgpath, newpath string) error {
-	err := p.generate(orgpath, newpath)
+func newProcessorImplWithErrHandling(debug bool, subprocessor Processor) *processorImplWithErrHandling {
+	return &processorImplWithErrHandling{
+		debug: debug,
+		sub:   subprocessor,
+	}
+}
+
+func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
+	err := p.sub.Process(orgpath, newpath)
+
 	if err == nil {
 		return nil
 	}
@@ -49,6 +55,68 @@ func (p *ProcessorImpl) Process(orgpath, newpath string) error {
 	}
 }
 
+func NewProcessor(bc BodyConverter, yc YamlConverter, passer ArgPasser) Processor {
+	return &ProcessorImpl{
+		BodyConverter: bc,
+		YamlConverter: yc,
+		ArgPasser:     passer,
+	}
+}
+
+func newDefaultProcessor(flags *flagBundle) Processor {
+	db := convert.NewPathDB(flags.src)
+	bc := newBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link)
+	yc := newYamlConverterImpl(flags.publishable)
+	passer := argPasserFunc(passArg)
+	return newProcessorImplWithErrHandling(flags.debug, NewProcessor(bc, yc, passer))
+}
+
+// func newDefaultProcessorImpl(flags *flagBundle) *ProcessorImpl {
+// 	p := new(ProcessorImpl)
+// 	p.debug = flags.debug
+// 	db := convert.NewPathDB(flags.src)
+// 	p.BodyConverter = newBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link)
+// 	p.YamlConverter = newYamlConverterImpl(flags.publishable)
+// 	p.ArgPasser = argPasserFunc(passArg)
+// 	return p
+// }
+
+func (p *ProcessorImpl) Process(orgpath, newpath string) error {
+
+	if filepath.Ext(orgpath) != ".md" {
+		file, err := os.Open(orgpath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		newfile, err := os.Create(newpath)
+		if err != nil {
+			return err
+		}
+		defer newfile.Close()
+		io.Copy(newfile, file)
+		return nil
+	}
+
+	return p.generate(orgpath, newpath)
+	// err := p.generate(orgpath, newpath)
+	// if err == nil {
+	// 	return nil
+	// }
+
+	// // 予想済みのエラーの場合は処理を止めずに, エラー出力だけする
+	// public, debug := handleErr(orgpath, err)
+	// if public == nil && debug == nil {
+	// 	return nil
+	// }
+
+	// if p.debug {
+	// 	return debug
+	// } else {
+	// 	return public
+	// }
+}
+
 func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
 	readFrom, err := os.Open(orgpath)
 	if err != nil {
@@ -62,17 +130,22 @@ func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
 
 	yml, body := splitMarkdown([]rune(string(content)))
 
-	output, title, tags, err := p.ConvertBody(body)
+	output, frombody, err := p.ConvertBody(body)
+	// output, title, tags, err := p.ConvertBody(body)
 	if err != nil {
-		return errors.Wrap(err, "failed to convert")
+		return errors.Wrap(err, "failed to convert body")
 	}
 
-	newtags := make([]string, 0, len(tags))
-	for tg := range tags {
-		newtags = append(newtags, tg)
+	// newtags := make([]string, 0, len(tags))
+	// for tg := range tags {
+	// 	newtags = append(newtags, tg)
+	// }
+	toyaml, err := p.PassArg(frombody)
+	if err != nil {
+		return errors.Wrap(err, "failed to pass args from body converter to yaml converter")
 	}
 
-	yml, err = p.ConvertYAML(yml, title, title, newtags)
+	yml, err = p.ConvertYAML(yml, toyaml)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert yaml")
 	}
