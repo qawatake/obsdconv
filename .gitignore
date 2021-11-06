@@ -18,6 +18,7 @@
 !process.go
 !convertbody.go
 !convertyaml.go
+!passarg.go
 !flag_test.go
 !main_test.go
 
@@ -29,6 +30,7 @@
 !process/walk.go
 !process/process.go
 !process/component.go
+!process/process_test.go
 
 !scan
 !scan/scan.go
