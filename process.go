@@ -17,7 +17,6 @@ type Processor interface {
 }
 
 type ProcessorImpl struct {
-	debug bool
 	BodyConverter
 	YamlConverter
 	ArgPasser
@@ -71,16 +70,6 @@ func newDefaultProcessor(flags *flagBundle) Processor {
 	return newProcessorImplWithErrHandling(flags.debug, NewProcessor(bc, yc, passer))
 }
 
-// func newDefaultProcessorImpl(flags *flagBundle) *ProcessorImpl {
-// 	p := new(ProcessorImpl)
-// 	p.debug = flags.debug
-// 	db := convert.NewPathDB(flags.src)
-// 	p.BodyConverter = newBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link)
-// 	p.YamlConverter = newYamlConverterImpl(flags.publishable)
-// 	p.ArgPasser = argPasserFunc(passArg)
-// 	return p
-// }
-
 func (p *ProcessorImpl) Process(orgpath, newpath string) error {
 
 	if filepath.Ext(orgpath) != ".md" {
@@ -99,22 +88,6 @@ func (p *ProcessorImpl) Process(orgpath, newpath string) error {
 	}
 
 	return p.generate(orgpath, newpath)
-	// err := p.generate(orgpath, newpath)
-	// if err == nil {
-	// 	return nil
-	// }
-
-	// // 予想済みのエラーの場合は処理を止めずに, エラー出力だけする
-	// public, debug := handleErr(orgpath, err)
-	// if public == nil && debug == nil {
-	// 	return nil
-	// }
-
-	// if p.debug {
-	// 	return debug
-	// } else {
-	// 	return public
-	// }
 }
 
 func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
@@ -131,15 +104,10 @@ func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
 	yml, body := splitMarkdown([]rune(string(content)))
 
 	output, frombody, err := p.ConvertBody(body)
-	// output, title, tags, err := p.ConvertBody(body)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert body")
 	}
 
-	// newtags := make([]string, 0, len(tags))
-	// for tg := range tags {
-	// 	newtags = append(newtags, tg)
-	// }
 	toyaml, err := p.PassArg(frombody)
 	if err != nil {
 		return errors.Wrap(err, "failed to pass args from body converter to yaml converter")
