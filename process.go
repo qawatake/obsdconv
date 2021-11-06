@@ -1,37 +1,29 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"os"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/qawatake/obsdconv/convert"
+	"github.com/qawatake/obsdconv/process"
 )
 
-type Processor interface {
-	Process(orgpath, newpath string) (err error)
-}
-
-type ProcessorImpl struct {
+type processorImplWithErrHandling struct {
 	debug bool
-	BodyConverter
-	YamlConverter
+	sub   process.Processor
 }
 
-func NewProcessor(flags *flagBundle) Processor {
-	p := new(ProcessorImpl)
-	p.debug = flags.debug
-	db := convert.NewPathDB(flags.src)
-	p.BodyConverter = NewBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link)
-	p.YamlConverter = NewYamlConverterImpl(flags.publishable)
-	return p
+func newProcessorImplWithErrHandling(debug bool, subprocessor process.Processor) *processorImplWithErrHandling {
+	return &processorImplWithErrHandling{
+		debug: debug,
+		sub:   subprocessor,
+	}
 }
 
-func (p *ProcessorImpl) Process(orgpath, newpath string) error {
-	err := p.generate(orgpath, newpath)
+func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
+	err := p.sub.Process(orgpath, newpath)
+
 	if err == nil {
 		return nil
 	}
@@ -49,81 +41,12 @@ func (p *ProcessorImpl) Process(orgpath, newpath string) error {
 	}
 }
 
-func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
-	readFrom, err := os.Open(orgpath)
-	if err != nil {
-		return errors.Errorf("failed to open %s", orgpath)
-	}
-	content, err := io.ReadAll(readFrom)
-	if err != nil {
-		return errors.New("failed to read file")
-	}
-	readFrom.Close()
-
-	yml, body := splitMarkdown([]rune(string(content)))
-
-	output, title, tags, err := p.ConvertBody(body)
-	if err != nil {
-		return errors.Wrap(err, "failed to convert")
-	}
-
-	newtags := make([]string, 0, len(tags))
-	for tg := range tags {
-		newtags = append(newtags, tg)
-	}
-
-	yml, err = p.ConvertYAML(yml, title, title, newtags)
-	if err != nil {
-		return errors.Wrap(err, "failed to convert yaml")
-	}
-
-	// os.Create によってファイルの内容は削除されるので,
-	// 変換がすべて正常に行われた後で, 書き込み先のファイルを開く
-	writeTo, err := os.Create(newpath)
-	if err != nil {
-		return errors.Wrapf(err, "failed to create %s", newpath)
-	}
-	defer writeTo.Close()
-
-	fmt.Fprintf(writeTo, "---\n%s---\n%s", string(yml), string(output))
-	return nil
-}
-
-// yaml front matter と本文を切り離す
-func splitMarkdown(content []rune) (yml []byte, body []rune) {
-	scanner := bufio.NewScanner(strings.NewReader(string(content)))
-
-	if !scanner.Scan() {
-		return nil, nil
-	}
-
-	// --- が見つからなかったら front matter なし
-	if scanner.Text() != "---" {
-		return nil, content
-	}
-
-	// --- が見つかるまで front matter に追加していく
-	frontMatter := make([]rune, 0)
-	endFound := false
-	for scanner.Scan() {
-		if scanner.Text() == "---" {
-			endFound = true
-			break
-		} else {
-			frontMatter = append(frontMatter, []rune(scanner.Text())...)
-			frontMatter = append(frontMatter, '\n')
-		}
-	}
-
-	if !endFound {
-		return nil, content
-	}
-
-	for scanner.Scan() {
-		body = append(body, []rune(scanner.Text())...)
-		body = append(body, '\n')
-	}
-	return []byte(string(frontMatter)), body
+func newDefaultProcessor(flags *flagBundle) process.Processor {
+	db := convert.NewPathDB(flags.src)
+	bc := newBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link)
+	yc := newYamlConverterImpl(flags.publishable)
+	passer := argPasserFunc(passArg)
+	return newProcessorImplWithErrHandling(flags.debug, process.NewProcessor(bc, yc, passer))
 }
 
 func handleErr(path string, err error) (public error, debug error) {

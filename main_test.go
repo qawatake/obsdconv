@@ -11,44 +11,44 @@ import (
 	"github.com/qawatake/obsdconv/convert"
 )
 
-func TestSplitMarkdown(t *testing.T) {
-	cases := []struct {
-		input           string
-		wantFrontMatter string
-		wantBody        string
-	}{
-		{
-			input:           "---\ntitle: \"This is a test\"\n---\n# This is a test\n",
-			wantFrontMatter: "title: \"This is a test\"\n",
-			wantBody:        "# This is a test\n",
-		},
-		{
-			input:           "---\ntitle: \"This is a test\"\n # This is a test.\n",
-			wantFrontMatter: "",
-			wantBody:        "---\ntitle: \"This is a test\"\n # This is a test.\n",
-		},
-		{
-			input:           "---\ntitle: \"This is a test ---\"\n---\n# This is a test.\n",
-			wantFrontMatter: "title: \"This is a test ---\"\n",
-			wantBody:        "# This is a test.\n",
-		},
-		{
-			input:           "---\n---\n# This is a test\n",
-			wantFrontMatter: "",
-			wantBody:        "# This is a test\n",
-		},
-	}
+// func TestSplitMarkdown(t *testing.T) {
+// 	cases := []struct {
+// 		input           string
+// 		wantFrontMatter string
+// 		wantBody        string
+// 	}{
+// 		{
+// 			input:           "---\ntitle: \"This is a test\"\n---\n# This is a test\n",
+// 			wantFrontMatter: "title: \"This is a test\"\n",
+// 			wantBody:        "# This is a test\n",
+// 		},
+// 		{
+// 			input:           "---\ntitle: \"This is a test\"\n # This is a test.\n",
+// 			wantFrontMatter: "",
+// 			wantBody:        "---\ntitle: \"This is a test\"\n # This is a test.\n",
+// 		},
+// 		{
+// 			input:           "---\ntitle: \"This is a test ---\"\n---\n# This is a test.\n",
+// 			wantFrontMatter: "title: \"This is a test ---\"\n",
+// 			wantBody:        "# This is a test.\n",
+// 		},
+// 		{
+// 			input:           "---\n---\n# This is a test\n",
+// 			wantFrontMatter: "",
+// 			wantBody:        "# This is a test\n",
+// 		},
+// 	}
 
-	for _, tt := range cases {
-		gotFrontMatter, gotBody := splitMarkdown([]rune(tt.input))
-		if string(gotFrontMatter) != tt.wantFrontMatter {
-			t.Errorf("[ERROR] got %q, want: %q", string(gotFrontMatter), tt.wantFrontMatter)
-		}
-		if string(gotBody) != tt.wantBody {
-			t.Errorf("[ERROR] got: %q, want: %q", string(gotBody), tt.wantBody)
-		}
-	}
-}
+// 	for _, tt := range cases {
+// 		gotFrontMatter, gotBody := splitMarkdown([]rune(tt.input))
+// 		if string(gotFrontMatter) != tt.wantFrontMatter {
+// 			t.Errorf("[ERROR] got %q, want: %q", string(gotFrontMatter), tt.wantFrontMatter)
+// 		}
+// 		if string(gotBody) != tt.wantBody {
+// 			t.Errorf("[ERROR] got: %q, want: %q", string(gotBody), tt.wantBody)
+// 		}
+// 	}
+// }
 
 func TestConvertBody(t *testing.T) {
 	const (
@@ -154,7 +154,7 @@ func TestConvertBody(t *testing.T) {
 	for _, tt := range cases {
 		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
 		db := convert.NewPathDB(vault)
-		c := NewBodyConverterImpl(db, tt.cptag, tt.rmtag, tt.cmmt, tt.title, tt.link)
+		c := newBodyConverterImpl(db, tt.cptag, tt.rmtag, tt.cmmt, tt.title, tt.link)
 
 		srcFileName := filepath.Join(vault, tt.rawFileName)
 		srcFile, err := os.Open(srcFileName)
@@ -167,9 +167,19 @@ func TestConvertBody(t *testing.T) {
 		}
 		srcFile.Close()
 
-		output, gotTitle, gotTags, err := c.ConvertBody([]rune(string(raw)))
+		// output, gotTitle, gotTags, err := c.ConvertBody([]rune(string(raw)))
+		output, aux, err := c.ConvertBody([]rune(string(raw)))
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
+		}
+
+		gotTitle := ""
+		var gotTags map[string]struct{}
+		if v, ok := aux.(*bodyConvAuxOutImpl); !ok {
+			t.Fatalf("[FATAL | %s] aux (BodyConvAuxOut) cannot converted to bodyConvAuxOutImpl", tt.name)
+		} else {
+			gotTitle = v.title
+			gotTags = v.tags
 		}
 
 		// 取得した title の確認
@@ -465,8 +475,10 @@ title: "211027"
 	}
 
 	for _, tt := range cases {
-		yc := NewYamlConverterImpl(tt.publishable)
-		got, err := yc.ConvertYAML(tt.raw, tt.title, tt.alias, tt.tags)
+		yc := newYamlConverterImpl(tt.publishable)
+		auxinput := newYamlConvAuxInImpl(tt.title, tt.alias, tt.tags)
+		got, err := yc.ConvertYAML(tt.raw, auxinput)
+		// got, err := yc.ConvertYAML(tt.raw, tt.title, tt.alias, tt.tags)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 		}

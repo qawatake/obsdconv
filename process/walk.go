@@ -1,7 +1,6 @@
-package main
+package process
 
 import (
-	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -12,7 +11,7 @@ const (
 	NUM_CONCURRENT = 50 // 同時に処理できるファイル数
 )
 
-func walk(src, dst string, processor Processor) error {
+func Walk(src, dst string, processor Processor) error {
 	errs := make(chan error, NUM_CONCURRENT)
 	lock := make(chan struct{}, NUM_CONCURRENT)
 	passedAll := make(chan struct{})
@@ -33,21 +32,6 @@ func walk(src, dst string, processor Processor) error {
 				return nil
 			}
 			return os.Mkdir(newpath, 0o777)
-		}
-
-		if filepath.Ext(path) != ".md" {
-			file, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-			newfile, err := os.Create(newpath)
-			if err != nil {
-				return err
-			}
-			defer newfile.Close()
-			io.Copy(newfile, file)
-			return nil
 		}
 
 		select {
