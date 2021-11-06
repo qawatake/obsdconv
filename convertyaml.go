@@ -4,10 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/qawatake/obsdconv/process"
 	"gopkg.in/yaml.v2"
 )
-
-type YamlConvAuxIn interface{}
 
 type yamlConvAuxInImpl struct {
 	title   string
@@ -23,10 +22,6 @@ func newYamlConvAuxInImpl(title string, alias string, newtags []string) *yamlCon
 	}
 }
 
-type YamlConverter interface {
-	ConvertYAML(raw []byte, aux YamlConvAuxIn) (output []byte, err error)
-}
-
 type yamlConverterImpl struct {
 	publishable bool
 }
@@ -37,7 +32,7 @@ func newYamlConverterImpl(publishable bool) *yamlConverterImpl {
 	}
 }
 
-func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux YamlConvAuxIn) (output []byte, err error) {
+func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (output []byte, err error) {
 	title := ""
 	alias := ""
 	var newtags []string

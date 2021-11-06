@@ -3,10 +3,8 @@ package main
 import (
 	"github.com/pkg/errors"
 	"github.com/qawatake/obsdconv/convert"
+	"github.com/qawatake/obsdconv/process"
 )
-
-// body converter auxiliary output
-type BodyConvAuxOut interface{}
 
 type bodyConvAuxOutImpl struct {
 	title string
@@ -18,10 +16,6 @@ func newBodyConvAuxOutImpl(title string, tags map[string]struct{}) *bodyConvAuxO
 		title: title,
 		tags:  tags,
 	}
-}
-
-type BodyConverter interface {
-	ConvertBody(raw []rune) (output []rune, aux BodyConvAuxOut, err error)
 }
 
 type bodyConverterImpl struct {
@@ -44,7 +38,7 @@ func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, 
 	return c
 }
 
-func (c *bodyConverterImpl) ConvertBody(raw []rune) (output []rune, aux BodyConvAuxOut, err error) {
+func (c *bodyConverterImpl) ConvertBody(raw []rune) (output []rune, aux process.BodyConvAuxOut, err error) {
 	output = raw
 	title := ""
 	tags := make(map[string]struct{})

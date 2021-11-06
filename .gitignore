@@ -15,16 +15,20 @@
 !go.mod
 !main.go
 !flag.go
-!walk.go
 !process.go
 !convertbody.go
 !convertyaml.go
 !flag_test.go
-!process_test.go
+!main_test.go
 
 !testdata
 !testdata/convertbody
 !testdata/convertbody/**
+
+!process
+!process/walk.go
+!process/process.go
+!process/component.go
 
 !scan
 !scan/scan.go

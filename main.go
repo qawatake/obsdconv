@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+
+	"github.com/qawatake/obsdconv/process"
 )
 
 var (
@@ -25,7 +27,7 @@ func main() {
 		log.Fatal(err)
 	}
 	processor := newDefaultProcessor(&flags)
-	if err := Walk(flags.src, flags.dst, processor); err != nil {
+	if err := process.Walk(flags.src, flags.dst, processor); err != nil {
 		log.Fatal(err)
 	}
 }
