@@ -59,5 +59,5 @@ H1 content will be copied to `aliases` field in front matter.
 	- we support `open` action only.
 - extension omitted: [noext](output.md)
 
-## `publish` field in front matter
+## Publish field in front matter
 Since `publish: true`, we will have `draft: false` in front matter.
