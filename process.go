@@ -43,7 +43,7 @@ func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
 
 func newDefaultProcessor(flags *flagBundle) process.Processor {
 	db := convert.NewPathDB(flags.src)
-	bc := newBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link)
+	bc := newBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link, flags.rmH1)
 	yc := newYamlConverterImpl(flags.publishable)
 	passer := argPasserFunc(passArg)
 	return newProcessorImplWithErrHandling(flags.debug, process.NewProcessor(bc, yc, passer))

@@ -17,6 +17,7 @@ const (
 	FLAG_CONVERT_LINKS  = "link"
 	FLAG_REMOVE_COMMENT = "cmmt"
 	FLAG_PUBLISHABLE    = "pub"
+	FLAG_REMOVE_H1      = "rmh1"
 	FLAG_OBSIDIAN_USAGE = "obs"
 	FLAG_STANDARD_USAGE = "std"
 	FLAG_VERSION        = "version"
@@ -33,6 +34,7 @@ type flagBundle struct {
 	link        bool
 	cmmt        bool
 	publishable bool
+	rmH1        bool
 	obs         bool
 	std         bool
 	ver         bool
@@ -54,6 +56,7 @@ func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	flagset.BoolVar(&flags.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
 	flagset.BoolVar(&flags.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
 	flagset.BoolVar(&flags.publishable, FLAG_PUBLISHABLE, false, "publish: true -> draft: false, publish: false -> draft: true, no publish field -> draft: true. If draft explicitly specified, then leave it as is.")
+	flagset.BoolVar(&flags.rmH1, FLAG_REMOVE_H1, false, "remove H1")
 	flagset.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
 	flagset.BoolVar(&flags.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -pub")
 	flagset.BoolVar(&flags.ver, FLAG_VERSION, false, "display the version currently installed")

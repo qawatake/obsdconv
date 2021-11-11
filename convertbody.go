@@ -25,9 +25,10 @@ type bodyConverterImpl struct {
 	cmmt  bool
 	title bool
 	link  bool
+	rmH1  bool
 }
 
-func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, title bool, link bool) *bodyConverterImpl {
+func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, title bool, link bool, rmH1 bool) *bodyConverterImpl {
 	c := new(bodyConverterImpl)
 	c.db = db
 	c.cptag = cptag
@@ -35,6 +36,7 @@ func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, 
 	c.cmmt = cmmt
 	c.title = title
 	c.link = link
+	c.rmH1 = rmH1
 	return c
 }
 
@@ -79,6 +81,12 @@ func (c *bodyConverterImpl) ConvertBody(raw []rune) (output []rune, aux process.
 		output, err = convert.NewLinkConverter(c.db).Convert(output)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "LinkConverter failed")
+		}
+	}
+	if c.rmH1 {
+		output, err = convert.NewH1Remover().Convert(output)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "H1Remover failed")
 		}
 	}
 

@@ -251,3 +251,41 @@ func NewInternalLinkPlainConverter() *Converter {
 	c.Set(TransformNone)
 	return c
 }
+
+func NewH1Remover() *Converter {
+	c := new(Converter)
+
+	c.Set(MiddlewareAsIs(scan.ScanEscaped))
+	c.Set(MiddlewareAsIs(scan.ScanCodeBlock))
+	c.Set(MiddlewareAsIs(scan.ScanComment))
+	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
+	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance, _, _ = scan.ScanExternalLink(raw, ptr)
+		return advance
+	}))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance, _ = scan.ScanInternalLink(raw, ptr)
+		return advance
+	}))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance, _ = scan.ScanEmbeds(raw, ptr)
+		return advance
+	}))
+	c.Set(MiddlewareAsIs(scan.ScanInlineMath))
+	c.Set(MiddlewareAsIs(scan.ScanInlineCode))
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
+		advance, level, _ := scan.ScanHeader(raw, ptr)
+		if level == 1 {
+			return advance, nil, nil
+		}
+		return advance, raw[ptr : ptr+advance], nil
+	})
+	c.Set(TransformRepeatingTagsFunc())
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance, _ = scan.ScanTag(raw, ptr)
+		return advance
+	}))
+	c.Set(TransformNone)
+	return c
+}
