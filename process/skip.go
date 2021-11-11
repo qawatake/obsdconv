@@ -39,7 +39,7 @@ func NewSkipper(skipsource string) (Skipper, error) {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	if scanner.Scan() {
+	for scanner.Scan() {
 		skipper.add(scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {

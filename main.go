@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/qawatake/obsdconv/process"
 )
@@ -31,7 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 	processor := newDefaultProcessor(&flags)
-	skipper, err := process.NewSkipper(DEFAULT_IGNORE_FILE_NAME)
+	skipper, err := process.NewSkipper(filepath.Join(flags.src, DEFAULT_IGNORE_FILE_NAME))
 	if err != nil {
 		log.Fatal(err)
 	}

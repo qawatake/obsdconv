@@ -28,7 +28,11 @@ func Walk(src, dst string, skipper Skipper, processor Processor) error {
 		}
 
 		if skipper.Skip(rpath) {
-			return filepath.SkipDir
+			if info.IsDir() {
+				return filepath.SkipDir
+			} else {
+				return nil
+			}
 		}
 
 		newpath := filepath.Join(dst, rpath)
