@@ -12,6 +12,10 @@ var (
 	Version = "x.y.z"
 )
 
+const (
+	DEFAULT_IGNORE_FILE_NAME = ".obsdconvignore"
+)
+
 func main() {
 	var flags flagBundle
 	initFlags(flag.CommandLine, &flags)
@@ -27,7 +31,11 @@ func main() {
 		log.Fatal(err)
 	}
 	processor := newDefaultProcessor(&flags)
-	if err := process.Walk(flags.src, flags.dst, processor); err != nil {
+	skipper, err := process.NewSkipper(DEFAULT_IGNORE_FILE_NAME)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := process.Walk(flags.src, flags.dst, skipper, processor); err != nil {
 		log.Fatal(err)
 	}
 }

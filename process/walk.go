@@ -11,7 +11,7 @@ const (
 	NUM_CONCURRENT = 50 // 同時に処理できるファイル数
 )
 
-func Walk(src, dst string, processor Processor) error {
+func Walk(src, dst string, skipper Skipper, processor Processor) error {
 	errs := make(chan error, NUM_CONCURRENT)
 	lock := make(chan struct{}, NUM_CONCURRENT)
 	passedAll := make(chan struct{})
@@ -26,6 +26,11 @@ func Walk(src, dst string, processor Processor) error {
 		if err != nil {
 			return err
 		}
+
+		if skipper.Skip(rpath) {
+			return filepath.SkipDir
+		}
+
 		newpath := filepath.Join(dst, rpath)
 		if info.IsDir() {
 			if _, err := os.Stat(newpath); !os.IsNotExist(err) {

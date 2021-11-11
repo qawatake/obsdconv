@@ -30,6 +30,7 @@
 !process/walk.go
 !process/process.go
 !process/component.go
+!process/skip.go
 !process/process_test.go
 
 !scan
