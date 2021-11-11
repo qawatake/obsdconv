@@ -51,7 +51,6 @@ func (f *pathDbImpl) Get(fileId string) (path string, err error) {
 	bestscore := -1
 	bestmatch := ""
 	for _, pth := range paths {
-		pth = norm.NFC.String(pth)
 		if score := pathMatchScore(pth, filename); score < 0 {
 			continue
 		} else if bestmatch == "" || score < bestscore || (score == bestscore && strings.Compare(pth, bestmatch) < 0) {
@@ -72,6 +71,10 @@ func (f *pathDbImpl) Get(fileId string) (path string, err error) {
 }
 
 func pathMatchScore(path string, filename string) int {
+	// 書記素クラスタに対応
+	path = norm.NFC.String(path)
+	filename = norm.NFC.String(filename)
+
 	pp := strings.Split(filepath.ToSlash(path), "/")
 	ff := strings.Split(filepath.ToSlash(filename), "/")
 	lpp := len(pp)
