@@ -22,7 +22,10 @@ func (s *skipperImpl) Skip(path string) bool {
 }
 
 func (s *skipperImpl) add(path string) {
-	s.skipdict[filepath.ToSlash(norm.NFC.String(path))] = true
+	path = norm.NFC.String(path)
+	path = filepath.ToSlash(path)
+	path = filepath.Clean(path)
+	s.skipdict[path] = true
 }
 
 func NewSkipper(skipsource string) (Skipper, error) {
