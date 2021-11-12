@@ -58,3 +58,14 @@ Note that
 - individual flag overrides `obs` and `std`.
 That is, if you specify `-title=0` and `-obs`, `-title=0` wins and `title` field will not copied from H1 content.
 - if `src` = `dst`, then original files will be overwritten. Be careful!!
+
+## Ignore Files
+You can ignore paths by specifying them in a file named `.obsdconvignore`.
+Put `.obsdconvignore` in `src` directory and write a path in each line like this:
+```.obsdconvignore
+.obsdconvignore
+static/private/
+notes/private/
+notes/mycredential.md
+```
+- By default, non-markdown files will be copied to `dst` directory.
