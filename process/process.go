@@ -19,13 +19,15 @@ type ProcessorImpl struct {
 	BodyConverter
 	YamlConverter
 	ArgPasser
+	YamlExaminator
 }
 
-func NewProcessor(bc BodyConverter, yc YamlConverter, passer ArgPasser) Processor {
+func NewProcessor(bc BodyConverter, yc YamlConverter, passer ArgPasser, examinator YamlExaminator) Processor {
 	return &ProcessorImpl{
-		BodyConverter: bc,
-		YamlConverter: yc,
-		ArgPasser:     passer,
+		BodyConverter:  bc,
+		YamlConverter:  yc,
+		ArgPasser:      passer,
+		YamlExaminator: examinator,
 	}
 }
 
@@ -46,10 +48,6 @@ func (p *ProcessorImpl) Process(orgpath, newpath string) error {
 		return nil
 	}
 
-	return p.generate(orgpath, newpath)
-}
-
-func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
 	readFrom, err := os.Open(orgpath)
 	if err != nil {
 		return errors.Errorf("failed to open %s", orgpath)
@@ -61,6 +59,12 @@ func (p *ProcessorImpl) generate(orgpath, newpath string) (err error) {
 	readFrom.Close()
 
 	yml, body := splitMarkdown([]rune(string(content)))
+
+	if ok, err := p.ExamineYaml(yml); err != nil {
+		return errors.Wrap(err, "failed to examine yaml front mattter")
+	} else if !ok {
+		return nil
+	}
 
 	output, frombody, err := p.ConvertBody(body)
 	if err != nil {

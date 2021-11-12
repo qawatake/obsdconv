@@ -15,3 +15,7 @@ type YamlConverter interface {
 type ArgPasser interface {
 	PassArg(frombody BodyConvAuxOut) (toyaml YamlConvAuxIn, err error)
 }
+
+type YamlExaminator interface {
+	ExamineYaml(yml []byte) (beProcessed bool, err error)
+}

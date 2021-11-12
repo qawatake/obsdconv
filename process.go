@@ -46,7 +46,8 @@ func newDefaultProcessor(flags *flagBundle) process.Processor {
 	bc := newBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link, flags.rmH1)
 	yc := newYamlConverterImpl(flags.publishable)
 	passer := argPasserFunc(passArg)
-	return newProcessorImplWithErrHandling(flags.debug, process.NewProcessor(bc, yc, passer))
+	examinator := newYamlExaminatorImpl(flags.publishable)
+	return newProcessorImplWithErrHandling(flags.debug, process.NewProcessor(bc, yc, passer, examinator))
 }
 
 func handleErr(path string, err error) (public error, debug error) {
