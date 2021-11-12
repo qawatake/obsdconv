@@ -47,7 +47,8 @@ flag | meaning | \*
 `alias` | copy H1 content to `aliases` field in front matter | optional
 `link` | convert internal links, embeds, and Obsidian URI in the standart format | optional
 `cmmt` | remove comment blocks | optional
-`pub` | `publish: true` -> `draft: false`, `publish: false` -> `draft: true`, no `publish` field -> draft: true. If `draft` field explicityly specified, then leave it as is. | optional
+`pub` | convert only files with `publish: true` or `draft: false`. For files with `publish: true`, add `draft: false`. | optional
+`rmh1` | remove H1 | optional
 `obs` | = `-cptag -title -alias` | optional
 `std` | = `-cptag -title -alias -rmtag -link -cmmt -pub` | optional
 `verion` | display the version currently installed | optional
