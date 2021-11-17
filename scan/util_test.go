@@ -26,7 +26,7 @@ func TestRuneIndex(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		gotId := runeIndex(tt.s, tt.substr)
+		gotId := indexInRunes([]rune(tt.s), tt.substr)
 		if gotId != tt.wantId {
 			t.Errorf("[ERROR] got: %d, want: %d with s: %q, substr: %q", gotId, tt.wantId, tt.s, tt.substr)
 		}

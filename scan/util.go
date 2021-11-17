@@ -4,10 +4,10 @@ import (
 	"strings"
 )
 
-func runeIndex(s string, substr string) int {
-	pos := strings.Index(s, substr)
+func indexInRunes(rns []rune, substr string) int {
+	pos := strings.Index(string(rns), substr)
 	if pos < 0 {
 		return -1
 	}
-	return len([]rune(s[:pos]))
+	return len([]rune(string(rns)[:pos]))
 }
