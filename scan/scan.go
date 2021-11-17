@@ -169,10 +169,10 @@ func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref
 	}
 	cur := ptr + 1 // "[" の次
 	adv := runeIndex(string(raw[cur:]), "](")
-	if adv < 0 || adv + 1 >= len(raw[cur:]) - 1 {
+	if adv < 0 || adv+1 >= len(raw[cur:])-1 {
 		return 0, "", ""
 	}
-	next := cur + adv  // "](" の "]"
+	next := cur + adv // "](" の "]"
 	displayName = strings.Trim(string(raw[cur:next]), " \t")
 	if !validExternalLinkDisplayName(displayName) {
 		return 0, "", ""
@@ -241,7 +241,7 @@ func validMathBlockClosing(raw []rune, openPtr int, closingPtr int) bool {
 		return false
 	}
 
-	remaining := string(raw[closingPtr+2:posLineFeed])
+	remaining := string(raw[closingPtr+2 : closingPtr+2+posLineFeed])
 	remaining = strings.Trim(remaining, " \r\n")
 	return remaining == ""
 }
