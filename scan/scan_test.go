@@ -400,123 +400,168 @@ func TestValidURI(t *testing.T) {
 	}
 }
 
+func TestScanExternalLinkHead(t *testing.T) {
+	cases := []struct {
+		name            string
+		raw             []rune
+		ptr             int
+		wantAdvance     int
+		wantDisplayName string
+	}{
+		{
+			name:            "simple",
+			raw:             []rune("[ test ]"),
+			ptr:             0,
+			wantAdvance:     8,
+			wantDisplayName: "test",
+		},
+		{
+			name:            "escaped [",
+			raw:             []rune("\\[ test ]"),
+			ptr:             1,
+			wantAdvance:     0,
+			wantDisplayName: "",
+		},
+		{
+			name:            "escaped ]",
+			raw:             []rune("[ test \\]"),
+			ptr:             0,
+			wantAdvance:     0,
+			wantDisplayName: "",
+		},
+		{
+			name:            "\\n in []",
+			raw:             []rune("[ te\nst ]"),
+			ptr:             0,
+			wantAdvance:     9,
+			wantDisplayName: "te\nst",
+		},
+		{
+			name:            "\\n\\n in []",
+			raw:             []rune("[ test \n\n]"),
+			ptr:             0,
+			wantAdvance:     0,
+			wantDisplayName: "",
+		},
+		{
+			name:            "[\\]]",
+			raw:             []rune("[ test\\] ]"),
+			ptr:             0,
+			wantAdvance:     10,
+			wantDisplayName: "test\\]",
+		},
+	}
+
+	for _, tt := range cases {
+		gotAdvance, gotDisplayName := scanExternalLinkHead(tt.raw, tt.ptr)
+		if gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
+		}
+		if gotDisplayName != tt.wantDisplayName {
+			t.Errorf("[ERROR | %v]\ngot: %q, want: %q", tt.name, gotDisplayName, tt.wantDisplayName)
+		}
+	}
+}
+
+func TestScanExternalLinkTail(t *testing.T) {
+	cases := []struct {
+		name        string
+		raw         []rune
+		ptr         int
+		wantAdvance int
+		wantRef     string
+	}{
+		{
+			name:        "simple",
+			raw:         []rune("( https://google.com#fragment )"),
+			ptr:         0,
+			wantAdvance: 31,
+			wantRef:     "https://google.com#fragment",
+		},
+		{
+			name:        "escaped (",
+			raw:         []rune("\\( https://google.com#fragment )"),
+			ptr:         0,
+			wantAdvance: 0,
+			wantRef:     "",
+		},
+		{
+			name:        "escaped )",
+			raw:         []rune("( https://google.com#fragment \\)"),
+			ptr:         0,
+			wantAdvance: 0,
+			wantRef:     "",
+		},
+		{
+			name:        "\\n in ()",
+			raw:         []rune("(https://google.com\n)"),
+			ptr:         0,
+			wantAdvance: 21,
+			wantRef:     "https://google.com",
+		},
+		{
+			name:        "\\n\\n in ()",
+			raw:         []rune("(https://google.com\n\n)"),
+			ptr:         0,
+			wantAdvance: 0,
+			wantRef:     "",
+		},
+		{
+			name:        "ref contains spaces",
+			raw:         []rune("(https://g\noogle.com)"),
+			ptr:         0,
+			wantAdvance: 0,
+			wantRef:     "",
+		},
+		{
+			name:        "(\\))",
+			raw:         []rune("(https://google.com\\))"),
+			ptr:         0,
+			wantAdvance: 22,
+			wantRef:     "https://google.com\\)",
+		},
+	}
+
+	for _, tt := range cases {
+		gotAdvance, gotRef := scanExternalLinkTail(tt.raw, tt.ptr)
+		if gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
+		}
+		if gotRef != tt.wantRef {
+			t.Errorf("[ERROR | %v]\ngot: %q, want: %q", tt.name, gotRef, tt.wantRef)
+		}
+	}
+}
+
 func TestScanExternalLink(t *testing.T) {
 	cases := []struct {
 		name            string
-		argRaw          []rune
-		argPtr          int
+		raw             []rune
+		ptr             int
 		wantAdvance     int
 		wantDisplayName string
 		wantRef         string
 	}{
 		{
-			name:            "simple",
-			argRaw:          []rune("[ test ]( https://google.com#fragment )"),
-			argPtr:          0,
-			wantAdvance:     39,
-			wantDisplayName: "test",
-			wantRef:         "https://google.com#fragment",
-		},
-		{
-			name:            "escaped [",
-			argRaw:          []rune("\\[ test ]( https://google.com#fragment )"),
-			argPtr:          1,
-			wantAdvance:     0,
-			wantDisplayName: "",
-			wantRef:         "",
-		},
-		{
-			name:            "escaped ]",
-			argRaw:          []rune("[ test \\]( https://google.com#fragment )"),
-			argPtr:          0,
-			wantAdvance:     0,
-			wantDisplayName: "",
-			wantRef:         "",
-		},
-		{
-			name:            "escaped (",
-			argRaw:          []rune("[ test ]\\( https://google.com#fragment )"),
-			argPtr:          0,
-			wantAdvance:     0,
-			wantDisplayName: "",
-			wantRef:         "",
-		},
-		{
-			name:            "escaped )",
-			argRaw:          []rune("[ test ]( https://google.com#fragment \\)"),
-			argPtr:          0,
-			wantAdvance:     0,
-			wantDisplayName: "",
-			wantRef:         "",
-		},
-		{
-			name:            "\\n in []",
-			argRaw:          []rune("[ te\nst ]( https://google.com#fragment )"),
-			argPtr:          0,
-			wantAdvance:     40,
-			wantDisplayName: "te\nst",
-			wantRef:         "https://google.com#fragment",
-		},
-		{
-			name:            "\\n\\n in []",
-			argRaw:          []rune("[ test \n\n](https://google.com)"),
-			argPtr:          0,
-			wantAdvance:     0,
-			wantDisplayName: "",
-			wantRef:         "",
-		},
-		{
-			name:            "\\n in ()",
-			argRaw:          []rune("[ test ](https://google.com\n)"),
-			argPtr:          0,
-			wantAdvance:     29,
-			wantDisplayName: "test",
-			wantRef:         "https://google.com",
-		},
-		{
-			name:            "\\n\\n in ()",
-			argRaw:          []rune("[ test ](https://google.com\n\n)"),
-			argPtr:          0,
-			wantAdvance:     0,
-			wantDisplayName: "",
-			wantRef:         "",
-		},
-		{
-			name:            "ref contains spaces",
-			argRaw:          []rune("[ test ](https://g\noogle.com)"),
-			argPtr:          0,
-			wantAdvance:     0,
-			wantDisplayName: "",
-			wantRef:         "",
-		},
-		{
 			name:            "] (",
-			argRaw:          []rune("[ test ] (https://google.com)"),
-			argPtr:          0,
+			raw:             []rune("[ test ] (https://google.com)"),
+			ptr:             0,
 			wantAdvance:     0,
 			wantDisplayName: "",
 			wantRef:         "",
 		},
 		{
 			name:            "[]]()",
-			argRaw:          []rune("[ test] ]( https://google.com#fragment )"),
-			argPtr:          0,
+			raw:             []rune("[ test] ]( https://google.com#fragment )"),
+			ptr:             0,
 			wantAdvance:     0,
 			wantDisplayName: "",
 			wantRef:         "",
 		},
-		{
-			name:            "[\\]]()",
-			argRaw:          []rune("[ test\\] ]( https://google.com#fragment )"),
-			argPtr:          0,
-			wantAdvance:     41,
-			wantDisplayName: "test\\]",
-			wantRef:         "https://google.com#fragment",
-		},
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotDisplayName, gotRef := ScanExternalLink(tt.argRaw, tt.argPtr)
+		gotAdvance, gotDisplayName, gotRef := ScanExternalLink(tt.raw, tt.ptr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
 		}
