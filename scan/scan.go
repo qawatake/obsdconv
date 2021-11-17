@@ -5,10 +5,6 @@ import (
 	"unicode"
 )
 
-const (
-	rune_DOLLAR = 0x24 // "$"
-)
-
 func unescaped(raw []rune, ptr int, substr string) bool {
 	length := len([]rune(substr))
 	if len(raw[ptr:]) < length {
@@ -46,11 +42,11 @@ func ScanInlineCode(raw []rune, ptr int) (advance int) {
 		return 0
 	}
 
-	pos := strings.IndexRune(string(raw[ptr+1:]), '`')
-	if pos < 0 {
+	adv := runeIndex(string(raw[ptr+1:]), "`")
+	if adv < 0 {
 		return 0
 	}
-	cur := ptr + 1 + len([]rune(string(raw[ptr+1:])[:pos]))
+	cur := ptr + 1 + adv
 	if precededBy(raw, cur, []string{"\n\n", "\r\n\r\n"}) {
 		return 0
 	} else {
@@ -65,12 +61,11 @@ func ScanInlineMath(raw []rune, ptr int) (advance int) {
 
 	cur := ptr + 1
 	for cur < len(raw)-1 && !unescaped(raw, cur, "$") {
-		pos := strings.IndexRune(string(raw[cur+1:]), rune_DOLLAR)
-		if pos < 0 {
+		adv := runeIndex(string(raw[cur+1:]), "$")
+		if adv < 0 {
 			return 0
 		}
-		adv := 1 + len([]rune(string(string(raw[cur:])[:pos])))
-		cur += adv
+		cur += 1 + adv
 	}
 	if cur >= len(raw) {
 		return 0
@@ -120,15 +115,18 @@ func ScanInternalLink(raw []rune, ptr int) (advance int, content string) {
 		return 0, ""
 	}
 
-	pos := strings.Index(string(raw[ptr+2:]), "]]")
-	if pos <= 0 {
+	cur := ptr + 2
+	adv := runeIndex(string(raw[cur:]), "]]")
+	if adv <= 0 {
 		return 0, ""
 	}
-	content = strings.Trim(string(string(raw[ptr+2:])[:pos]), " \t")
+
+	content = strings.Trim(string(raw[cur:cur+adv]), " \t")
 	if strings.ContainsAny(content, "\r\n") {
 		return 0, ""
 	}
-	advance = 2 + len([]rune(string(string(raw[ptr+2:])[:pos]))) + 2
+	cur += adv + 2
+	advance = cur - ptr
 	return advance, content
 }
 
@@ -153,11 +151,11 @@ func validExternalLinkDisplayName(displayName string) bool {
 	runes := []rune(displayName)
 	cur := 0
 	for {
-		pos := strings.Index(string(runes[cur:]), "]")
-		if pos < 0 {
+		adv := runeIndex(string(runes[cur:]), "]")
+		if adv < 0 {
 			return true
 		}
-		cur += len([]rune(string(string(runes[cur:])[:pos]))) // 発見した ] の位置
+		cur += adv // 発見した ] の位置
 		if unescaped(runes, cur, "]") {
 			return false
 		}
@@ -170,11 +168,11 @@ func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref
 		return 0, "", ""
 	}
 	cur := ptr + 1 // "[" の次
-	midpos := strings.Index(string(raw[cur:]), "](")
-	if midpos < 0 || midpos+1 >= len(string(raw[cur:]))-1 {
+	adv := runeIndex(string(raw[cur:]), "](")
+	if adv < 0 || adv + 1 >= len(raw[cur:]) - 1 {
 		return 0, "", ""
 	}
-	next := cur + len([]rune(string(string(raw[cur:])[:midpos]))) // "](" の "]"
+	next := cur + adv  // "](" の "]"
 	displayName = strings.Trim(string(raw[cur:next]), " \t")
 	if !validExternalLinkDisplayName(displayName) {
 		return 0, "", ""
@@ -188,11 +186,11 @@ func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref
 	displayName = strings.Trim(displayName, "\r\n") // \r\n や \n 一つを削除
 	next += 2                                       // "](" の次
 	cur = next
-	endpos := strings.IndexRune(string(raw[cur:]), ')')
-	if endpos < 0 {
+	adv = runeIndex(string(raw[cur:]), ")")
+	if adv < 0 {
 		return 0, "", ""
 	}
-	next = cur + len([]rune(string(string(raw[cur:])[:endpos]))) // ")"
+	next = cur + adv // ")"
 	ref = strings.Trim(string(raw[cur:next]), " \t")
 	cur = next
 	if strings.Contains(ref, "\r\n\r\n") || strings.Contains(ref, "\n\n") {
@@ -214,11 +212,12 @@ func ScanComment(raw []rune, ptr int) (advance int) {
 	}
 	length := len(raw[ptr:]) - len([]rune(strings.TrimLeft(string(raw[ptr:]), "%")))
 	cur := ptr + length // opening の %% の直後
-	pos := strings.Index(string(raw[cur:]), strings.Repeat("%", length))
-	if pos < 0 {
+	adv := runeIndex(string(raw[cur:]), strings.Repeat("%", length))
+	if adv < 0 {
 		return len(raw) - ptr
 	}
-	cur += len([]rune(string(string(raw[cur:])[:pos]))) + length // closing %% の直後
+
+	cur += adv + length // closing %% の直後
 	return cur - ptr
 }
 
@@ -237,12 +236,12 @@ func validMathBlockClosing(raw []rune, openPtr int, closingPtr int) bool {
 		return true
 	}
 
-	posLineFeed := strings.IndexRune(string(raw[closingPtr+2:]), '\n')
+	posLineFeed := runeIndex(string(raw[closingPtr+2:]), "\n")
 	if posLineFeed < 0 {
 		return false
 	}
 
-	remaining := string(string(raw[closingPtr+2:])[:posLineFeed])
+	remaining := string(raw[closingPtr+2:posLineFeed])
 	remaining = strings.Trim(remaining, " \r\n")
 	return remaining == ""
 }
@@ -254,8 +253,8 @@ func ScanMathBlock(raw []rune, ptr int) (advance int) {
 
 	cur := ptr + 2
 	for {
-		pos := strings.Index(string(raw[cur:]), "$$")
-		if pos < 0 {
+		adv := runeIndex(string(raw[cur:]), "$$")
+		if adv < 0 {
 			if raw[len(raw)-1] == '\n' {
 				return len(raw) - ptr
 			} else {
@@ -263,7 +262,7 @@ func ScanMathBlock(raw []rune, ptr int) (advance int) {
 			}
 		}
 
-		cur += len([]rune(string(string(raw[cur:])[:pos])))
+		cur += adv
 		if validMathBlockClosing(raw, ptr, cur) {
 			return cur + 2 - ptr
 		}
@@ -277,11 +276,11 @@ func ScanCodeBlock(raw []rune, ptr int) (advance int) {
 	}
 	length := len(raw[ptr:]) - len([]rune(strings.TrimLeft(string(raw[ptr:]), "`")))
 	cur := ptr + length
-	pos := strings.Index(string(raw[cur:]), "```")
-	if pos < 0 {
+	adv := runeIndex(string(raw[cur:]), "```")
+	if adv < 0 {
 		return len(raw) - ptr
 	}
-	cur += len([]rune(string(string(raw[cur:])[:pos]))) // closing の "```" の最初の "`"
+	cur += adv // closing の "```" の最初の "`"
 	closingLength := len(raw[cur:]) - len([]rune(strings.TrimLeft(string(raw[cur:]), "`")))
 
 	// inline の場合は opening bracket と closing bracket は同じ長さでなければならない
@@ -292,11 +291,11 @@ func ScanCodeBlock(raw []rune, ptr int) (advance int) {
 			return cur + closingLength - ptr
 		}
 	} else { // 複数行の場合は, closing bracket の長さは opening bracket の長さ以上でなければいけない
-		pos := strings.Index(string(raw[cur:]), strings.Repeat("`", length))
-		if pos < 0 {
+		adv := runeIndex(string(raw[cur:]), strings.Repeat("`", length))
+		if adv < 0 {
 			return len(raw) - ptr
 		}
-		cur += len([]rune(string(string(raw[cur:])[:pos])))
+		cur += adv
 		closingLength := len(raw[cur:]) - len([]rune(strings.TrimLeft(string(raw[cur:]), "`")))
 		return cur + closingLength - ptr
 	}
@@ -324,14 +323,15 @@ func ScanHeader(raw []rune, ptr int) (advance int, level int, headertext string)
 		return 0, 0, ""
 	}
 
-	pos := strings.Index(string(raw[cur:]), "\n")
-	if pos < 0 {
+	adv := runeIndex(string(raw[cur:]), "\n")
+	if adv < 0 {
 		advance = len(raw[ptr:])
 		level = length
 		headertext = strings.Trim(string(raw[cur:]), " \t\r\n")
 		return advance, length, headertext
 	}
-	advance = cur + len([]rune(string(string(raw[cur:])[:pos+1]))) - ptr // \r\n や \n を含む
+
+	advance = cur + adv + 1 - ptr // \r\n や \n を含む
 	level = length
 	headertext = strings.Trim(string(raw[cur:ptr+advance]), " \t\r\n")
 	return advance, level, headertext
@@ -348,10 +348,10 @@ func ScanNormalComment(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "<!--")) {
 		return 0
 	}
-	pos := strings.Index(string(raw[ptr:]), "-->")
-	if pos < 0 {
+	adv := runeIndex(string(raw[ptr:]), "-->")
+	if adv < 0 {
 		return len(raw) - ptr
 	}
-	cur := ptr + len([]rune(string(string(raw[ptr:])[:pos]))) + 3
+	cur := ptr + adv + 3
 	return cur - ptr
 }
