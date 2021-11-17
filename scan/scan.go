@@ -221,14 +221,15 @@ func validMathBlockClosing(raw []rune, openPtr int, closingPtr int) bool {
 		return true
 	}
 
-	posLineFeed := indexInRunes(raw[closingPtr+2:], "\n")
-	if posLineFeed < 0 {
+	// 終わりの "$$" は行末までに空白しかゆるされない
+	cur := closingPtr + 2 // 終わりの "$$" の直後
+	adv := indexInRunes(raw[cur:], "\n")
+	if adv < 0 {
 		return false
 	}
+	lineTail := cur + adv
 
-	remaining := string(raw[closingPtr+2 : closingPtr+2+posLineFeed])
-	remaining = strings.Trim(remaining, " \r\n")
-	return remaining == ""
+	return strings.Trim(string(raw[cur:lineTail]), " \r\n") == ""
 }
 
 func ScanMathBlock(raw []rune, ptr int) (advance int) {

@@ -540,16 +540,16 @@ func TestValidMathBlockClosing(t *testing.T) {
 		},
 		{
 			name:          "no remaining",
-			argRaw:        []rune("$$x$$"),
+			argRaw:        []rune("$$\nx\n$$"),
 			argOpeningPtr: 0,
-			argClosingPtr: 3,
+			argClosingPtr: 5,
 			want:          true,
 		},
 		{
 			name:          "only spaces and \\n are remaining",
-			argRaw:        []rune("$$x$$   \n\nxxxx"),
+			argRaw:        []rune("$$\nx\n$$   \n\nxxxx"),
 			argOpeningPtr: 0,
-			argClosingPtr: 3,
+			argClosingPtr: 5,
 			want:          true,
 		},
 		{
