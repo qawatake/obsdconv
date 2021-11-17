@@ -160,11 +160,7 @@ func scanExternalLinkTail(raw []rune, ptr int) (advance int, ref string) {
 			if !validExternalLinkTailContent(content) {
 				return 0, ""
 			}
-			uri := strings.Trim(string(content), " \t\r\n")
-			if !validURI(uri) {
-				return 0, ""
-			}
-			ref = uri
+			ref = strings.Trim(string(content), " \t\r\n")
 			return advance, ref
 		}
 		cur++ // ")" の次
@@ -173,7 +169,11 @@ func scanExternalLinkTail(raw []rune, ptr int) (advance int, ref string) {
 }
 
 func validExternalLinkTailContent(content string) bool {
-	return !strings.Contains(content, "\r\n\r\n") && !strings.Contains(content, "\n\n")
+	if strings.Contains(content, "\r\n\r\n") || strings.Contains(content, "\n\n") {
+		return false
+	}
+	uri := strings.Trim(content, " \t\r\n")
+	return validURI(uri)
 }
 
 func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {
