@@ -115,63 +115,80 @@ func validURI(uri string) bool {
 	return !strings.ContainsAny(uri, " \t\r\n")
 }
 
-func validExternalLinkDisplayName(displayName string) bool {
-	runes := []rune(displayName)
-	cur := 0
+func scanExternalLinkHead(raw []rune, ptr int) (advance int, displayName string) {
+	if !(unescaped(raw, ptr, "[") && len(raw[ptr:]) >= 2) {
+		return 0, ""
+	}
+	cur := ptr + 1 // "[" の次
 	for {
-		adv := indexInRunes(runes[cur:], "]")
+		adv := indexInRunes(raw[cur:], "]")
 		if adv < 0 {
-			return true
+			return 0, ""
 		}
-		cur += adv // 発見した ] の位置
-		if unescaped(runes, cur, "]") {
-			return false
+		cur += adv // "["
+		if unescaped(raw, cur, "]") {
+			advance = cur + 1 - ptr
+			content := string(raw[ptr+1 : cur])
+			if !validExternalLinkHeadContent(content) {
+				return 0, ""
+			}
+			displayName = strings.Trim(content, " \t\r\n")
+			return advance, displayName
 		}
-		cur++
+		cur++ // "]" の次
 	}
 }
 
+func validExternalLinkHeadContent(content string) bool {
+	return !strings.Contains(content, "\r\n\r\n") && !strings.Contains(content, "\n\n")
+}
+
+func scanExternalLinkTail(raw []rune, ptr int) (advance int, ref string) {
+	if !(unescaped(raw, ptr, "(") && len(raw[ptr:]) >= 2) {
+		return 0, ""
+	}
+	cur := ptr + 1 // "(" の次
+	for {
+		adv := indexInRunes(raw[cur:], ")")
+		if adv < 0 {
+			return 0, ""
+		}
+		cur += adv // ")"
+		if unescaped(raw, cur, ")") {
+			advance = cur + 1 - ptr
+			content := string(raw[ptr+1 : cur])
+			if !validExternalLinkTailContent(content) {
+				return 0, ""
+			}
+			uri := strings.Trim(string(content), " \t\r\n")
+			if !validURI(uri) {
+				return 0, ""
+			}
+			ref = uri
+			return advance, ref
+		}
+		cur++ // ")" の次
+	}
+
+}
+
+func validExternalLinkTailContent(content string) bool {
+	return !strings.Contains(content, "\r\n\r\n") && !strings.Contains(content, "\n\n")
+}
+
 func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {
-	if !(unescaped(raw, ptr, "[") && len(raw[ptr:]) >= 5) {
+	cur := ptr
+	adv, displayName := scanExternalLinkHead(raw, cur)
+	if adv == 0 {
 		return 0, "", ""
 	}
-	cur := ptr + 1 // "[" の次
-	adv := indexInRunes(raw[cur:], "](")
-	if adv < 0 || adv+1 >= len(raw[cur:])-1 {
+	cur += adv
+	adv, ref = scanExternalLinkTail(raw, cur)
+	if adv == 0 {
 		return 0, "", ""
 	}
-	next := cur + adv // "](" の "]"
-	displayName = strings.Trim(string(raw[cur:next]), " \t")
-	if !validExternalLinkDisplayName(displayName) {
-		return 0, "", ""
-	}
-	cur = next
-	if strings.Contains(displayName, "\r\n\r\n") || strings.Contains(displayName, "\n\n") {
-		return 0, "", ""
-	} else if !unescaped(raw, cur, "](") {
-		return 0, "", ""
-	}
-	displayName = strings.Trim(displayName, "\r\n") // \r\n や \n 一つを削除
-	next += 2                                       // "](" の次
-	cur = next
-	adv = indexInRunes(raw[cur:], ")")
-	if adv < 0 {
-		return 0, "", ""
-	}
-	next = cur + adv // ")"
-	ref = strings.Trim(string(raw[cur:next]), " \t")
-	cur = next
-	if strings.Contains(ref, "\r\n\r\n") || strings.Contains(ref, "\n\n") {
-		return 0, "", ""
-	} else if !unescaped(raw, cur, ")") {
-		return 0, "", ""
-	}
-	ref = strings.Trim(ref, "\r\n") // \r\n や \n 一つを削除
-	if !validURI(ref) {
-		return 0, "", ""
-	}
-	advance = next + 1 - ptr
-	return
+	cur += adv
+	return cur - ptr, displayName, ref
 }
 
 func ScanComment(raw []rune, ptr int) (advance int) {
