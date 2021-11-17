@@ -36,7 +36,9 @@
 
 !scan
 !scan/scan.go
+!scan/util.go
 !scan/scan_test.go
+!scan/util_test.go
 
 !convert
 !convert/convert.go
