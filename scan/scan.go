@@ -59,6 +59,11 @@ func ScanTag(raw []rune, ptr int) (advance int, tag string) {
 		return 0, ""
 	}
 
+	// # の直前はスペースだけ
+	if !(precededBy(raw, ptr, []string{" ", "\t", "\n"}) || ptr == 0) {
+		return 0, ""
+	}
+
 	if !(unicode.IsLetter(raw[ptr+1]) || unicode.IsNumber(raw[ptr+1]) || raw[ptr+1] == '_') {
 		return 0, ""
 	}

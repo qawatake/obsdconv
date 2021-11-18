@@ -51,15 +51,21 @@ func TestScanTag(t *testing.T) {
 			wantAdvance: 11,
 			wantTag:     "book/comic",
 		},
+		{
+			raw:         []rune("x#todo"),
+			ptr:         1,
+			wantAdvance: 0,
+			wantTag:     "",
+		},
 	}
 
 	for _, tt := range cases {
 		gotAdvance, gotTag := ScanTag(tt.raw, tt.ptr)
 		if gotAdvance != tt.wantAdvance {
-			t.Errorf("[ERROR] got: %v, want: %v", gotAdvance, tt.wantAdvance)
+			t.Errorf("[ERROR] got: %d, want: %d", gotAdvance, tt.wantAdvance)
 		}
 		if gotTag != tt.wantTag {
-			t.Errorf("[ERROR] got: %v, want: %v", gotTag, tt.wantTag)
+			t.Errorf("[ERROR] got: %q, want: %q", gotTag, tt.wantTag)
 		}
 	}
 }
