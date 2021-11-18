@@ -43,3 +43,14 @@ func followedBy(raw []rune, ptr int, ss []string) bool {
 	}
 	return false
 }
+
+func scanRepeat(raw []rune, ptr int, substr string) (advance int) {
+	length := len([]rune(substr))
+	cur := ptr
+	next := cur + length
+	for len(raw[cur:]) >= length && string(raw[cur:next]) == substr {
+		cur = next
+		next += length
+	}
+	return cur - ptr
+}
