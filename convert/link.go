@@ -23,6 +23,10 @@ func NewPathDB(vault string) PathDB {
 	db.vault = vault
 	db.vaultdict = make(map[string][]string)
 	filepath.Walk(vault, func(path string, info fs.FileInfo, err error) error {
+		// if vault was not found, info will be nil
+		if info ==  nil {
+			return nil
+		}
 		if info.IsDir() {
 			return nil
 		}

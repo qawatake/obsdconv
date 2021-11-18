@@ -199,13 +199,31 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 		return fmt.Sprintf("[%s](%s)", displayName, ref), nil
 	}
 
-	// ref = obsidian URI
-	if u.Scheme == "obsidian" {
+	// ref = obsidian URI (obsidian://open?...)
+	// ignore vault query (?vault=...) and path query (?path=...)
+	// resolve path by using file query (?file=...) and PathDB
+	if u.Scheme == "obsidian" && u.Host == "open" {
 		q := u.Query()
 		fileId := q.Get("file")
 		if fileId == "" {
 			return "", newErrTransform(ERR_KIND_NO_REF_SPECIFIED_IN_OBSIDIAN_URL, fmt.Sprintf("no ref file specified in obsidian url: %s", ref))
 		}
+		path, err := t.Get(fileId)
+		if err != nil {
+			return "", errors.Wrap(err, "PathDB.Get failed")
+		}
+		return fmt.Sprintf("[%s](%s)", displayName, path), nil
+	}
+
+	// ref = obsidian URI (obsidian://vault/my_vault/my_note)
+	// ignore vault parameter
+	// resolve path by using file parameter and PathDB
+	if u.Scheme == "obsidian" && u.Host == "vault" {
+		segments := strings.Split(u.Path, "/")
+		if len(segments) != 3 {
+			return "", newErrTransform(ERR_KIND_INVALID_SHORTHAND_OBSIDIAN_URL, fmt.Sprintf("invalid shorthand obsidian url: %s", ref))
+		}
+		fileId := segments[2]
 		path, err := t.Get(fileId)
 		if err != nil {
 			return "", errors.Wrap(err, "PathDB.Get failed")

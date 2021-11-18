@@ -14,12 +14,55 @@ func TestTransformExternalLink(t *testing.T) {
 		ref              string
 		wantExternalLink string
 	}{
-		{name: "simple external", root: ".", displayName: "google", ref: "https://google.com", wantExternalLink: "[google](https://google.com)"},
-		{name: "filename", root: "filename", displayName: "211024", ref: "test.md", wantExternalLink: "[211024](test.md)"},
-		{name: "ref is fileId (filename with the extension removed)", root: "fileid", displayName: "211024", ref: "test", wantExternalLink: "[211024](test.md)"},
-		{name: "ref is fileId with fragments", root: "fragments", displayName: "211024", ref: "test#section", wantExternalLink: "[211024](test.md#section)"},
-		{name: "obsidian url", root: "obsidianurl", displayName: "open obsidian note", ref: "obsidian://open?vault=obsidian&file=test", wantExternalLink: "[open obsidian note](test.md)"},
-		{name: "escaped japanese obsidian url", root: "escaped_obsidianurl", displayName: "日本語のテスト", ref: "obsidian://open?vault=obsidian&file=%E3%83%86%E3%82%B9%E3%83%88", wantExternalLink: "[日本語のテスト](テスト.md)"},
+		{
+			name:             "simple external",
+			root:             ".",
+			displayName:      "google",
+			ref:              "https://google.com",
+			wantExternalLink: "[google](https://google.com)",
+		},
+		{
+			name:             "filename",
+			root:             "filename",
+			displayName:      "211024",
+			ref:              "test.md",
+			wantExternalLink: "[211024](test.md)",
+		},
+		{
+			name:             "ref is fileId (filename with the extension removed)",
+			root:             "fileid",
+			displayName:      "211024",
+			ref:              "test",
+			wantExternalLink: "[211024](test.md)",
+		},
+		{
+			name:             "ref is fileId with fragments",
+			root:             "fragments",
+			displayName:      "211024",
+			ref:              "test#section",
+			wantExternalLink: "[211024](test.md#section)",
+		},
+		{
+			name:             "obsidian url",
+			root:             "obsidianurl",
+			displayName:      "open obsidian note",
+			ref:              "obsidian://open?vault=obsidian&file=test",
+			wantExternalLink: "[open obsidian note](test.md)",
+		},
+		{
+			name:             "escaped japanese obsidian url",
+			root:             "escaped_obsidianurl",
+			displayName:      "日本語のテスト",
+			ref:              "obsidian://open?vault=obsidian&file=%E3%83%86%E3%82%B9%E3%83%88",
+			wantExternalLink: "[日本語のテスト](テスト.md)",
+		},
+		{
+			name:             "shorthand format obsidianurl",
+			root:             "shorthand_format_obsidianurl",
+			displayName:      "shorthand",
+			ref:              "obsidian://vault/my_vault/test",
+			wantExternalLink: "[shorthand](test.md)",
+		},
 	}
 
 	for _, tt := range cases {
