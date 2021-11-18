@@ -1,8 +1,8 @@
-# test source file <<>>
+# test source file <<  >>
 Let's compare `obsidian.md` and `output.md`
 
 ## Tags
-Tags will be copied to `tags` field in front matter and will be removed. <<>> <- there is a tag in src.
+Tags will be copied to `tags` field in front matter and will be removed. <<  >> <- there is a tag in src.
 
 ## Not tags
 Tags are escaped in the following.
