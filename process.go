@@ -66,7 +66,7 @@ func handleErr(path string, err error) (public error, debug error) {
 		return public, debug
 	}
 
-	if ee.Kind() >= convert.ERR_KIND_UNEXPECTED {
+	if ee.Kind() == convert.ERR_KIND_UNEXPECTED {
 		public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
 		debug = fmt.Errorf("[FATAL] path: %s, around line: %d | undefined kind of ErrTransform: ErrTransform: %w", path, line, ee)
 		return public, debug

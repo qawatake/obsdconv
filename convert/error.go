@@ -36,10 +36,10 @@ func newErrConvert(cause error) ErrConvert {
 type ErrKind uint
 
 const (
-	ERR_KIND_INVALID_INTERNAL_LINK_CONTENT ErrKind = iota
+	ERR_KIND_UNEXPECTED ErrKind = iota
+	ERR_KIND_INVALID_INTERNAL_LINK_CONTENT
 	ERR_KIND_NO_REF_SPECIFIED_IN_OBSIDIAN_URL
 	ERR_KIND_UNEXPECTED_HREF
-	ERR_KIND_UNEXPECTED
 )
 
 type errTransformImpl struct {
