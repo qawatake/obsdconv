@@ -249,35 +249,74 @@ func ScanMathBlock(raw []rune, ptr int) (advance int) {
 	}
 }
 
-func ScanCodeBlock(raw []rune, ptr int) (advance int) {
+func scanInlineCodeBlock(raw []rune, ptr int) (advance int) {
 	if !unescaped(raw, ptr, "```") {
 		return 0
 	}
-	length := len(raw[ptr:]) - len([]rune(strings.TrimLeft(string(raw[ptr:]), "`")))
-	cur := ptr + length
+
+	openingLength := scanRepeat(raw, ptr, "`")
+	cur := ptr + openingLength
 	adv := indexInRunes(raw[cur:], "```")
 	if adv < 0 {
 		return len(raw) - ptr
 	}
 	cur += adv // closing の "```" の最初の "`"
-	closingLength := len(raw[cur:]) - len([]rune(strings.TrimLeft(string(raw[cur:]), "`")))
 
-	// inline の場合は opening bracket と closing bracket は同じ長さでなければならない
-	if !strings.ContainsRune(string(raw[ptr:cur+closingLength]), '\n') {
-		if length != closingLength {
-			return 0
-		} else {
-			return cur + closingLength - ptr
-		}
-	} else { // 複数行の場合は, closing bracket の長さは opening bracket の長さ以上でなければいけない
-		adv := indexInRunes(raw[cur:], strings.Repeat("`", length))
+	// inline かどうかチェック
+	if strings.ContainsRune(string(raw[ptr:cur]), '\n') {
+		return 0
+	}
+
+	// opening bracket と closing bracket は同じ長さでなければならない
+	closingLength := scanRepeat(raw, cur, "`")
+	if openingLength != closingLength {
+		return 0
+	}
+
+	return cur + closingLength - ptr
+}
+
+func scanMultilineCodeBlock(raw []rune, ptr int) (advance int) {
+	if !unescaped(raw, ptr, "```") {
+		return 0
+	}
+
+	openingLength := scanRepeat(raw, ptr, "`")
+	cur := ptr + openingLength
+	adv := indexInRunes(raw[cur:], "```")
+	if adv < 0 {
+		return len(raw) - ptr
+	}
+	cur += adv // closing の "```" の最初の "`"
+
+	if !strings.ContainsRune(string(raw[ptr:cur]), '\n') {
+		return 0
+	}
+
+	for {
+		adv = indexInRunes(raw[cur:], strings.Repeat("`", openingLength))
 		if adv < 0 {
 			return len(raw) - ptr
 		}
 		cur += adv
-		closingLength := len(raw[cur:]) - len([]rune(strings.TrimLeft(string(raw[cur:]), "`")))
-		return cur + closingLength - ptr
+		closingLength := scanRepeat(raw, cur, "`")
+
+		if precededBy(raw, cur, []string{"\n"}) {
+			cur += closingLength // closing の "```" の直後 ("`" の個数は3個以上の不定)
+			return cur - ptr
+		}
+		cur += closingLength
 	}
+}
+
+func ScanCodeBlock(raw []rune, ptr int) (advance int) {
+	if advance := scanInlineCodeBlock(raw, ptr); advance > 0 {
+		return advance
+	}
+	if advance := scanMultilineCodeBlock(raw, ptr); advance > 0 {
+		return advance
+	}
+	return 0
 }
 
 func ScanHeader(raw []rune, ptr int) (advance int, level int, headertext string) {

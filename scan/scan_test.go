@@ -639,72 +639,112 @@ func TestScanMathBlock(t *testing.T) {
 	}
 }
 
-func TestScanCodeBlock(t *testing.T) {
+func TestScanInlineCodeBlock(t *testing.T) {
 	cases := []struct {
-		name   string
-		argRaw []rune
-		argPtr int
-		want   int
+		name string
+		raw  []rune
+		ptr  int
+		want int
 	}{
 		{
-			name:   "simple",
-			argRaw: []rune("```\nf(x)=x\n```"),
-			argPtr: 0,
-			want:   14,
+			name: "matched brackets",
+			raw:  []rune("````f(x)=x````"),
+			ptr:  0,
+			want: 14,
 		},
 		{
-			name:   "long bracket",
-			argRaw: []rune("````\nf(x)=x\n````"),
-			argPtr: 0,
-			want:   16,
+			name: "longer closing brackets",
+			raw:  []rune("```f(x)=x````"),
+			ptr:  0,
+			want: 0,
 		},
 		{
-			name:   "longer closing",
-			argRaw: []rune("```\nf(x)=x\n````"),
-			argPtr: 0,
-			want:   15,
+			name: "longer opening brackets",
+			raw:  []rune("````f(x)=x```"),
+			ptr:  0,
+			want: 0,
 		},
 		{
-			name:   "no closing",
-			argRaw: []rune("```\nf(x)=x\n"),
-			argPtr: 0,
-			want:   11,
+			name: "no closing brackets",
+			raw:  []rune("```f(x)=x"),
+			ptr:  0,
+			want: 9,
 		},
 		{
-			name:   "inline with matched brackets",
-			argRaw: []rune("````f(x)=x````"),
-			argPtr: 0,
-			want:   14,
+			name: "escaped opening brackets",
+			raw:  []rune("\\```f(x)=x```"),
+			ptr:  1,
+			want: 0,
 		},
 		{
-			name:   "inline with longer closing brackets",
-			argRaw: []rune("```f(x)=x````"),
-			argPtr: 0,
-			want:   0,
-		},
-		{
-			name:   "inline with longer opening brackets",
-			argRaw: []rune("````f(x)=x```"),
-			argPtr: 0,
-			want:   0,
-		},
-		{
-			name:   "escaped",
-			argRaw: []rune("\\```\nf(x)=x\n```"),
-			argPtr: 0,
-			want:   0,
-		},
-		{
-			name:   "sandwitch",
-			argRaw: []rune("````\n```\nf(x)=x\n````"),
-			argPtr: 0,
-			want:   20,
+			name: "seemingly escaped closing brackets",
+			raw:  []rune("```f(x)=x\\```"),
+			ptr:  0,
+			want: 13,
 		},
 	}
 
 	for _, tt := range cases {
-		if got := ScanCodeBlock(tt.argRaw, tt.argPtr); got != tt.want {
-			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
+		if got := scanInlineCodeBlock(tt.raw, tt.ptr); got != tt.want {
+			t.Errorf("[ERROR | %s] got: %d, want: %d", tt.name, got, tt.want)
+		}
+	}
+}
+
+func TestScanMultilineCodeBlock(t *testing.T) {
+	cases := []struct {
+		name string
+		raw  []rune
+		ptr  int
+		want int
+	}{
+		{
+			name: "simple",
+			raw:  []rune("```\nf(x)=x\n```"),
+			ptr:  0,
+			want: 14,
+		},
+		{
+			name: "long bracket",
+			raw:  []rune("````\nf(x)=x\n````"),
+			ptr:  0,
+			want: 16,
+		},
+		{
+			name: "longer closing",
+			raw:  []rune("```\nf(x)=x\n````"),
+			ptr:  0,
+			want: 15,
+		},
+		{
+			name: "no closing",
+			raw:  []rune("```\nf(x)=x\n"),
+			ptr:  0,
+			want: 11,
+		},
+		{
+			name: "escaped",
+			raw:  []rune("\\```\nf(x)=x\n```"),
+			ptr:  0,
+			want: 0,
+		},
+		{
+			name: "sandwitch",
+			raw:  []rune("````\n```\nf(x)=x\n````"),
+			ptr:  0,
+			want: 20,
+		},
+		{
+			name: "indented closing",
+			raw: []rune("```\nf(x)=x\n\t```\n```"),
+			ptr: 0,
+			want: 19,
+		},
+	}
+
+	for _, tt := range cases {
+		if got := scanMultilineCodeBlock(tt.raw, tt.ptr); got != tt.want {
+			t.Errorf("[ERROR | %s] got: %d, want: %d with raw: %q", tt.name, got, tt.want, string(tt.raw))
 		}
 	}
 }
