@@ -4,57 +4,57 @@ import "testing"
 
 func TestScanTag(t *testing.T) {
 	cases := []struct {
-		argRaw      []rune
-		argPtr      int
+		raw         []rune
+		ptr         int
 		wantAdvance int
 		wantTag     string
 	}{
 		{
-			argRaw:      []rune("#todo"),
-			argPtr:      0,
+			raw:         []rune("#todo"),
+			ptr:         0,
 			wantAdvance: 5,
 			wantTag:     "todo",
 		},
 		{
-			argRaw:      []rune("#_todo"),
-			argPtr:      0,
+			raw:         []rune("#_todo"),
+			ptr:         0,
 			wantAdvance: 6,
 			wantTag:     "_todo",
 		},
 		{
-			argRaw:      []rune("# todo"),
-			argPtr:      0,
+			raw:         []rune("# todo"),
+			ptr:         0,
 			wantAdvance: 0,
 			wantTag:     "",
 		},
 		{
-			argRaw:      []rune("#\ttodo"),
-			argPtr:      0,
+			raw:         []rune("#\ttodo"),
+			ptr:         0,
 			wantAdvance: 0,
 			wantTag:     "",
 		},
 		{
-			argRaw:      []rune("\\#todo"),
-			argPtr:      1,
+			raw:         []rune("\\#todo"),
+			ptr:         1,
 			wantAdvance: 0,
 			wantTag:     "",
 		},
 		{
-			argRaw:      []rune("##todo"),
-			argPtr:      0,
+			raw:         []rune("##todo"),
+			ptr:         0,
 			wantAdvance: 0,
 			wantTag:     "",
 		},
 		{
-			argRaw:      []rune("#book/comic"),
-			argPtr:      0,
+			raw:         []rune("#book/comic"),
+			ptr:         0,
 			wantAdvance: 11,
 			wantTag:     "book/comic",
 		},
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotTag := ScanTag(tt.argRaw, tt.argPtr)
+		gotAdvance, gotTag := ScanTag(tt.raw, tt.ptr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR] got: %v, want: %v", gotAdvance, tt.wantAdvance)
 		}
@@ -66,29 +66,29 @@ func TestScanTag(t *testing.T) {
 
 func TestScanRepeat(t *testing.T) {
 	cases := []struct {
-		argRaw    []rune
+		raw       []rune
 		argSubstr string
 		want      int
 	}{
 		{
-			argRaw:    []rune("###x"),
+			raw:       []rune("###x"),
 			argSubstr: "#",
 			want:      3,
 		},
 		{
-			argRaw:    []rune("----"),
+			raw:       []rune("----"),
 			argSubstr: "-",
 			want:      4,
 		},
 		{
-			argRaw:    []rune("$$x$$"),
+			raw:       []rune("$$x$$"),
 			argSubstr: "$",
 			want:      2,
 		},
 	}
 
 	for _, tt := range cases {
-		if got := ScanRepeat(tt.argRaw, 0, tt.argSubstr); got != tt.want {
+		if got := ScanRepeat(tt.raw, 0, tt.argSubstr); got != tt.want {
 			t.Errorf("[ERROR] got: %v, want: %v", got, tt.want)
 		}
 	}
@@ -96,69 +96,69 @@ func TestScanRepeat(t *testing.T) {
 
 func TestScanInlineMath(t *testing.T) {
 	cases := []struct {
-		name   string
-		argRaw []rune
-		argPtr int
-		want   int
+		name string
+		raw  []rune
+		ptr  int
+		want int
 	}{
 		{
-			name:   "simple",
-			argRaw: []rune("$x$"),
-			argPtr: 0,
-			want:   3,
+			name: "simple",
+			raw:  []rune("$x$"),
+			ptr:  0,
+			want: 3,
 		},
 		{
-			name:   "followed by space",
-			argRaw: []rune("$ x$"),
-			argPtr: 0,
-			want:   0,
+			name: "followed by space",
+			raw:  []rune("$ x$"),
+			ptr:  0,
+			want: 0,
 		},
 		{
-			name:   "preceded by space",
-			argRaw: []rune("$x $"),
-			argPtr: 0,
-			want:   0,
+			name: "preceded by space",
+			raw:  []rune("$x $"),
+			ptr:  0,
+			want: 0,
 		},
 		{
-			name:   "preceded \\n",
-			argRaw: []rune("$x\n$"),
-			argPtr: 0,
-			want:   4,
+			name: "preceded \\n",
+			raw:  []rune("$x\n$"),
+			ptr:  0,
+			want: 4,
 		},
 		{
-			name:   "preceded \\n\\n",
-			argRaw: []rune("$x\n\n$"),
-			argPtr: 0,
-			want:   0,
+			name: "preceded \\n\\n",
+			raw:  []rune("$x\n\n$"),
+			ptr:  0,
+			want: 0,
 		},
 		{
-			name:   "escaped",
-			argRaw: []rune("\\$x$"),
-			argPtr: 1,
-			want:   0,
+			name: "escaped",
+			raw:  []rune("\\$x$"),
+			ptr:  1,
+			want: 0,
 		},
 		{
-			name:   "no closing",
-			argRaw: []rune("$x"),
-			argPtr: 0,
-			want:   0,
+			name: "no closing",
+			raw:  []rune("$x"),
+			ptr:  0,
+			want: 0,
 		},
 		{
-			name:   "include escaped $",
-			argRaw: []rune("$#todo\\$$"),
-			argPtr: 0,
-			want:   9,
+			name: "include escaped $",
+			raw:  []rune("$#todo\\$$"),
+			ptr:  0,
+			want: 9,
 		},
 		{
-			name:   "empty",
-			argRaw: []rune("$$"),
-			argPtr: 0,
-			want:   0,
+			name: "empty",
+			raw:  []rune("$$"),
+			ptr:  0,
+			want: 0,
 		},
 	}
 
 	for _, tt := range cases {
-		if got := ScanInlineMath(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := ScanInlineMath(tt.raw, tt.ptr); got != tt.want {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -166,51 +166,51 @@ func TestScanInlineMath(t *testing.T) {
 
 func TestScanInlineCode(t *testing.T) {
 	cases := []struct {
-		name   string
-		argRaw []rune
-		argPtr int
-		want   int
+		name string
+		raw  []rune
+		ptr  int
+		want int
 	}{
 		{
-			name:   "simple",
-			argRaw: []rune("`#todo`"),
-			argPtr: 0,
-			want:   7,
+			name: "simple",
+			raw:  []rune("`#todo`"),
+			ptr:  0,
+			want: 7,
 		},
 		{
-			name:   "backslashed closing",
-			argRaw: []rune("`#todo\\`"),
-			argPtr: 0,
-			want:   8,
+			name: "backslashed closing",
+			raw:  []rune("`#todo\\`"),
+			ptr:  0,
+			want: 8,
 		},
 		{
-			name:   "escaped opening",
-			argRaw: []rune("\\`#todo`"),
-			argPtr: 1,
-			want:   0,
+			name: "escaped opening",
+			raw:  []rune("\\`#todo`"),
+			ptr:  1,
+			want: 0,
 		},
 		{
-			name:   "preceded by \\n",
-			argRaw: []rune("`\nx\n`"),
-			argPtr: 0,
-			want:   5,
+			name: "preceded by \\n",
+			raw:  []rune("`\nx\n`"),
+			ptr:  0,
+			want: 5,
 		},
 		{
-			name:   "preceded by \\n\\n",
-			argRaw: []rune("`x\n\n`"),
-			argPtr: 0,
-			want:   0,
+			name: "preceded by \\n\\n",
+			raw:  []rune("`x\n\n`"),
+			ptr:  0,
+			want: 0,
 		},
 		{
-			name:   "no closing",
-			argRaw: []rune("`x"),
-			argPtr: 0,
-			want:   0,
+			name: "no closing",
+			raw:  []rune("`x"),
+			ptr:  0,
+			want: 0,
 		},
 	}
 
 	for _, tt := range cases {
-		if got := ScanInlineCode(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := ScanInlineCode(tt.raw, tt.ptr); got != tt.want {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -219,50 +219,50 @@ func TestScanInlineCode(t *testing.T) {
 func TestScanInternalLink(t *testing.T) {
 	cases := []struct {
 		name        string
-		argRaw      []rune
-		argPtr      int
+		raw         []rune
+		ptr         int
 		wantAdvance int
 		wantContent string
 	}{
 		{
 			name:        "simple",
-			argRaw:      []rune("[[ #todo ]]"),
-			argPtr:      0,
+			raw:         []rune("[[ #todo ]]"),
+			ptr:         0,
 			wantAdvance: 11,
 			wantContent: "#todo",
 		},
 		{
 			name:        "empty",
-			argRaw:      []rune("[[]]"),
-			argPtr:      0,
+			raw:         []rune("[[]]"),
+			ptr:         0,
 			wantAdvance: 0,
 			wantContent: "",
 		},
 		{
 			name:        "only spaces",
-			argRaw:      []rune("[[ \t]]"),
-			argPtr:      0,
+			raw:         []rune("[[ \t]]"),
+			ptr:         0,
 			wantAdvance: 6,
 			wantContent: "",
 		},
 		{
 			name:        "include \\n",
-			argRaw:      []rune("[[x\n]]"),
-			argPtr:      0,
+			raw:         []rune("[[x\n]]"),
+			ptr:         0,
 			wantAdvance: 0,
 			wantContent: "",
 		},
 		{
 			name:        "escaped",
-			argRaw:      []rune("\\[[x]]"),
-			argPtr:      1,
+			raw:         []rune("\\[[x]]"),
+			ptr:         1,
 			wantAdvance: 0,
 			wantContent: "",
 		},
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotContent := ScanInternalLink(tt.argRaw, tt.argPtr)
+		gotAdvance, gotContent := ScanInternalLink(tt.raw, tt.ptr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
 		}
@@ -467,57 +467,57 @@ func TestScanExternalLink(t *testing.T) {
 
 func TestScanComment(t *testing.T) {
 	cases := []struct {
-		name   string
-		argRaw []rune
-		argPtr int
-		want   int
+		name string
+		raw  []rune
+		ptr  int
+		want int
 	}{
 		{
-			name:   "simple",
-			argRaw: []rune("%%x%%"),
-			argPtr: 0,
-			want:   5,
+			name: "simple",
+			raw:  []rune("%%x%%"),
+			ptr:  0,
+			want: 5,
 		},
 		{
-			name:   "long bracket",
-			argRaw: []rune("%%%x%%%"),
-			argPtr: 0,
-			want:   7,
+			name: "long bracket",
+			raw:  []rune("%%%x%%%"),
+			ptr:  0,
+			want: 7,
 		},
 		{
-			name:   "longer closing",
-			argRaw: []rune("%%x%%%"),
-			argPtr: 0,
-			want:   5,
+			name: "longer closing",
+			raw:  []rune("%%x%%%"),
+			ptr:  0,
+			want: 5,
 		},
 		{
-			name:   "longer closing with \\n",
-			argRaw: []rune("%%\nx\n%%%"),
-			argPtr: 0,
-			want:   7,
+			name: "longer closing with \\n",
+			raw:  []rune("%%\nx\n%%%"),
+			ptr:  0,
+			want: 7,
 		},
 		{
-			name:   "escaped closing",
-			argRaw: []rune("%%x\\%%"),
-			argPtr: 0,
-			want:   6,
+			name: "seemingly escaped closing",
+			raw:  []rune("%%x\\%%"),
+			ptr:  0,
+			want: 6,
 		},
 		{
-			name:   "escaped opening",
-			argRaw: []rune("\\%%x%%"),
-			argPtr: 1,
-			want:   0,
+			name: "escaped opening",
+			raw:  []rune("\\%%x%%"),
+			ptr:  1,
+			want: 0,
 		},
 		{
-			name:   "no closing",
-			argRaw: []rune("%%x"),
-			argPtr: 0,
-			want:   3,
+			name: "no closing",
+			raw:  []rune("%%x"),
+			ptr:  0,
+			want: 3,
 		},
 	}
 
 	for _, tt := range cases {
-		if got := ScanComment(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := ScanComment(tt.raw, tt.ptr); got != tt.want {
 			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -526,42 +526,42 @@ func TestScanComment(t *testing.T) {
 func TestValidMathBlockClosing(t *testing.T) {
 	cases := []struct {
 		name          string
-		argRaw        []rune
+		raw           []rune
 		argOpeningPtr int
 		argClosingPtr int
 		want          bool
 	}{
 		{
 			name:          "escaped",
-			argRaw:        []rune("$$\\$$"),
+			raw:           []rune("$$\\$$"),
 			argOpeningPtr: 0,
 			argClosingPtr: 3,
 			want:          false,
 		},
 		{
 			name:          "no remaining",
-			argRaw:        []rune("$$\nx\n$$"),
+			raw:           []rune("$$\nx\n$$"),
 			argOpeningPtr: 0,
 			argClosingPtr: 5,
 			want:          true,
 		},
 		{
 			name:          "only spaces and \\n are remaining",
-			argRaw:        []rune("$$\nx\n$$   \n\nxxxx"),
+			raw:           []rune("$$\nx\n$$   \n\nxxxx"),
 			argOpeningPtr: 0,
 			argClosingPtr: 5,
 			want:          true,
 		},
 		{
 			name:          "ramaining \\t or letter or number or...",
-			argRaw:        []rune("$$\nx\n$$\t\nx"),
+			raw:           []rune("$$\nx\n$$\t\nx"),
 			argOpeningPtr: 0,
 			argClosingPtr: 3,
 			want:          false,
 		},
 		{
 			name:          "inline",
-			argRaw:        []rune("$$x$$\t"),
+			raw:           []rune("$$x$$\t"),
 			argOpeningPtr: 0,
 			argClosingPtr: 3,
 			want:          true,
@@ -569,7 +569,7 @@ func TestValidMathBlockClosing(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := validMathBlockClosing(tt.argRaw, tt.argOpeningPtr, tt.argClosingPtr); got != tt.want {
+		if got := validMathBlockClosing(tt.raw, tt.argOpeningPtr, tt.argClosingPtr); got != tt.want {
 			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -577,63 +577,63 @@ func TestValidMathBlockClosing(t *testing.T) {
 
 func TestScanMathBlock(t *testing.T) {
 	cases := []struct {
-		name   string
-		argRaw []rune
-		argPtr int
-		want   int
+		name string
+		raw  []rune
+		ptr  int
+		want int
 	}{
 		{
-			name:   "simple",
-			argRaw: []rune("$$\nx\n$$"),
-			argPtr: 0,
-			want:   7,
+			name: "simple",
+			raw:  []rune("$$\nx\n$$"),
+			ptr:  0,
+			want: 7,
 		},
 		{
-			name:   "inline",
-			argRaw: []rune("$$x$$"),
-			argPtr: 0,
-			want:   5,
+			name: "inline",
+			raw:  []rune("$$x$$"),
+			ptr:  0,
+			want: 5,
 		},
 		{
-			name:   "escaped opening",
-			argRaw: []rune("\\$$x$$"),
-			argPtr: 1,
-			want:   0,
+			name: "escaped opening",
+			raw:  []rune("\\$$x$$"),
+			ptr:  1,
+			want: 0,
 		},
 		{
-			name:   "escaped closing",
-			argRaw: []rune("$$x\\$$"),
-			argPtr: 0,
-			want:   0,
+			name: "escaped closing",
+			raw:  []rune("$$x\\$$"),
+			ptr:  0,
+			want: 0,
 		},
 		{
-			name:   "preceded by \\n and followed by other than space or \\n",
-			argRaw: []rune("$$x\n$$\t$$"),
-			argPtr: 0,
-			want:   9,
+			name: "preceded by \\n and followed by other than space or \\n",
+			raw:  []rune("$$x\n$$\t$$"),
+			ptr:  0,
+			want: 9,
 		},
 		{
-			name:   "inline and followed by other than space or \\n",
-			argRaw: []rune("$$x$$x"),
-			argPtr: 0,
-			want:   5,
+			name: "inline and followed by other than space or \\n",
+			raw:  []rune("$$x$$x"),
+			ptr:  0,
+			want: 5,
 		},
 		{
-			name:   "no closing but ended with \\n",
-			argRaw: []rune("$$x\n"),
-			argPtr: 0,
-			want:   4,
+			name: "no closing but ended with \\n",
+			raw:  []rune("$$x\n"),
+			ptr:  0,
+			want: 4,
 		},
 		{
-			name:   "no closing and ended with other than \\n",
-			argRaw: []rune("$$x"),
-			argPtr: 0,
-			want:   0,
+			name: "no closing and ended with other than \\n",
+			raw:  []rune("$$x"),
+			ptr:  0,
+			want: 0,
 		},
 	}
 
 	for _, tt := range cases {
-		if got := ScanMathBlock(tt.argRaw, tt.argPtr); got != tt.want {
+		if got := ScanMathBlock(tt.raw, tt.ptr); got != tt.want {
 			t.Errorf("[ERROR | %v] got: %v, want: %v", tt.name, got, tt.want)
 		}
 	}
@@ -736,8 +736,8 @@ func TestScanMultilineCodeBlock(t *testing.T) {
 		},
 		{
 			name: "indented closing",
-			raw: []rune("```\nf(x)=x\n\t```\n```"),
-			ptr: 0,
+			raw:  []rune("```\nf(x)=x\n\t```\n```"),
+			ptr:  0,
 			want: 19,
 		},
 	}
