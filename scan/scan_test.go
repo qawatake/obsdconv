@@ -94,7 +94,7 @@ func TestScanRepeat(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if got := ScanRepeat(tt.raw, 0, tt.argSubstr); got != tt.want {
+		if got := scanRepeat(tt.raw, 0, tt.argSubstr); got != tt.want {
 			t.Errorf("[ERROR] got: %v, want: %v", got, tt.want)
 		}
 	}

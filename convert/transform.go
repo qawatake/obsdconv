@@ -17,16 +17,6 @@ func TransformNone(raw []rune, ptr int) (advance int, tobewritten []rune, err er
 	return 1, raw[ptr : ptr+1], nil
 }
 
-func TransformRepeatingTagsFunc() TransformerFunc {
-	return MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
-		advance = scan.ScanRepeat(raw, ptr, "#")
-		if advance <= 1 {
-			return 0
-		}
-		return advance
-	})
-}
-
 func TransformInternalLinkFunc(t InternalLinkTransformer) TransformerFunc {
 	return func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance, content := scan.ScanInternalLink(raw, ptr)

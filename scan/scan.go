@@ -50,10 +50,6 @@ func ScanInlineMath(raw []rune, ptr int) (advance int) {
 	return 0
 }
 
-func ScanRepeat(raw []rune, ptr int, substr string) (advance int) {
-	return scanRepeat(raw, ptr, substr)
-}
-
 func ScanTag(raw []rune, ptr int) (advance int, tag string) {
 	if !(unescaped(raw, ptr, "#") && len(raw[ptr:]) > 1) {
 		return 0, ""
