@@ -102,11 +102,11 @@ func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	flagset.BoolVar(&flags.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
 	flagset.BoolVar(&flags.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
 	flagset.BoolVar(&flags.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
-	flagset.BoolVar(&flags.publishable, FLAG_PUBLISHABLE, false, "publish: true -> draft: false, publish: false -> draft: true, no publish field -> draft: true. If draft explicitly specified, then leave it as is.")
+	flagset.BoolVar(&flags.publishable, FLAG_PUBLISHABLE, false, "convert only files with publish: true or draft: false. For files with publish: true, add draft: false.")
 	flagset.BoolVar(&flags.rmH1, FLAG_REMOVE_H1, false, "remove H1")
 	flagset.BoolVar(&flags.strictref, FLAG_STRICT_REF, false, fmt.Sprintf("return error when ref target is not found. available only when %s is on", FLAG_CONVERT_LINKS))
 	flagset.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
-	flagset.BoolVar(&flags.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -pub -strictref")
+	flagset.BoolVar(&flags.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -strictref")
 	flagset.BoolVar(&flags.ver, FLAG_VERSION, false, "display the version currently installed")
 	flagset.BoolVar(&flags.debug, FLAG_DEBUG, false, "display error message for developers")
 }
@@ -132,7 +132,6 @@ func setFlags(flagset *flag.FlagSet, flags *flagBundle) {
 		flags.rmtag = true
 		flags.link = true
 		flags.cmmt = true
-		flags.publishable = true
 		flags.strictref = true
 	}
 

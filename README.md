@@ -49,8 +49,9 @@ flag | meaning | \*
 `cmmt` | remove comment blocks | optional
 `pub` | convert only files with `publish: true` or `draft: false`. For files with `publish: true`, add `draft: false`. | optional
 `rmh1` | remove H1 | optional
+`strictref` | return error when ref target is not found. available only when `link` is on | optional
 `obs` | = `-cptag -title -alias` | optional
-`std` | = `-cptag -title -alias -rmtag -link -cmmt -pub` | optional
+`std` | = `-cptag -title -alias -rmtag -link -cmmt -strictref` | optional
 `verion` | display the version currently installed | optional
 `debug` | display error messages for developers | optional
 
