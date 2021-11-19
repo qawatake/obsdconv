@@ -191,7 +191,7 @@ func newExternalLinkTransformerImpl(db PathDB) *ExternalLinkTransformerImpl {
 func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref string) (externalLink string, err error) {
 	u, err := url.Parse(ref)
 	if err != nil {
-		return "", newErrTransform(ERR_KIND_UNEXPECTED, fmt.Sprintf("url.Parse failed: %v", err))
+		return "", newErrTransformf(ERR_KIND_UNEXPECTED, "url.Parse failed: %v", err)
 	}
 
 	// ref = 通常のリンク
@@ -206,7 +206,7 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 		q := u.Query()
 		fileId := q.Get("file")
 		if fileId == "" {
-			return "", newErrTransform(ERR_KIND_NO_REF_SPECIFIED_IN_OBSIDIAN_URL, fmt.Sprintf("no ref file specified in obsidian url: %s", ref))
+			return "", newErrTransformf(ERR_KIND_NO_REF_SPECIFIED_IN_OBSIDIAN_URL, "no ref file specified in obsidian url: %s", ref)
 		}
 		path, err := t.Get(fileId)
 		if err != nil {
@@ -221,7 +221,7 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 	if u.Scheme == "obsidian" && u.Host == "vault" {
 		segments := strings.Split(u.Path, "/")
 		if len(segments) != 3 {
-			return "", newErrTransform(ERR_KIND_INVALID_SHORTHAND_OBSIDIAN_URL, fmt.Sprintf("invalid shorthand obsidian url: %s", ref))
+			return "", newErrTransformf(ERR_KIND_INVALID_SHORTHAND_OBSIDIAN_URL, "invalid shorthand obsidian url: %s", ref)
 		}
 		fileId := segments[2]
 		path, err := t.Get(fileId)
@@ -250,5 +250,5 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 		return fmt.Sprintf("[%s](%s)", displayName, newref), nil
 	}
 
-	return "", newErrTransform(ERR_KIND_UNEXPECTED_HREF, fmt.Sprintf("unexpected href: %s", ref))
+	return "", newErrTransformf(ERR_KIND_UNEXPECTED_HREF, "unexpected href: %s", ref)
 }

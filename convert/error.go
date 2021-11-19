@@ -1,5 +1,7 @@
 package convert
 
+import "fmt"
+
 type ErrConvert interface {
 	error
 	Line() int
@@ -61,6 +63,9 @@ func (e *errTransformImpl) Kind() ErrKind {
 	return e.kind
 }
 
-func newErrTransform(kind ErrKind, msg string) *errTransformImpl {
-	return &errTransformImpl{kind: kind, message: msg}
+func newErrTransformf(kind ErrKind, format string, a ...interface{}) *errTransformImpl {
+	return &errTransformImpl{
+		kind:    kind,
+		message: fmt.Sprintf(format, a...),
+	}
 }

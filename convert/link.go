@@ -69,7 +69,7 @@ func (f *pathDbImpl) Get(fileId string) (path string, err error) {
 	}
 	path, err = filepath.Rel(f.vault, bestmatch)
 	if err != nil {
-		return "", newErrTransform(ERR_KIND_UNEXPECTED, fmt.Sprintf("filepath.Rel failed: %v", err))
+		return "", newErrTransformf(ERR_KIND_UNEXPECTED, "filepath.Rel failed: %v", err)
 	}
 	return filepath.ToSlash(path), nil
 }
@@ -108,7 +108,7 @@ func (w *pathDBWrapperImplReturningNotFoundPathError) Get(fileId string) (path s
 		return "", err
 	}
 	if path == "" {
-		return "", newErrTransform(ERR_KIND_PATH_NOT_FOUND, fmt.Sprintf("failed to resolve ref \"%s\"", fileId))
+		return "", newErrTransformf(ERR_KIND_PATH_NOT_FOUND, "failed to resolve ref \"%s\"", fileId)
 	}
 	return path, nil
 }
@@ -136,7 +136,7 @@ func splitFragments(identifier string) (fileId string, fragments []string, err e
 	}
 	fileId = strs[0]
 	if len(strings.TrimRight(fileId, " \t")) != len(fileId) {
-		return "", nil, newErrTransform(ERR_KIND_INVALID_INTERNAL_LINK_CONTENT, fmt.Sprintf("invalid internal link content: %q", identifier))
+		return "", nil, newErrTransformf(ERR_KIND_INVALID_INTERNAL_LINK_CONTENT, "invalid internal link content: %q", identifier)
 	}
 
 	fragments = make([]string, len(strs)-1)
