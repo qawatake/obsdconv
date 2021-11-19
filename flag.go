@@ -94,8 +94,8 @@ func newMainErr(kind mainErrKind) mainErr {
 }
 
 func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
-	flagset.StringVar(&flags.src, FLAG_SOURCE, ".", "source directory")
-	flagset.StringVar(&flags.dst, FLAG_DESTINATION, ".", "destination directory")
+	flagset.StringVar(&flags.src, FLAG_SOURCE, "", "source directory")
+	flagset.StringVar(&flags.dst, FLAG_DESTINATION, "", "destination directory")
 	flagset.BoolVar(&flags.rmtag, FLAG_REMOVE_TAGS, false, "remove tag")
 	flagset.BoolVar(&flags.cptag, FLAG_COPY_TAGS, false, "copy tag to tags field of front matter")
 	flagset.BoolVar(&flags.title, FLAG_COPY_TITLE, false, "copy h1 content to title field of front matter")
