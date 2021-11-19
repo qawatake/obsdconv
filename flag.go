@@ -18,6 +18,7 @@ const (
 	FLAG_REMOVE_COMMENT = "cmmt"
 	FLAG_PUBLISHABLE    = "pub"
 	FLAG_REMOVE_H1      = "rmh1"
+	FLAG_STRICT_REF     = "strictref"
 	FLAG_OBSIDIAN_USAGE = "obs"
 	FLAG_STANDARD_USAGE = "std"
 	FLAG_VERSION        = "version"
@@ -35,6 +36,7 @@ type flagBundle struct {
 	cmmt        bool
 	publishable bool
 	rmH1        bool
+	strictref   bool
 	obs         bool
 	std         bool
 	ver         bool
@@ -42,8 +44,9 @@ type flagBundle struct {
 }
 
 var (
-	ErrFlagSourceNotSet      = fmt.Errorf("flag %s was not set", FLAG_SOURCE)
-	ErrFlagDestinationNotSet = fmt.Errorf("flag %s was not set", FLAG_DESTINATION)
+	ErrFlagSourceNotSet       = fmt.Errorf("flag %s was not set", FLAG_SOURCE)
+	ErrFlagDestinationNotSet  = fmt.Errorf("flag %s was not set", FLAG_DESTINATION)
+	ErrFlagStrictRefNeedsLink = fmt.Errorf("%s set but not %s", FLAG_STRICT_REF, FLAG_CONVERT_LINKS)
 )
 
 func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
@@ -57,8 +60,9 @@ func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	flagset.BoolVar(&flags.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
 	flagset.BoolVar(&flags.publishable, FLAG_PUBLISHABLE, false, "publish: true -> draft: false, publish: false -> draft: true, no publish field -> draft: true. If draft explicitly specified, then leave it as is.")
 	flagset.BoolVar(&flags.rmH1, FLAG_REMOVE_H1, false, "remove H1")
+	flagset.BoolVar(&flags.strictref, FLAG_STRICT_REF, false, fmt.Sprintf("return error when ref target is not found. available only when %s is on", FLAG_CONVERT_LINKS))
 	flagset.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
-	flagset.BoolVar(&flags.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -pub")
+	flagset.BoolVar(&flags.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -pub -strictref")
 	flagset.BoolVar(&flags.ver, FLAG_VERSION, false, "display the version currently installed")
 	flagset.BoolVar(&flags.debug, FLAG_DEBUG, false, "display error message for developers")
 }
@@ -91,6 +95,7 @@ func setFlags(flagset *flag.FlagSet, flags *flagBundle) error {
 		flags.link = true
 		flags.cmmt = true
 		flags.publishable = true
+		flags.strictref = true
 	}
 
 	if _, ok := setflags[FLAG_COPY_TAGS]; ok {
@@ -114,6 +119,14 @@ func setFlags(flagset *flag.FlagSet, flags *flagBundle) error {
 	if _, ok := setflags[FLAG_PUBLISHABLE]; ok {
 		flags.publishable = orgFlag.publishable
 	}
+	if _, ok := setflags[FLAG_STRICT_REF]; ok {
+		flags.strictref = orgFlag.strictref
+	}
+
+	if flags.strictref && !flags.link {
+		return ErrFlagStrictRefNeedsLink
+	}
+
 	return nil
 }
 

@@ -32,8 +32,8 @@ func TestSetFlags(t *testing.T) {
 		{
 			name: "for standard usage",
 			cmdflags: map[string]string{
-				FLAG_SOURCE:       "src",
-				FLAG_DESTINATION:  "dst",
+				FLAG_SOURCE:         "src",
+				FLAG_DESTINATION:    "dst",
 				FLAG_STANDARD_USAGE: "1",
 			},
 			wantflags: flagBundle{
@@ -44,17 +44,19 @@ func TestSetFlags(t *testing.T) {
 				title:       true,
 				alias:       true,
 				link:        true,
+				strictref:   true,
 				publishable: true,
 				cmmt:        true,
-				std:        true,
+				std:         true,
 			},
 		},
 		{
 			name: "standard usage overwritten",
 			cmdflags: map[string]string{
-				FLAG_SOURCE:       "src",
-				FLAG_DESTINATION:  "dst",
-				FLAG_REMOVE_TAGS:  "0",
+				FLAG_SOURCE:         "src",
+				FLAG_DESTINATION:    "dst",
+				FLAG_REMOVE_TAGS:    "0",
+				FLAG_STRICT_REF:     "0",
 				FLAG_STANDARD_USAGE: "1",
 			},
 			wantflags: flagBundle{
@@ -67,8 +69,9 @@ func TestSetFlags(t *testing.T) {
 				link:        true,
 				publishable: true,
 				cmmt:        true,
+				strictref:   false,
 				obs:         false,
-				std:        true,
+				std:         true,
 			},
 		},
 		{
@@ -84,6 +87,15 @@ func TestSetFlags(t *testing.T) {
 				FLAG_SOURCE: "src",
 			},
 			wantErr: ErrFlagDestinationNotSet,
+		},
+		{
+			name: fmt.Sprintf("%s flag requires %s flag", FLAG_STRICT_REF, FLAG_CONVERT_LINKS),
+			cmdflags: map[string]string{
+				FLAG_SOURCE:      "src",
+				FLAG_DESTINATION: "dst",
+				FLAG_STRICT_REF:  "1",
+			},
+			wantErr: ErrFlagStrictRefNeedsLink,
 		},
 	}
 
@@ -107,7 +119,7 @@ func TestSetFlags(t *testing.T) {
 			}
 		} else {
 			if err == nil {
-				t.Fatalf("[Fatal | %s] desirable err did not occur: %v", tt.name, tt.wantErr)
+				t.Fatalf("[Fatal | %s] expected err did not occur: %v", tt.name, tt.wantErr)
 			}
 		}
 	}

@@ -43,6 +43,10 @@ func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
 
 func newDefaultProcessor(flags *flagBundle) process.Processor {
 	db := convert.NewPathDB(flags.src)
+	if flags.strictref {
+		db = convert.WrapForReturningNotFoundPathError(db)
+	}
+
 	bc := newBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link, flags.rmH1)
 	yc := newYamlConverterImpl(flags.publishable)
 	passer := argPasserFunc(passArg)
