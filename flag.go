@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"strings"
@@ -43,11 +42,56 @@ type flagBundle struct {
 	debug       bool
 }
 
-var (
-	ErrFlagSourceNotSet       = fmt.Errorf("flag %s was not set", FLAG_SOURCE)
-	ErrFlagDestinationNotSet  = fmt.Errorf("flag %s was not set", FLAG_DESTINATION)
-	ErrFlagStrictRefNeedsLink = fmt.Errorf("%s set but not %s", FLAG_STRICT_REF, FLAG_CONVERT_LINKS)
+type mainErrKind int
+
+const (
+	MAIN_ERR_UNEXPECTED = iota + 1
+	MAIN_ERR_KIND_SOURCE_NOT_SET
+	MAIN_ERR_KIND_DESTINATION_NOT_SET
+	MAIN_ERR_KIND_STRICTREF_NEEDS_LINK
+	MAIN_ERR_KIND_INVALID_SOURCE_FORMAT
+	MAIN_ERR_KIND_INVALID_DESTINATION_FORMAT
 )
+
+type mainErr interface {
+	error
+	Kind() mainErrKind
+}
+
+type mainErrImpl struct {
+	kind    mainErrKind
+	message string
+}
+
+func (e *mainErrImpl) Error() string {
+	return e.message
+}
+
+func (e *mainErrImpl) Kind() mainErrKind {
+	return e.kind
+}
+
+func newMainErr(kind mainErrKind) mainErr {
+	err := new(mainErrImpl)
+	switch kind {
+	case MAIN_ERR_KIND_SOURCE_NOT_SET:
+		err.message = fmt.Sprintf("%s was not set", FLAG_SOURCE)
+	case MAIN_ERR_KIND_DESTINATION_NOT_SET:
+		err.message = fmt.Sprintf("%s was not set", FLAG_DESTINATION)
+	case MAIN_ERR_KIND_STRICTREF_NEEDS_LINK:
+		err.message = fmt.Sprintf("%s set but not %s", FLAG_STRICT_REF, FLAG_CONVERT_LINKS)
+	case MAIN_ERR_KIND_INVALID_SOURCE_FORMAT:
+		err.message = fmt.Sprintf("%s shouldn't begin with \"-\"", FLAG_SOURCE)
+	case MAIN_ERR_KIND_INVALID_DESTINATION_FORMAT:
+		err.message = fmt.Sprintf("%s shouldn't begin with \"-\"", FLAG_DESTINATION)
+	default:
+		err.kind = MAIN_ERR_UNEXPECTED
+		err.message = "unexpected error"
+		return err
+	}
+	err.kind = kind
+	return err
+}
 
 func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	flagset.StringVar(&flags.src, FLAG_SOURCE, ".", "source directory")
@@ -72,18 +116,12 @@ func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
 // 2. flag の値の設定
 // 	- flag.CommandLine => flag.Parse()
 //	- それ以外 => flagset.Set("フラグ名", "フラグの値を表す文字列")
-func setFlags(flagset *flag.FlagSet, flags *flagBundle) error {
+func setFlags(flagset *flag.FlagSet, flags *flagBundle) {
 	orgFlag := *flags
 	setflags := make(map[string]struct{})
 	flagset.Visit(func(f *flag.Flag) {
 		setflags[f.Name] = struct{}{}
 	})
-	if _, ok := setflags[FLAG_SOURCE]; !ok {
-		return ErrFlagSourceNotSet
-	}
-	if _, ok := setflags[FLAG_DESTINATION]; !ok {
-		return ErrFlagDestinationNotSet
-	}
 
 	if flags.obs || flags.std {
 		flags.cptag = true
@@ -122,20 +160,23 @@ func setFlags(flagset *flag.FlagSet, flags *flagBundle) error {
 	if _, ok := setflags[FLAG_STRICT_REF]; ok {
 		flags.strictref = orgFlag.strictref
 	}
-
-	if flags.strictref && !flags.link {
-		return ErrFlagStrictRefNeedsLink
-	}
-
-	return nil
 }
 
 func verifyFlags(flags *flagBundle) error {
+	if flags.src == "" {
+		return newMainErr(MAIN_ERR_KIND_SOURCE_NOT_SET)
+	}
+	if flags.dst == "" {
+		return newMainErr(MAIN_ERR_KIND_DESTINATION_NOT_SET)
+	}
 	if strings.HasPrefix(flags.src, "-") {
-		return errors.New(`src shouldn't begin with "-"`)
+		return newMainErr(MAIN_ERR_KIND_INVALID_SOURCE_FORMAT)
 	}
 	if strings.HasPrefix(flags.dst, "-") {
-		return errors.New(`dst shouldn't begin with "-"`)
+		return newMainErr(MAIN_ERR_KIND_INVALID_DESTINATION_FORMAT)
+	}
+	if flags.strictref && !flags.link {
+		return newMainErr(MAIN_ERR_KIND_STRICTREF_NEEDS_LINK)
 	}
 	return nil
 }

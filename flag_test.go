@@ -11,7 +11,6 @@ func TestSetFlags(t *testing.T) {
 		name      string
 		cmdflags  map[string]string
 		wantflags flagBundle
-		wantErr   error
 	}{
 		{
 			name: "for obsidian usage",
@@ -74,29 +73,6 @@ func TestSetFlags(t *testing.T) {
 				std:         true,
 			},
 		},
-		{
-			name: "source not specified",
-			cmdflags: map[string]string{
-				FLAG_DESTINATION: "dst",
-			},
-			wantErr: ErrFlagSourceNotSet,
-		},
-		{
-			name: "destination not specified",
-			cmdflags: map[string]string{
-				FLAG_SOURCE: "src",
-			},
-			wantErr: ErrFlagDestinationNotSet,
-		},
-		{
-			name: fmt.Sprintf("%s flag requires %s flag", FLAG_STRICT_REF, FLAG_CONVERT_LINKS),
-			cmdflags: map[string]string{
-				FLAG_SOURCE:      "src",
-				FLAG_DESTINATION: "dst",
-				FLAG_STRICT_REF:  "1",
-			},
-			wantErr: ErrFlagStrictRefNeedsLink,
-		},
 	}
 
 	for _, tt := range cases {
@@ -109,17 +85,75 @@ func TestSetFlags(t *testing.T) {
 			flagset.Set(cmdname, cmdvalue)
 		}
 
-		err := setFlags(flagset, gotflags)
-		if tt.wantErr == nil {
-			if err != nil {
-				t.Fatalf("[Fatal | %s] unexpected err occurred: %v", tt.name, err)
-			}
-			if *gotflags != tt.wantflags {
-				t.Errorf("[ERROR | %s]\n\t got: %+v,\n\twant: %+v", tt.name, *gotflags, tt.wantflags)
-			}
-		} else {
-			if err == nil {
-				t.Fatalf("[Fatal | %s] expected err did not occur: %v", tt.name, tt.wantErr)
+		setFlags(flagset, gotflags)
+		if *gotflags != tt.wantflags {
+			t.Errorf("[ERROR | %s]\n\t got: %+v,\n\twant: %+v", tt.name, *gotflags, tt.wantflags)
+		}
+	}
+}
+
+func TestVerifyFlags(t *testing.T) {
+	cases := []struct {
+		name    string
+		flags   flagBundle
+		wantErr mainErr
+	}{
+		{
+			name: "src not set",
+			flags: flagBundle{
+				src: "",
+				dst: "dst",
+			},
+			wantErr: newMainErr(MAIN_ERR_KIND_SOURCE_NOT_SET),
+		},
+		{
+			name: "dst not set",
+			flags: flagBundle{
+				src: "src",
+				dst: "",
+			},
+			wantErr: newMainErr(MAIN_ERR_KIND_DESTINATION_NOT_SET),
+		},
+		{
+			name: fmt.Sprintf("%s set but not %s", FLAG_STRICT_REF, FLAG_CONVERT_LINKS),
+			flags: flagBundle{
+				src:       "src",
+				dst:       "dst",
+				link:      false,
+				strictref: true,
+			},
+			wantErr: newMainErr(MAIN_ERR_KIND_STRICTREF_NEEDS_LINK),
+		},
+		{
+			name: "src begins with \"-\"",
+			flags: flagBundle{
+				src: "-src",
+				dst: "dst",
+			},
+			wantErr: newMainErr(MAIN_ERR_KIND_INVALID_SOURCE_FORMAT),
+		},
+		{
+			name: "dst begins with \"-\"",
+			flags: flagBundle{
+				src: "src",
+				dst: "-dst",
+			},
+			wantErr: newMainErr(MAIN_ERR_KIND_INVALID_DESTINATION_FORMAT),
+		},
+	}
+
+	for _, tt := range cases {
+		err := verifyFlags(&tt.flags)
+		if err == nil && tt.wantErr != nil {
+			t.Errorf("[ERROR | %s] expected error did not occurr with %+v", tt.name, tt.flags)
+		}
+		if err != nil && tt.wantErr == nil {
+			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
+		}
+		if err != nil && tt.wantErr != nil {
+			e, ok := err.(mainErr)
+			if !(ok && e.Kind() == tt.wantErr.Kind()) {
+				t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 			}
 		}
 	}

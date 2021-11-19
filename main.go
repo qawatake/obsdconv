@@ -25,9 +25,7 @@ func main() {
 		fmt.Printf("v%s\n", Version)
 		return
 	}
-	if err := setFlags(flag.CommandLine, &flags); err != nil {
-		log.Fatal(err)
-	}
+	setFlags(flag.CommandLine, &flags)
 	if err := verifyFlags(&flags); err != nil {
 		log.Fatal(err)
 	}
