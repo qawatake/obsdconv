@@ -24,7 +24,7 @@ func NewPathDB(vault string) PathDB {
 	db.vaultdict = make(map[string][]string)
 	filepath.Walk(vault, func(path string, info fs.FileInfo, err error) error {
 		// if vault was not found, info will be nil
-		if info ==  nil {
+		if info == nil {
 			return nil
 		}
 		if info.IsDir() {
@@ -93,6 +93,28 @@ func pathMatchScore(path string, filename string) int {
 		}
 	}
 	return lpp - cur
+}
+
+type pathDBWrapperImplReturningNotFoundPathError struct {
+	original PathDB
+}
+
+func (w *pathDBWrapperImplReturningNotFoundPathError) Get(fileId string) (path string, err error) {
+	if w.original == nil {
+		panic("original PathDB not set but used")
+	}
+	path, err = w.original.Get(fileId)
+	if err != nil {
+		return "", err
+	}
+	if path == "" {
+		return "", newErrTransform(ERR_KIND_PATH_NOT_FOUND, fmt.Sprintf("failed to resolve ref \"%s\"", fileId))
+	}
+	return path, nil
+}
+
+func WrapForReturningNotFoundPathError(original PathDB) PathDB {
+	return &pathDBWrapperImplReturningNotFoundPathError{original: original}
 }
 
 func splitDisplayName(fullname string) (identifier string, displayname string) {
