@@ -2,7 +2,6 @@
 aliases:
 - existing-alias
 - when std flag applied
-draft: false
 publish: true
 tags:
 - existing-tag
