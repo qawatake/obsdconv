@@ -350,7 +350,7 @@ func TestScanExternalLinkHead(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		gotAdvance, gotDisplayName := scanExternalLinkHead(tt.raw, tt.ptr)
+		gotAdvance, gotDisplayName := ScanExternalLinkHead(tt.raw, tt.ptr)
 		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
 		}

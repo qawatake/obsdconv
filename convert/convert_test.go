@@ -11,9 +11,26 @@ func TestTagRemover(t *testing.T) {
 		raw  []rune
 		want []rune
 	}{
-		{name: "simple", raw: []rune("# H1 #todo #obsidian\n## H2\n"), want: []rune("# H1  \n## H2\n")},
-		{name: "escaped", raw: []rune("# H1 #todo \\#obsidian\n## H2\n"), want: []rune("# H1  \\#obsidian\n## H2\n")},
-		{name: "##", raw: []rune("# H1 #todo ##obsidian\n## H2\n"), want: []rune("# H1  ##obsidian\n## H2\n")},
+		{
+			name: "simple",
+			raw:  []rune("# H1 #todo #obsidian\n## H2\n"),
+			want: []rune("# H1  \n## H2\n"),
+		},
+		{
+			name: "escaped",
+			raw:  []rune("# H1 #todo \\#obsidian\n## H2\n"),
+			want: []rune("# H1  \\#obsidian\n## H2\n"),
+		},
+		{
+			name: "##",
+			raw:  []rune("# H1 #todo ##obsidian\n## H2\n"),
+			want: []rune("# H1  ##obsidian\n## H2\n"),
+		},
+		{
+			name: "tag in external link display name",
+			raw:  []rune("[google #todo #google](https://google.com)"),
+			want: []rune("[google  ](https://google.com)"),
+		},
 	}
 
 	c := NewTagRemover()
@@ -35,9 +52,26 @@ func TestTagFinder(t *testing.T) {
 		raw      []rune
 		wantTags []string
 	}{
-		{name: "simple", raw: []rune("# H1 #todo #obsidian\n## H2\n"), wantTags: []string{"todo", "obsidian"}},
-		{name: "escaped", raw: []rune("# H1 #todo \\#obsidian\n## H2\n"), wantTags: []string{"todo"}},
-		{name: "##", raw: []rune("# H1 #todo ##obsidian\n## H2\n"), wantTags: []string{"todo"}},
+		{
+			name:     "simple",
+			raw:      []rune("# H1 #todo #obsidian\n## H2\n"),
+			wantTags: []string{"todo", "obsidian"},
+		},
+		{
+			name:     "escaped",
+			raw:      []rune("# H1 #todo \\#obsidian\n## H2\n"),
+			wantTags: []string{"todo"},
+		},
+		{
+			name:     "##",
+			raw:      []rune("# H1 #todo ##obsidian\n## H2\n"),
+			wantTags: []string{"todo"},
+		},
+		{
+			name:     "tag in external link display name",
+			raw:      []rune("[google #todo](https:google.com)"),
+			wantTags: []string{"todo"},
+		},
 	}
 
 	for _, tt := range cases {

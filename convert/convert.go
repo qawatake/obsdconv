@@ -63,10 +63,26 @@ func NewTagRemover() *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanComment))
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
-	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
 		advance, _, _, _ = scan.ScanExternalLink(raw, ptr)
-		return advance
-	}))
+		if advance == 0 {
+			return 0, nil, nil
+		}
+		tobewritten = make([]rune, 0, advance)
+		advHead, _ := scan.ScanExternalLinkHead(raw, ptr)
+		cur := ptr
+		for cur < ptr+advHead {
+			if adv, _ := scan.ScanTag(raw, cur); adv > 0 {
+				cur += adv
+				continue
+			}
+			tobewritten = append(tobewritten, raw[cur])
+			cur++
+		}
+		cur = ptr + advHead // closing の ] の直後
+		tobewritten = append(tobewritten, raw[cur:ptr+advance]...)
+		return advance, tobewritten, nil
+	})
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanInternalLink(raw, ptr)
 		return advance
@@ -94,7 +110,17 @@ func NewTagFinder(tags map[string]struct{}) *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
-		advance, _, _, _ = scan.ScanExternalLink(raw, ptr)
+		advance, displayName, _, _ := scan.ScanExternalLink(raw, ptr)
+		rns := []rune(displayName)
+		cur := 0
+		for cur < len(rns) {
+			if adv, t := scan.ScanTag(rns, cur); adv > 0 {
+				tags[t] = struct{}{}
+				cur += adv
+				continue
+			}
+			cur++
+		}
 		return advance
 	}))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {

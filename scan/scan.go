@@ -110,7 +110,7 @@ func validURI(uri string) bool {
 	return !strings.ContainsAny(uri, " \t\r\n")
 }
 
-func scanExternalLinkHead(raw []rune, ptr int) (advance int, displayName string) {
+func ScanExternalLinkHead(raw []rune, ptr int) (advance int, displayName string) {
 	if !(unescaped(raw, ptr, "[") && len(raw[ptr:]) >= 2) {
 		return 0, ""
 	}
@@ -254,7 +254,7 @@ func validExternalLinkTailContent(content string) bool {
 
 func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string, title string) {
 	cur := ptr
-	adv, displayName := scanExternalLinkHead(raw, cur)
+	adv, displayName := ScanExternalLinkHead(raw, cur)
 	if adv == 0 {
 		return 0, "", "", ""
 	}
