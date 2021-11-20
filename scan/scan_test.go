@@ -938,3 +938,37 @@ func TestScanExternalLinkVar(t *testing.T) {
 		}
 	}
 }
+
+func TestScanExternalLinkVarDef(t *testing.T) {
+	cases := []struct {
+		raw         []rune
+		ptr         int
+		wantAdvance int
+	}{
+		{},
+		{},
+	}
+
+	for _, tt := range cases {
+		if gotAdvance := scanExternalLinkVarDef(tt.raw, tt.ptr); gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR] got: %d, want: %d with raw: %s", gotAdvance, tt.wantAdvance, string(tt.raw))
+		}
+	}
+}
+
+func TestScanExternalLinkVarDefGroup(t *testing.T) {
+	cases := []struct {
+		raw         []rune
+		ptr         int
+		wantAdvance int
+	}{
+		{},
+		{},
+	}
+
+	for _, tt := range cases {
+		if gotAdvance := scanExternalLinkVarDef(tt.raw, tt.ptr); gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR] got: %d, want: %d with raw: %s", gotAdvance, tt.wantAdvance, string(tt.raw))
+		}
+	}
+}

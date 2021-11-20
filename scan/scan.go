@@ -475,3 +475,16 @@ func ScanNormalComment(raw []rune, ptr int) (advance int) {
 	cur := ptr + adv + 3
 	return cur - ptr
 }
+
+// リンク部分に [ と ] は入ってはいけない
+// リンクと行末のあとにはスペースとタブしか許されない
+func scanExternalLinkVarDef(raw []rune, ptr int) (advance int) {
+	return 0
+}
+
+// [google]:https://google.com はひとまとめのグループを形成する
+// グループ内部では改行区切り
+// グループの直前には空行が必要
+func ScanExternalLinkVarDefGroup(raw []rune, ptr int) (advance int) {
+	return 0
+}
