@@ -27,9 +27,14 @@ func TestTagRemover(t *testing.T) {
 			want: []rune("# H1  ##obsidian\n## H2\n"),
 		},
 		{
-			name: "tag in external link display name",
+			name: "tag in display name in external link",
 			raw:  []rune("[google #todo #google](https://google.com)"),
 			want: []rune("[google  ](https://google.com)"),
+		},
+		{
+			name: "tag in display name in var external link",
+			raw:  []rune("[google #todo #google][google #not_tag]"),
+			want: []rune("[google  ][google #not_tag]"),
 		},
 	}
 
@@ -68,9 +73,14 @@ func TestTagFinder(t *testing.T) {
 			wantTags: []string{"todo"},
 		},
 		{
-			name:     "tag in external link display name",
-			raw:      []rune("[google #todo](https:google.com)"),
+			name:     "tag in display name in external link",
+			raw:      []rune("[google #todo](https:google.com \"#title\")"),
 			wantTags: []string{"todo"},
+		},
+		{
+			name:     "tag in display name in var external link",
+			raw:      []rune("[google #todo #google][google #not_tag]"),
+			wantTags: []string{"todo", "google"},
 		},
 	}
 

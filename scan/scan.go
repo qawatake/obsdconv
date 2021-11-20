@@ -268,6 +268,24 @@ func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref
 	return cur - ptr, displayName, ref, title
 }
 
+func ScanExternalLinkVar(raw []rune, ptr int) (advance int) {
+	cur := ptr
+	adv, _ := ScanExternalLinkHead(raw, cur)
+	if adv == 0 {
+		return 0
+	}
+	cur += adv // 前半の closing の ] の直後
+	if cur >= len(raw) {
+		return 0
+	}
+	adv, _ = ScanExternalLinkHead(raw, cur)
+	if adv == 0 {
+		return 0
+	}
+	cur += adv // 後半の closing の ] の直後
+	return cur - ptr
+}
+
 func ScanComment(raw []rune, ptr int) (advance int) {
 	if !(unescaped(raw, ptr, "%%") && len(raw) >= 2) {
 		return 0

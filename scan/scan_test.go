@@ -910,3 +910,31 @@ func TestScanNormalComment(t *testing.T) {
 		}
 	}
 }
+
+func TestScanExternalLinkVar(t *testing.T) {
+	cases := []struct {
+		name        string
+		raw         []rune
+		ptr         int
+		wantAdvance int
+	}{
+		{
+			name:        "simple",
+			raw:         []rune("[this is google][google]"),
+			ptr:         0,
+			wantAdvance: 24,
+		},
+		{
+			name:        "] [",
+			raw:         []rune("[this is google] [google]"),
+			ptr:         0,
+			wantAdvance: 0,
+		},
+	}
+
+	for _, tt := range cases {
+		if gotAdvance := ScanExternalLinkVar(tt.raw, tt.ptr); gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR | %s] got: %d, want: %d", tt.name, gotAdvance, tt.wantAdvance)
+		}
+	}
+}

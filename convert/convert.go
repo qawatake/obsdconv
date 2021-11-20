@@ -83,6 +83,26 @@ func NewTagRemover() *Converter {
 		tobewritten = append(tobewritten, raw[cur:ptr+advance]...)
 		return advance, tobewritten, nil
 	})
+	c.Set(func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
+		advance = scan.ScanExternalLinkVar(raw, ptr)
+		if advance == 0 {
+			return 0, nil, nil
+		}
+		tobewritten = make([]rune, 0, advance)
+		advHead, _ := scan.ScanExternalLinkHead(raw, ptr)
+		cur := ptr
+		for cur < ptr+advHead {
+			if adv, _ := scan.ScanTag(raw, cur); adv > 0 {
+				cur += adv
+				continue
+			}
+			tobewritten = append(tobewritten, raw[cur])
+			cur++
+		}
+		cur = ptr + advHead // 前半の closing の ] の直後
+		tobewritten = append(tobewritten, raw[cur:ptr+advance]...)
+		return advance, tobewritten, nil
+	})
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanInternalLink(raw, ptr)
 		return advance
@@ -117,6 +137,23 @@ func NewTagFinder(tags map[string]struct{}) *Converter {
 			if adv, t := scan.ScanTag(rns, cur); adv > 0 {
 				tags[t] = struct{}{}
 				cur += adv
+				continue
+			}
+			cur++
+		}
+		return advance
+	}))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance = scan.ScanExternalLinkVar(raw, ptr)
+		if advance == 0 {
+			return 0
+		}
+		advHead, _ := scan.ScanExternalLinkHead(raw, ptr)
+		cur := ptr
+		for cur < ptr+advHead {
+			if adv, t := scan.ScanTag(raw, cur); adv > 0 {
+				cur += adv
+				tags[t] = struct{}{}
 				continue
 			}
 			cur++
