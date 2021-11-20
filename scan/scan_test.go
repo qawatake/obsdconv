@@ -360,6 +360,62 @@ func TestScanExternalLinkHead(t *testing.T) {
 	}
 }
 
+func TestScanUrl(t *testing.T) {
+	cases := []struct {
+		raw         []rune
+		wantAdvance int
+	}{
+		{
+			raw:         []rune("https://google.com "),
+			wantAdvance: 18,
+		},
+		{
+			raw:         []rune("https://google.com)"),
+			wantAdvance: 18,
+		},
+		{
+			raw:         []rune("https://google.com\n"),
+			wantAdvance: 18,
+		},
+	}
+
+	for _, tt := range cases {
+		if gotAdvance := scanURL(tt.raw, 0); gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR] got: %d, want: %d with raw: %q", gotAdvance, tt.wantAdvance, string(tt.raw))
+		}
+
+	}
+}
+
+func TestScanLinkTitle(t *testing.T) {
+	cases := []struct {
+		raw         []rune
+		wantAdvance int
+		wantTitle   string
+	}{
+		{
+			raw:         []rune(`"title"`),
+			wantAdvance: 7,
+			wantTitle:   "title",
+		},
+		{
+			raw:         []rune(`"ti\"tle"`),
+			wantAdvance: 9,
+			wantTitle:   `ti\"tle`,
+		},
+	}
+
+	for _, tt := range cases {
+		gotAdvance, gotTitle := scanLinkTitle(tt.raw, 0)
+		if gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR] got: %d, want: %d with raw: %q", gotAdvance, tt.wantAdvance, tt.raw)
+		}
+		if gotTitle != tt.wantTitle {
+			t.Errorf("[ERROR] got: %s, want: %s with raw: %q", gotTitle, tt.wantTitle, tt.raw)
+		}
+	}
+}
+
 func TestScanExternalLinkTail(t *testing.T) {
 	cases := []struct {
 		name        string
