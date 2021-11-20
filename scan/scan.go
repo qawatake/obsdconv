@@ -188,6 +188,9 @@ func ScanExternalLinkTail(raw []rune, ptr int) (advance int, ref string, title s
 	cur = next // url 部分の直後
 
 	// " " と \t をスキップ
+	if cur >= len(raw) {
+		return 0, "", ""
+	}
 	for raw[cur] == ' ' || raw[cur] == '\t' {
 		cur++
 		if cur >= len(raw) {

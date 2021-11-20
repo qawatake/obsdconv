@@ -72,8 +72,6 @@ func isLetterForUrl(r rune) bool {
 		'!',
 		'*',
 		'\'',
-		'(',
-		')',
 		'<',
 		'>',
 		'#',

@@ -426,6 +426,13 @@ func TestScanExternalLinkTail(t *testing.T) {
 			wantRef:     "https://google.com",
 			wantTitle:   "google",
 		},
+		{
+			name:        "fileId",
+			raw:         []rune("(test)"),
+			ptr:         0,
+			wantAdvance: 6,
+			wantRef:     "test",
+		},
 	}
 
 	for _, tt := range cases {
