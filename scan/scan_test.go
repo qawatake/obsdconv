@@ -483,6 +483,22 @@ func TestScanExternalLinkTail(t *testing.T) {
 			wantTitle:   "google",
 		},
 		{
+			name:        "\" missing",
+			raw:         []rune("(https://google.com google)"),
+			ptr:         0,
+			wantAdvance: 0,
+			wantRef:     "",
+			wantTitle:   "",
+		},
+		{
+			name:        "ugly title",
+			raw:         []rune(`(https://google.com  "g\"oo%%gle")`),
+			ptr:         0,
+			wantAdvance: 34,
+			wantRef:     "https://google.com",
+			wantTitle:   `g\"oo%%gle`,
+		},
+		{
 			name:        "fileId",
 			raw:         []rune("(test)"),
 			ptr:         0,
