@@ -55,12 +55,12 @@ func defaultTransformEmbedsFunc(db PathDB) TransformerFunc {
 
 func TransformExternalLinkFunc(t ExternalLinkTransformer) TransformerFunc {
 	return func(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
-		advance, displayName, ref := scan.ScanExternalLink(raw, ptr)
+		advance, displayName, ref, title := scan.ScanExternalLink(raw, ptr)
 		if advance == 0 {
 			return 0, nil, nil
 		}
 
-		externalLink, err := t.TransformExternalLink(displayName, ref)
+		externalLink, err := t.TransformExternalLink(displayName, ref, title)
 		if err != nil {
 			return 0, nil, errors.Wrap(err, "t.TransformExternalLink failed")
 		}
@@ -175,7 +175,7 @@ func (t *EmbedsTransformerImpl) TransformEmbeds(content string) (emnbeddedLink s
 }
 
 type ExternalLinkTransformer interface {
-	TransformExternalLink(displayName, ref string) (externalLink string, err error)
+	TransformExternalLink(displayName, ref string, title string) (externalLink string, err error)
 }
 
 type ExternalLinkTransformerImpl struct {
@@ -188,7 +188,7 @@ func newExternalLinkTransformerImpl(db PathDB) *ExternalLinkTransformerImpl {
 	}
 }
 
-func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref string) (externalLink string, err error) {
+func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref string, title string) (externalLink string, err error) {
 	u, err := url.Parse(ref)
 	if err != nil {
 		return "", newErrTransformf(ERR_KIND_UNEXPECTED, "url.Parse failed: %v", err)
@@ -196,7 +196,11 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 
 	// ref = 通常のリンク
 	if (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" {
-		return fmt.Sprintf("[%s](%s)", displayName, ref), nil
+		if title == "" {
+			return fmt.Sprintf("[%s](%s)", displayName, ref), nil
+		} else {
+			return fmt.Sprintf("[%s](%s \"%s\")", displayName, ref, title), nil
+		}
 	}
 
 	// ref = obsidian URI (obsidian://open?...)
@@ -212,7 +216,11 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 		if err != nil {
 			return "", errors.Wrap(err, "PathDB.Get failed")
 		}
-		return fmt.Sprintf("[%s](%s)", displayName, path), nil
+		if title == "" {
+			return fmt.Sprintf("[%s](%s)", displayName, path), nil
+		} else {
+			return fmt.Sprintf("[%s](%s \"%s\")", displayName, path, title), nil
+		}
 	}
 
 	// ref = obsidian URI (obsidian://vault/my_vault/my_note)
@@ -228,7 +236,11 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 		if err != nil {
 			return "", errors.Wrap(err, "PathDB.Get failed")
 		}
-		return fmt.Sprintf("[%s](%s)", displayName, path), nil
+		if title == "" {
+			return fmt.Sprintf("[%s](%s)", displayName, path), nil
+		} else {
+			return fmt.Sprintf("[%s](%s \"%s\")", displayName, path, title), nil
+		}
 	}
 
 	// ref = fileId
@@ -247,7 +259,11 @@ func (t *ExternalLinkTransformerImpl) TransformExternalLink(displayName, ref str
 		} else {
 			newref = path + "#" + strings.Join(fragments, "#")
 		}
-		return fmt.Sprintf("[%s](%s)", displayName, newref), nil
+		if title == "" {
+			return fmt.Sprintf("[%s](%s)", displayName, newref), nil
+		} else {
+			return fmt.Sprintf("[%s](%s \"%s\")", displayName, newref, title), nil
+		}
 	}
 
 	return "", newErrTransformf(ERR_KIND_UNEXPECTED_HREF, "unexpected href: %s", ref)

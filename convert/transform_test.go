@@ -12,6 +12,7 @@ func TestTransformExternalLink(t *testing.T) {
 		root             string
 		displayName      string
 		ref              string
+		title            string
 		wantExternalLink string
 	}{
 		{
@@ -20,6 +21,14 @@ func TestTransformExternalLink(t *testing.T) {
 			displayName:      "google",
 			ref:              "https://google.com",
 			wantExternalLink: "[google](https://google.com)",
+		},
+		{
+			name:             "with title",
+			root:             ".",
+			displayName:      "google",
+			ref:              "https://google.com",
+			title:            "title",
+			wantExternalLink: "[google](https://google.com \"title\")",
 		},
 		{
 			name:             "filename",
@@ -68,7 +77,7 @@ func TestTransformExternalLink(t *testing.T) {
 	for _, tt := range cases {
 		db := NewPathDB(filepath.Join(testTransformExternalLinkRootDir, tt.root))
 		transformer := &ExternalLinkTransformerImpl{PathDB: db}
-		got, err := transformer.TransformExternalLink(tt.displayName, tt.ref)
+		got, err := transformer.TransformExternalLink(tt.displayName, tt.ref, tt.title)
 		if err != nil {
 			t.Fatalf("[FATAL] | %v] unexpected error ocurred: %v", tt.name, err)
 		}

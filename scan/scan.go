@@ -252,19 +252,20 @@ func validExternalLinkTailContent(content string) bool {
 	return validURI(uri)
 }
 
-func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string) {
+func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string, title string) {
 	cur := ptr
 	adv, displayName := scanExternalLinkHead(raw, cur)
 	if adv == 0 {
-		return 0, "", ""
+		return 0, "", "", ""
 	}
 	cur += adv
-	adv, ref = scanExternalLinkTail(raw, cur)
+	// adv, ref = scanExternalLinkTail(raw, cur)
+	adv, ref, title = ScanExternalLinkTail(raw, cur)
 	if adv == 0 {
-		return 0, "", ""
+		return 0, "", "", ""
 	}
 	cur += adv
-	return cur - ptr, displayName, ref
+	return cur - ptr, displayName, ref, title
 }
 
 func ScanComment(raw []rune, ptr int) (advance int) {

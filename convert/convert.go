@@ -64,7 +64,7 @@ func NewTagRemover() *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
-		advance, _, _ = scan.ScanExternalLink(raw, ptr)
+		advance, _, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
@@ -94,7 +94,7 @@ func NewTagFinder(tags map[string]struct{}) *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
-		advance, _, _ = scan.ScanExternalLink(raw, ptr)
+		advance, _, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
@@ -127,7 +127,7 @@ func NewTitleFinder(title *string) *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
-		advance, _, _ = scan.ScanExternalLink(raw, ptr)
+		advance, _, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
@@ -198,7 +198,7 @@ func NewCommentEraser() *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
-		advance, _, _ = scan.ScanExternalLink(raw, ptr)
+		advance, _, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
@@ -228,7 +228,7 @@ func NewInternalLinkPlainConverter() *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
-		advance, _, _ = scan.ScanExternalLink(raw, ptr)
+		advance, _, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
 	c.Set(TransformInternalLinkToPlain)
@@ -255,7 +255,7 @@ func NewH1Remover() *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
-		advance, _, _ = scan.ScanExternalLink(raw, ptr)
+		advance, _, _, _ = scan.ScanExternalLink(raw, ptr)
 		return advance
 	}))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
