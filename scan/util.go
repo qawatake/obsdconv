@@ -54,3 +54,48 @@ func scanRepeat(raw []rune, ptr int, substr string) (advance int) {
 	}
 	return cur - ptr
 }
+
+func isLetterForUrl(r rune) bool {
+	if 'a' <= r && r <= 'z' {
+		return true
+	}
+	if 'A' <= r && r <= 'Z' {
+		return true
+	}
+	if '0' <= r && r <= '9' {
+		return true
+	}
+	oks := []rune{
+		'-',
+		'_',
+		'.',
+		'!',
+		'*',
+		'\'',
+		'(',
+		')',
+		'<',
+		'>',
+		'#',
+		'"',
+		'%',
+		':',
+		'?',
+		'/',
+		'@',
+		'$',
+		'&',
+		'+',
+		',',
+		';',
+		'=',
+	}
+
+	for _, okr := range oks {
+		if r == okr {
+			return true
+		}
+	}
+
+	return false
+}

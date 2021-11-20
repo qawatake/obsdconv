@@ -1,6 +1,7 @@
 package scan
 
 import (
+	"net/url"
 	"strings"
 	"unicode"
 )
@@ -160,6 +161,84 @@ func scanExternalLinkTail(raw []rune, ptr int) (advance int, ref string) {
 		cur++ // ")" の次
 	}
 
+}
+
+// [google](https:google.com "title") の (https:google.com "title") の部分をスキャン
+func ScanExternalLinkTail(raw []rune, ptr int) (advance int, ref string, title string) {
+	if !(unescaped(raw, ptr, "(") && len(raw[ptr:]) >= 2) {
+		return 0, "", ""
+	}
+	cur := ptr + 1 // opening の ( の直後
+
+	// " " と \t をスキップ
+	for raw[cur] == ' ' || raw[cur] == '\t' {
+		cur++
+		if cur >= len(raw) {
+			return 0, "", ""
+		}
+	}
+
+	// url を抽出
+	adv := scanURL(raw, cur)
+	if adv == 0 && !unescaped(raw, cur, ")") {
+		return 0, "", ""
+	}
+	next := cur + adv
+	ref = string(raw[cur:next])
+	cur = next // url 部分の直後
+
+	// " " と \t をスキップ
+	for raw[cur] == ' ' || raw[cur] == '\t' {
+		cur++
+		if cur >= len(raw) {
+			return 0, "", ""
+		}
+	}
+
+	// title を抽出
+	adv, title = scanLinkTitle(raw, cur)
+	if adv == 0 && !unescaped(raw, cur, ")") {
+		return 0, "", ""
+	}
+	cur += adv // "title" の直後
+
+	if unescaped(raw, cur, ")") {
+		cur++ // closing の ) の直後
+		return cur - ptr, ref, title
+	} else {
+		return 0, "", ""
+	}
+}
+
+// url をスキャン
+func scanURL(raw []rune, ptr int) (advance int) {
+	cur := ptr
+	for cur < len(raw) && isLetterForUrl(raw[cur]) {
+		cur++
+	}
+	urlcandidate := string(raw[ptr:cur])
+	if _, err := url.Parse(urlcandidate); err != nil {
+		return 0
+	}
+	return cur - ptr
+}
+
+// [google](https:google.com "title") の "title" の部分をスキャン
+func scanLinkTitle(raw []rune, ptr int) (advance int, title string) {
+	if !(unescaped(raw, ptr, "\"") && len(raw[ptr:]) >= 2) {
+		return 0, ""
+	}
+
+	cur := ptr + 1 // opening の " の直後
+	for cur < len(raw) {
+		if unescaped(raw, cur, "\"") {
+			title = string(raw[ptr+1 : cur])
+			cur++ // closing の " の直後
+			return cur - ptr, title
+		}
+		cur++
+	}
+	return 0, ""
 }
 
 func validExternalLinkTailContent(content string) bool {
