@@ -476,10 +476,82 @@ func ScanNormalComment(raw []rune, ptr int) (advance int) {
 	return cur - ptr
 }
 
-// リンク部分に [ と ] は入ってはいけない
-// リンクと行末のあとにはスペースとタブしか許されない
+// scan until line end
 func scanExternalLinkVarDef(raw []rune, ptr int) (advance int) {
-	return 0
+	adv, _ := ScanExternalLinkHead(raw, ptr)
+	if adv == 0 {
+		return 0
+	}
+
+	// not preceded by non-\n
+	if ptr != 0 && !precededBy(raw, ptr, []string{"\n"}) {
+		return 0
+	}
+	cur := ptr + adv // closing ] の直後
+
+	if cur >= len(raw) {
+		return 0
+	}
+	if raw[cur] != ':' {
+		return 0
+	}
+	cur++
+
+	if cur >= len(raw) {
+		return 0
+	}
+
+	// trim spaces
+	for {
+		if raw[cur] != ' ' && raw[cur] != '\t' {
+			break
+		}
+		cur++
+		if cur >= len(raw) {
+			return 0
+		}
+	}
+
+	// cur = ref 部分の先頭になっている
+	for {
+		if unicode.IsSpace(raw[cur]) {
+			break
+		}
+		// ref 部分に [, ] は許されない
+		if raw[cur] == '[' || raw[cur] == ']' {
+			return 0
+		}
+		cur++
+		if cur >= len(raw) { // ref の後ろがなかった場合
+			return cur - ptr
+		}
+	}
+
+	// ref の直後が行末かどうかチェック
+	// cur = ref の直後
+	if raw[cur] == '\n' {
+		cur++ // \n の直後
+		return cur - ptr
+	} else if unescaped(raw, cur, "\r\n") {
+		cur += 2 // \r\n の直後
+		return cur - ptr
+	}
+
+	// ref の直後から行末までに文字がないことをチェック
+	// cur = ref の直後
+	for {
+		if raw[cur] == '\n' {
+			cur++ // \n の直後
+			return cur - ptr
+		}
+		if !unicode.IsSpace(raw[cur]) {
+			return 0
+		}
+		cur++
+		if cur >= len(raw) {
+			return cur - ptr
+		}
+	}
 }
 
 // [google]:https://google.com はひとまとめのグループを形成する
