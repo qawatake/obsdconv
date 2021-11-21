@@ -104,6 +104,10 @@ func NewTagRemover() *Converter {
 		return advance, tobewritten, nil
 	})
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance, _ = scan.ScanExternalLinkVarDefGroup(raw, ptr)
+		return advance
+	}))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanInternalLink(raw, ptr)
 		return advance
 	}))
@@ -158,6 +162,10 @@ func NewTagFinder(tags map[string]struct{}) *Converter {
 			}
 			cur++
 		}
+		return advance
+	}))
+	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
+		advance, _ = scan.ScanExternalLinkVarDefGroup(raw, ptr)
 		return advance
 	}))
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {

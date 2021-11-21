@@ -36,6 +36,11 @@ func TestTagRemover(t *testing.T) {
 			raw:  []rune("[google #todo #google][google #not_tag]"),
 			want: []rune("[google  ][google #not_tag]"),
 		},
+		{
+			name: "seemingly tag in def of var external link",
+			raw:  []rune("\n\n[google #not_tag]:https://google.com\n[github #todo]:https://github.com xxx"),
+			want: []rune("\n\n[google #not_tag]:https://google.com\n[github ]:https://github.com xxx"),
+		},
 	}
 
 	c := NewTagRemover()
@@ -81,6 +86,11 @@ func TestTagFinder(t *testing.T) {
 			name:     "tag in display name in var external link",
 			raw:      []rune("[google #todo #google][google #not_tag]"),
 			wantTags: []string{"todo", "google"},
+		},
+		{
+			name:     "seemingly tag in def of var external link",
+			raw:      []rune("\n\n[google #not_tag]:https://google.com\n[github #todo]:https://github.com xxx"),
+			wantTags: []string{"todo"},
 		},
 	}
 
