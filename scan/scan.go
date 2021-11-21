@@ -477,28 +477,28 @@ func ScanNormalComment(raw []rune, ptr int) (advance int) {
 }
 
 // scan until line end
-func scanExternalLinkVarDef(raw []rune, ptr int) (advance int) {
-	adv, _ := ScanExternalLinkHead(raw, ptr)
+func ScanExternalLinkVarDef(raw []rune, ptr int) (advance int, displayName string, ref string) {
+	adv, displayName := ScanExternalLinkHead(raw, ptr)
 	if adv == 0 {
-		return 0
+		return 0, "", ""
 	}
 
 	// not preceded by non-\n
 	if ptr != 0 && !precededBy(raw, ptr, []string{"\n"}) {
-		return 0
+		return 0, "", ""
 	}
 	cur := ptr + adv // closing ] の直後
 
 	if cur >= len(raw) {
-		return 0
+		return 0, "", ""
 	}
 	if raw[cur] != ':' {
-		return 0
+		return 0, "", ""
 	}
 	cur++
 
 	if cur >= len(raw) {
-		return 0
+		return 0, "", ""
 	}
 
 	// trim spaces
@@ -508,33 +508,34 @@ func scanExternalLinkVarDef(raw []rune, ptr int) (advance int) {
 		}
 		cur++
 		if cur >= len(raw) {
-			return 0
+			return 0, "", ""
 		}
 	}
 
-	// cur = ref 部分の先頭になっている
+	refHead := cur // ref 部分の先頭
 	for {
 		if unicode.IsSpace(raw[cur]) {
 			break
 		}
 		// ref 部分に [, ] は許されない
 		if raw[cur] == '[' || raw[cur] == ']' {
-			return 0
+			return 0, "", ""
 		}
 		cur++
 		if cur >= len(raw) { // ref の後ろがなかった場合
-			return cur - ptr
+			return cur - ptr, displayName, string(raw[refHead:cur])
 		}
 	}
+	ref = string(raw[refHead:cur])
 
 	// ref の直後が行末かどうかチェック
 	// cur = ref の直後
 	if raw[cur] == '\n' {
 		cur++ // \n の直後
-		return cur - ptr
+		return cur - ptr, displayName, ref
 	} else if unescaped(raw, cur, "\r\n") {
 		cur += 2 // \r\n の直後
-		return cur - ptr
+		return cur - ptr, displayName, ref
 	}
 
 	// ref の直後から行末までに文字がないことをチェック
@@ -542,14 +543,14 @@ func scanExternalLinkVarDef(raw []rune, ptr int) (advance int) {
 	for {
 		if raw[cur] == '\n' {
 			cur++ // \n の直後
-			return cur - ptr
+			return cur - ptr, displayName, ref
 		}
 		if !unicode.IsSpace(raw[cur]) {
-			return 0
+			return 0, "", ""
 		}
 		cur++
 		if cur >= len(raw) {
-			return cur - ptr
+			return cur - ptr, displayName, ref
 		}
 	}
 }

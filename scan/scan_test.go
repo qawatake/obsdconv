@@ -941,64 +941,89 @@ func TestScanExternalLinkVar(t *testing.T) {
 
 func TestScanExternalLinkVarDef(t *testing.T) {
 	cases := []struct {
-		name        string
-		raw         []rune
-		ptr         int
-		wantAdvance int
+		name            string
+		raw             []rune
+		ptr             int
+		wantAdvance     int
+		wantDisplayName string
+		wantRef         string
 	}{
 		{
-			name:        "simple",
-			raw:         []rune("[google #todo]:https://google.com"),
-			ptr:         0,
-			wantAdvance: 33,
+			name:            "simple",
+			raw:             []rune("[google #todo]:https://google.com"),
+			ptr:             0,
+			wantAdvance:     33,
+			wantDisplayName: "google #todo",
+			wantRef:         "https://google.com",
 		},
 		{
-			name:        "spaces",
-			raw:         []rune("[google #todo]: \thttps://google.com \t"),
-			ptr:         0,
-			wantAdvance: 37,
+			name:            "spaces",
+			raw:             []rune("[google #todo]: \thttps://google.com \t"),
+			ptr:             0,
+			wantAdvance:     37,
+			wantDisplayName: "google #todo",
+			wantRef:         "https://google.com",
 		},
 		{
-			name:        "] :",
-			raw:         []rune("[google #todo] :https://google.com"),
-			ptr:         0,
-			wantAdvance: 0,
+			name:            "] :",
+			raw:             []rune("[google #todo] :https://google.com"),
+			ptr:             0,
+			wantAdvance:     0,
+			wantDisplayName: "",
+			wantRef:         "",
 		},
 		{
-			name:        "preceded by non-\\n",
-			raw:         []rune("x[google #todo]:https://google.com"),
-			ptr:         1,
-			wantAdvance: 0,
+			name:            "preceded by non-\\n",
+			raw:             []rune("x[google #todo]:https://google.com"),
+			ptr:             1,
+			wantAdvance:     0,
+			wantDisplayName: "",
+			wantRef:         "",
 		},
 		{
-			name:        "followed by non-spaces",
-			raw:         []rune("[google #todo]:https://google.com x"),
-			ptr:         0,
-			wantAdvance: 0,
+			name:            "followed by non-spaces",
+			raw:             []rune("[google #todo]:https://google.com x"),
+			ptr:             0,
+			wantAdvance:     0,
+			wantDisplayName: "",
+			wantRef:         "",
 		},
 		{
-			name:        "scan letters until line end",
-			raw:         []rune("[google #todo]:https://google.com \nx"),
-			ptr:         0,
-			wantAdvance: 35,
+			name:            "scan letters until line end",
+			raw:             []rune("[google #todo]:https://google.com \nx"),
+			ptr:             0,
+			wantAdvance:     35,
+			wantDisplayName: "google #todo",
+			wantRef:         "https://google.com",
 		},
 		{
-			name:        "ref includes [",
-			raw:         []rune("[google #todo]:https://google.com["),
-			ptr:         0,
-			wantAdvance: 0,
+			name:            "ref includes [",
+			raw:             []rune("[google #todo]:https://google.com["),
+			ptr:             0,
+			wantAdvance:     0,
+			wantDisplayName: "",
+			wantRef:         "",
 		},
 		{
-			name:        "ref includes ]",
-			raw:         []rune("[google #todo]:https://google.com]"),
-			ptr:         0,
-			wantAdvance: 0,
+			name:            "ref includes ]",
+			raw:             []rune("[google #todo]:https://google.com]"),
+			ptr:             0,
+			wantAdvance:     0,
+			wantDisplayName: "",
+			wantRef:         "",
 		},
 	}
 
 	for _, tt := range cases {
-		if gotAdvance := scanExternalLinkVarDef(tt.raw, tt.ptr); gotAdvance != tt.wantAdvance {
+		gotAdvance, gotDisplayName, gotRef := ScanExternalLinkVarDef(tt.raw, tt.ptr)
+		if gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR] got: %d, want: %d with raw: %q", gotAdvance, tt.wantAdvance, string(tt.raw))
+		}
+		if gotDisplayName != tt.wantDisplayName {
+			t.Errorf("[ERROR] got: %s, want: %s with raw: %q", gotDisplayName, tt.wantDisplayName, string(tt.raw))
+		}
+		if gotRef != tt.wantRef {
+			t.Errorf("[ERROR] got: %s, want: %s with raw: %q", gotRef, tt.wantRef, string(tt.raw))
 		}
 	}
 }
@@ -1014,7 +1039,7 @@ func TestScanExternalLinkVarDefGroup(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		if gotAdvance := scanExternalLinkVarDef(tt.raw, tt.ptr); gotAdvance != tt.wantAdvance {
+		if gotAdvance := ScanExternalLinkVarDefGroup(tt.raw, tt.ptr); gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR] got: %d, want: %d with raw: %s", gotAdvance, tt.wantAdvance, string(tt.raw))
 		}
 	}
