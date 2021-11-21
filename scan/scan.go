@@ -559,5 +559,26 @@ func ScanExternalLinkVarDef(raw []rune, ptr int) (advance int, displayName strin
 // グループ内部では改行区切り
 // グループの直前には空行が必要
 func ScanExternalLinkVarDefGroup(raw []rune, ptr int) (advance int, ptrs []int) {
-	return 0, nil
+	if adv, _, _ := ScanExternalLinkVarDef(raw, ptr); adv == 0 {
+		return 0, nil
+	}
+
+	// 先頭か直前に空行が必要
+	if ptr != 0 && !precededBy(raw, ptr, []string{"\n\n", "\r\n\r\n"}) {
+		return 0, nil
+	}
+
+	ptrs = make([]int, 0, 3)
+	cur := ptr
+	for {
+		adv, _, _ := ScanExternalLinkVarDef(raw, cur)
+		if adv == 0 {
+			return cur - ptr, ptrs
+		}
+		ptrs = append(ptrs, cur)
+		cur += adv
+		if cur >= len(raw) {
+			return cur - ptr, ptrs
+		}
+	}
 }
