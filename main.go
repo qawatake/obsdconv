@@ -18,23 +18,33 @@ const (
 )
 
 func main() {
-	var flags flagBundle
-	initFlags(flag.CommandLine, &flags)
-	flag.Parse()
-	if flags.ver {
-		fmt.Printf("v%s\n", Version)
-		return
-	}
-	setFlags(flag.CommandLine, &flags)
-	if err := verifyFlags(&flags); err != nil {
-		log.Fatal(err)
-	}
-	processor := newDefaultProcessor(&flags)
-	skipper, err := process.NewSkipper(filepath.Join(flags.src, DEFAULT_IGNORE_FILE_NAME))
+	version, err := run(flag.CommandLine)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := process.Walk(flags.src, flags.dst, skipper, processor); err != nil {
-		log.Fatal(err)
+	if version != "" {
+		fmt.Println(version)
 	}
+}
+
+func run(flagset *flag.FlagSet) (version string, err error) {
+	flags := new(flagBundle)
+	initFlags(flag.CommandLine, flags)
+	flag.Parse()
+	if flags.ver {
+		return fmt.Sprintf("v%s\n", Version), nil
+	}
+	setFlags(flag.CommandLine, flags)
+	if err := verifyFlags(flags); err != nil {
+		return "", err
+	}
+	processor := newDefaultProcessor(flags)
+	skipper, err := process.NewSkipper(filepath.Join(flags.src, DEFAULT_IGNORE_FILE_NAME))
+	if err != nil {
+		return "", err
+	}
+	if err := process.Walk(flags.src, flags.dst, skipper, processor); err != nil {
+		return "", err
+	}
+	return "", nil
 }
