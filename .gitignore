@@ -11,6 +11,11 @@
 !sample
 !sample/input.md
 !sample/output.md
+!sample/obs
+!sample/obs/src
+!sample/obs/src/**
+!sample/obs/dst
+!sample/obs/dst/**
 
 !go.mod
 !main.go
