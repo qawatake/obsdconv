@@ -500,3 +500,49 @@ title: "211027"
 		}
 	}
 }
+
+func TestPassArg(t *testing.T) {
+	tt := struct {
+		name       string
+		iter       int
+		frombody   bodyConvAuxOutImpl
+		wantToyaml yamlConvAuxInImpl
+	}{
+		name: "simple",
+		iter: 20,
+		frombody: bodyConvAuxOutImpl{
+			title: "title",
+			tags:  map[string]struct{}{"c": {}, "a": {}, "b": {}},
+		},
+		wantToyaml: yamlConvAuxInImpl{
+			title:   "title",
+			alias:   "title",
+			newtags: []string{"a", "b", "c"},
+		},
+	}
+
+	for range make([]struct{}, tt.iter) {
+		got, err := passArg(&tt.frombody)
+		if err != nil {
+			t.Fatalf("[FATAL] unexpected error occurred: %v", err)
+		}
+		gotToyaml, _ := got.(*yamlConvAuxInImpl)
+		if gotToyaml.title != tt.wantToyaml.title {
+			t.Errorf("[ERROR | title - %s] got: %s, want: %s", tt.name, gotToyaml.title, tt.wantToyaml.title)
+		}
+		if gotToyaml.alias != tt.wantToyaml.alias {
+			t.Errorf("[ERROR | alias - %s] got: %s, want: %s", tt.name, gotToyaml.alias, tt.wantToyaml.alias)
+		}
+		if len(gotToyaml.newtags) != len(tt.wantToyaml.newtags) {
+			t.Errorf("[ERROR | tags - %s] got: %s, want: %s", tt.name, gotToyaml.newtags, tt.wantToyaml.newtags)
+			return
+		}
+		for i, gotTag := range gotToyaml.newtags {
+			wantTag := tt.wantToyaml.newtags[i]
+			if gotTag != wantTag {
+				t.Errorf("[ERROR | tags - %s] got: %s, want: %s", tt.name, gotToyaml.newtags, tt.wantToyaml.newtags)
+				return
+			}
+		}
+	}
+}

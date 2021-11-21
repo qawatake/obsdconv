@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"sort"
+	"strings"
 
 	"github.com/qawatake/obsdconv/process"
 )
@@ -25,6 +27,10 @@ func passArg(frombody process.BodyConvAuxOut) (toyaml process.YamlConvAuxIn, err
 		for tg := range v.tags {
 			newtags = append(newtags, tg)
 		}
+		// sort tags
+		sort.Slice(newtags, func(i, j int) bool {
+			return strings.Compare(newtags[i], newtags[j]) <= 0
+		})
 	}
 
 	return newYamlConvAuxInImpl(title, alias, newtags), nil
