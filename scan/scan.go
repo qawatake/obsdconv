@@ -558,6 +558,6 @@ func ScanExternalLinkVarDef(raw []rune, ptr int) (advance int, displayName strin
 // [google]:https://google.com はひとまとめのグループを形成する
 // グループ内部では改行区切り
 // グループの直前には空行が必要
-func ScanExternalLinkVarDefGroup(raw []rune, ptr int) (advance int) {
-	return 0
+func ScanExternalLinkVarDefGroup(raw []rune, ptr int) (advance int, ptrs []int) {
+	return 0, nil
 }

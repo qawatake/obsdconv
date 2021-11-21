@@ -973,6 +973,13 @@ func TestScanExternalLinkVarDef(t *testing.T) {
 			wantRef:         "",
 		},
 		{
+			name:            "preceded by \\n",
+			raw:             []rune("\n[google #todo]:https://google.com"),
+			ptr:             1,
+			wantDisplayName: "google #todo",
+			wantRef:         "https://google.com",
+		},
+		{
 			name:            "preceded by non-\\n",
 			raw:             []rune("x[google #todo]:https://google.com"),
 			ptr:             1,
@@ -1017,30 +1024,72 @@ func TestScanExternalLinkVarDef(t *testing.T) {
 	for _, tt := range cases {
 		gotAdvance, gotDisplayName, gotRef := ScanExternalLinkVarDef(tt.raw, tt.ptr)
 		if gotAdvance != tt.wantAdvance {
-			t.Errorf("[ERROR] got: %d, want: %d with raw: %q", gotAdvance, tt.wantAdvance, string(tt.raw))
+			t.Errorf("[ERROR - advance] got: %d, want: %d with raw: %q", gotAdvance, tt.wantAdvance, string(tt.raw))
 		}
 		if gotDisplayName != tt.wantDisplayName {
-			t.Errorf("[ERROR] got: %s, want: %s with raw: %q", gotDisplayName, tt.wantDisplayName, string(tt.raw))
+			t.Errorf("[ERROR - display name] got: %s, want: %s with raw: %q", gotDisplayName, tt.wantDisplayName, string(tt.raw))
 		}
 		if gotRef != tt.wantRef {
-			t.Errorf("[ERROR] got: %s, want: %s with raw: %q", gotRef, tt.wantRef, string(tt.raw))
+			t.Errorf("[ERROR - ref] got: %s, want: %s with raw: %q", gotRef, tt.wantRef, string(tt.raw))
 		}
 	}
 }
 
 func TestScanExternalLinkVarDefGroup(t *testing.T) {
 	cases := []struct {
+		name        string
 		raw         []rune
 		ptr         int
 		wantAdvance int
+		wantPtrs    []int
 	}{
-		{},
-		{},
+		{
+			name:        "simple",
+			raw:         []rune("[google]:https://google.com\n[github]:https://github.com"),
+			ptr:         0,
+			wantAdvance: 55,
+			wantPtrs:    []int{0, 29},
+		},
+		{
+			name:        "preceded by \\n\\n",
+			raw:         []rune("\n\n[google]:https://google.com\n[github]:https://github.com"),
+			ptr:         2,
+			wantAdvance: 55,
+			wantPtrs:    []int{2, 31},
+		},
+		{
+			name:        "preceded by \\r\\n\\r\\n",
+			raw:         []rune("\r\n\r\n[google]:https://google.com\n[github]:https://github.com"),
+			ptr:         4,
+			wantAdvance: 55,
+			wantPtrs:    []int{4, 33},
+		},
+		{
+			name:        "include bad member",
+			raw:         []rune("[google]:https://google.com\n[github]:https://github.com x"),
+			ptr:         0,
+			wantAdvance: 28,
+			wantPtrs:    []int{0},
+		},
 	}
 
 	for _, tt := range cases {
-		if gotAdvance := ScanExternalLinkVarDefGroup(tt.raw, tt.ptr); gotAdvance != tt.wantAdvance {
-			t.Errorf("[ERROR] got: %d, want: %d with raw: %s", gotAdvance, tt.wantAdvance, string(tt.raw))
+		gotAdvance, gotPtrs := ScanExternalLinkVarDefGroup(tt.raw, tt.ptr)
+
+		// check advance
+		if gotAdvance != tt.wantAdvance {
+			t.Errorf("[ERROR | advance - %s] got: %d, want: %d with raw: %q", tt.name, gotAdvance, tt.wantAdvance, string(tt.raw))
+		}
+
+		// check ptrs
+		if len(gotPtrs) != len(tt.wantPtrs) {
+			t.Errorf("[ERROR | ptrs - %s] got: %d, want: %d with raw: %q", tt.name, gotPtrs, tt.wantPtrs, string(tt.raw))
+		}
+		for i, gotPtr := range gotPtrs {
+			wantPtr := tt.wantPtrs[i]
+			if gotPtr != wantPtr {
+				t.Errorf("[ERROR | ptrs - %s] got: %d, want: %d with raw: %q", tt.name, gotPtrs, tt.wantPtrs, string(tt.raw))
+			}
 		}
 	}
 }
