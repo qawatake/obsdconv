@@ -30,6 +30,3 @@ jobs:
       run: |
         go mod tidy
         go test -v ./...
-    - name: Compare outputs
-      shell: bash
-      run: ./test.sh

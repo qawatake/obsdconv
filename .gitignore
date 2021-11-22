@@ -7,10 +7,8 @@
 !.github/workflows/test.yml
 !.github/workflows/release.yml
 !.goreleaser.yml
-!test.sh
+
 !sample
-!sample/input.md
-!sample/output.md
 !sample/obs
 !sample/obs/src
 !sample/obs/src/**
