@@ -63,7 +63,7 @@ H1 content will be processed like `title`.
 [obsidian url](blank.md)
 
 ### Embeds
-![image.png](image.png)
+![image.svg](image.svg)
 
 ## Remove Obsidian Comment Blocks
 

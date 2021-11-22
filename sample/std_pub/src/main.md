@@ -58,7 +58,7 @@ H1 content will be processed like `title`.
 [obsidian url](obsidian://open?vault=obsidian&file=blank)
 
 ### Embeds
-![[image.png]]
+![[image.svg]]
 
 ## Remove Obsidian Comment Blocks
 %%
