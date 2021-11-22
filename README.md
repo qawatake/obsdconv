@@ -34,9 +34,9 @@ That is, obsdconv
 See `sample` directory.
 We can get `sample/std/dst` from `sample/std/src` by running `obsdconv -src sample/std/src -dst sample/std/dst -std` at the root directory.
 We also provide other sample directories, each directory name corresponds to specified flags:
-- `sample/obs` corresponds to `-obs`
-- `sample/std_rmh1` corresponds to `-std -rmh1`
-- `sample/std_pub` corresponds to `-std -pub`
+- `sample/obs`: `-obs`
+- `sample/std_rmh1`: `-std -rmh1`
+- `sample/std_pub`: `-std -pub`
 
 ## Options
 Available options are as follows:
