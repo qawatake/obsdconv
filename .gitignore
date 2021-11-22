@@ -21,6 +21,11 @@
 !sample/std/src/**
 !sample/std/dst
 !sample/std/dst/**
+!sample/std_rmh1
+!sample/std_rmh1/src
+!sample/std_rmh1/src/**
+!sample/std_rmh1/dst
+!sample/std_rmh1/dst/**
 
 !go.mod
 !main.go

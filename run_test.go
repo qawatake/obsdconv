@@ -50,6 +50,16 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(rootDir, "std", dst),
 		},
+		{
+			name: "-std -rmh1",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(rootDir, "std_rmh1", src),
+				FLAG_DESTINATION:    filepath.Join(rootDir, "std_rmh1", tmp),
+				FLAG_STANDARD_USAGE: "1",
+				FLAG_REMOVE_H1:      "1",
+			},
+			wantDstDir: filepath.Join(rootDir, "std_rmh1", dst),
+		},
 	}
 
 	for _, tt := range cases {
