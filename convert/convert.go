@@ -290,7 +290,7 @@ func NewCommentEraser() *Converter {
 	return c
 }
 
-func NewInternalLinkPlainConverter() *Converter {
+func NewLinkPlainConverter() *Converter {
 	c := new(Converter)
 
 	c.Set(MiddlewareAsIs(scan.ScanEscaped))
@@ -298,10 +298,7 @@ func NewInternalLinkPlainConverter() *Converter {
 	c.Set(MiddlewareAsIs(scan.ScanComment))
 	c.Set(MiddlewareAsIs(scan.ScanMathBlock))
 	c.Set(MiddlewareAsIs(scan.ScanNormalComment))
-	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
-		advance, _, _, _ = scan.ScanExternalLink(raw, ptr)
-		return advance
-	}))
+	c.Set(TransformExternalLinkToPlain)
 	c.Set(TransformInternalLinkToPlain)
 	c.Set(MiddlewareAsIs(func(raw []rune, ptr int) (advance int) {
 		advance, _ = scan.ScanEmbeds(raw, ptr)

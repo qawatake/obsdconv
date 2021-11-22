@@ -94,6 +94,14 @@ func TransformInternalLinkToPlain(raw []rune, ptr int) (advance int, tobewritten
 	return advance, []rune(linktext), nil
 }
 
+func TransformExternalLinkToPlain(raw []rune, ptr int) (advance int, tobewritten []rune, err error) {
+	advance, displayName, _, _ := scan.ScanExternalLink(raw, ptr)
+	if advance == 0 {
+		return 0, nil, nil
+	}
+	return advance, []rune(displayName), nil
+}
+
 type InternalLinkTransformer interface {
 	TransformInternalLink(content string) (externalLink string, err error)
 }

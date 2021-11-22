@@ -14,6 +14,7 @@ import (
 
 func TestRun(t *testing.T) {
 	sampleDir := "sample"
+	testdataDir := filepath.Join("testdata", "run")
 	src := "src"
 	dst := "dst"
 	tmp := "tmp"
@@ -33,7 +34,7 @@ func TestRun(t *testing.T) {
 			wantVersion: "v1.0.0\n",
 		},
 		{
-			name: "-obs",
+			name: "[SAMPLE] -obs",
 			cmdflags: map[string]string{
 				FLAG_SOURCE:         filepath.Join(sampleDir, "obs", src),
 				FLAG_DESTINATION:    filepath.Join(sampleDir, "obs", tmp),
@@ -42,7 +43,7 @@ func TestRun(t *testing.T) {
 			wantDstDir: filepath.Join(sampleDir, "obs", dst),
 		},
 		{
-			name: "-std",
+			name: "[SAMPLE] -std",
 			cmdflags: map[string]string{
 				FLAG_SOURCE:         filepath.Join(sampleDir, "std", src),
 				FLAG_DESTINATION:    filepath.Join(sampleDir, "std", tmp),
@@ -51,7 +52,7 @@ func TestRun(t *testing.T) {
 			wantDstDir: filepath.Join(sampleDir, "std", dst),
 		},
 		{
-			name: "-std -rmh1",
+			name: "[SAMPLE] -std -rmh1",
 			cmdflags: map[string]string{
 				FLAG_SOURCE:         filepath.Join(sampleDir, "std_rmh1", src),
 				FLAG_DESTINATION:    filepath.Join(sampleDir, "std_rmh1", tmp),
@@ -61,7 +62,7 @@ func TestRun(t *testing.T) {
 			wantDstDir: filepath.Join(sampleDir, "std_rmh1", dst),
 		},
 		{
-			name: "-std -pub",
+			name: "[SAMPLE] -std -pub",
 			cmdflags: map[string]string{
 				FLAG_SOURCE:         filepath.Join(sampleDir, "std_pub", src),
 				FLAG_DESTINATION:    filepath.Join(sampleDir, "std_pub", tmp),
@@ -69,6 +70,25 @@ func TestRun(t *testing.T) {
 				FLAG_PUBLISHABLE:    "1",
 			},
 			wantDstDir: filepath.Join(sampleDir, "std_pub", dst),
+		},
+		{
+			name: "-std -strictref=0",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "std_strictref0", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "std_strictref0", tmp),
+				FLAG_STANDARD_USAGE: "1",
+				FLAG_STRICT_REF:     "0",
+			},
+			wantDstDir: filepath.Join(testdataDir, "std_strictref0", dst),
+		},
+		{
+			name: "-obs",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "obs", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "obs", tmp),
+				FLAG_OBSIDIAN_USAGE: "1",
+			},
+			wantDstDir: filepath.Join(testdataDir, "obs", dst),
 		},
 	}
 

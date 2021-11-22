@@ -51,6 +51,20 @@ func (c *bodyConverterImpl) ConvertBody(raw []rune) (output []rune, aux process.
 			return nil, nil, errors.Wrap(err, "TagFinder failed")
 		}
 	}
+	if c.title {
+		titleFoundFrom, err := convert.NewTagRemover().Convert(output)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "preprocess TagRemover for finding titles failed")
+		}
+		titleFoundFrom, err = convert.NewLinkPlainConverter().Convert(titleFoundFrom)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "preprocess InternalLinkPlainConverter for finding titles failed")
+		}
+		_, err = convert.NewTitleFinder(&title).Convert(titleFoundFrom)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "TitleFinder failed")
+		}
+	}
 	if c.rmtag {
 		output, err = convert.NewTagRemover().Convert(output)
 		if err != nil {
@@ -61,20 +75,6 @@ func (c *bodyConverterImpl) ConvertBody(raw []rune) (output []rune, aux process.
 		output, err = convert.NewCommentEraser().Convert(output)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "CommentEraser failed")
-		}
-	}
-	if c.title {
-		titleFoundFrom, err := convert.NewTagRemover().Convert(output)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "preprocess TagRemover for finding titles failed")
-		}
-		titleFoundFrom, err = convert.NewInternalLinkPlainConverter().Convert(titleFoundFrom)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "preprocess InternalLinkPlainConverter for finding titles failed")
-		}
-		_, err = convert.NewTitleFinder(&title).Convert(titleFoundFrom)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "TitleFinder failed")
 		}
 	}
 	if c.link {
