@@ -184,6 +184,10 @@ func TestWrapForReturningNotFoundPathError(t *testing.T) {
 			wantPath: "",
 			wantErr:  newErrTransformf(ERR_KIND_PATH_NOT_FOUND, ""),
 		},
+		{
+			fileId:   "",
+			wantPath: "",
+		},
 	}
 
 	for _, tt := range cases {
@@ -192,7 +196,7 @@ func TestWrapForReturningNotFoundPathError(t *testing.T) {
 
 		// check error
 		if err != nil && tt.wantErr == nil {
-			t.Fatalf("[FATAL] unexpected error occurred with fileId = %s: %v", tt.fileId, err)
+			t.Fatalf("[FATAL] unexpected error occurred with fileId = %q: %v", tt.fileId, err)
 		}
 		if err == nil && tt.wantErr != nil {
 			t.Errorf("[ERROR] expected error did not occurr with fileId: %s", tt.fileId)

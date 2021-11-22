@@ -43,6 +43,9 @@ $#inline-math$
 #### with fragments
 [[blank#section#subsection]]
 
+#### only fragments
+[[#section]]
+
 ### External Link
 #### tag in display name
 [tag in display name #tag_in_display_name_of_external_link](https://example.com)
@@ -63,6 +66,9 @@ $#inline-math$
 [variant of external link #tag_in_display_name_of_var_external_link][variant #variant]
 
 [variant #variant]:https://example.com
+
+#### only fragments
+[only fragments](#section)
 
 ### Embeds
 ![[image.svg]]

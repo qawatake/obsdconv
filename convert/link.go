@@ -107,7 +107,7 @@ func (w *pathDBWrapperImplReturningNotFoundPathError) Get(fileId string) (path s
 	if err != nil {
 		return "", err
 	}
-	if path == "" {
+	if path == "" && fileId != "" {
 		return "", newErrTransformf(ERR_KIND_PATH_NOT_FOUND, "failed to resolve ref \"%s\"", fileId)
 	}
 	return path, nil
