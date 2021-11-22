@@ -45,6 +45,17 @@
 !testdata
 !testdata/convertbody
 !testdata/convertbody/**
+!testdata/run
+!testdata/run/obs
+!testdata/run/obs/src
+!testdata/run/obs/src/**
+!testdata/run/obs/dst
+!testdata/run/obs/dst/**
+!testdata/run/std_strictref0
+!testdata/run/std_strictref0/src
+!testdata/run/std_strictref0/src/**
+!testdata/run/std_strictref0/dst
+!testdata/run/std_strictref0/dst/**
 
 !process
 !process/walk.go
