@@ -4,11 +4,11 @@ aliases:
 tags:
 - existing-tag
 ---
-# sample file for -obs (= -cptag -title -alias) << #will_be_removed_in_title_and_alias >>
+# sample file for -std (= -cptag -rmtag -title -alias -link -cmmt -strictref) << #will_be_removed_in_title_and_alias >>
 
 ## Copy tags
 Tags will be copied to `tags` field in front matter.
-<< #obsidian >> <- this tag will be copied.
+<< #obsidian >> <- this tag will be copied (and be removed).
 
 ### Not tags
 Tags are escaped in the following.
@@ -27,6 +27,7 @@ $$
 %%
 	#comment-block
 %%
+(↑ this comment block will be removed)
 
 #### Inline Code
 `#inline-code`
@@ -45,12 +46,10 @@ In this case,
 H1 content will be copied to `aliases` field in front matter.
 H1 content will be processed like `title`.
 
-## Obsidian formats uneffected
-The following formats will be unchanged.
+### Remove Tags
+<< #will_remain >> <- this tag will be removed
 
-### Tags
-#will_remain
-
+## Convert Links
 ### Internal Links
 [[blank]]
 
@@ -59,3 +58,8 @@ The following formats will be unchanged.
 
 ### Embeds
 ![[image.png]]
+
+## Remove Obsidian Comment Blocks
+%%
+This comment block will be removed.
+%%

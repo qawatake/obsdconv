@@ -41,6 +41,15 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(rootDir, "obs", dst),
 		},
+		{
+			name: "-std",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(rootDir, "std", src),
+				FLAG_DESTINATION:    filepath.Join(rootDir, "std", tmp),
+				FLAG_STANDARD_USAGE: "1",
+			},
+			wantDstDir: filepath.Join(rootDir, "std", dst),
+		},
 	}
 
 	for _, tt := range cases {
@@ -65,7 +74,7 @@ func TestRun(t *testing.T) {
 			continue
 		}
 
-		if msg, err := equalDirContent(flags.dst, tt.wantDstDir); err != nil {
+		if msg, err := compareDirContent(flags.dst, tt.wantDstDir); err != nil {
 			t.Fatalf("[FATAL | content // %s] unexpected error occurred: %v", tt.name, err)
 		} else if msg != "" {
 			t.Fatalf("[ERROR | content // %s] %s", tt.name, msg)
@@ -74,7 +83,7 @@ func TestRun(t *testing.T) {
 }
 
 // if contents fo two directories are the same, msg = ""
-func equalDirContent(dir1, dir2 string) (msg string, err error) {
+func compareDirContent(dir1, dir2 string) (msg string, err error) {
 	const (
 		capacity = 100
 	)
@@ -135,7 +144,7 @@ func equalDirContent(dir1, dir2 string) (msg string, err error) {
 
 		// directories
 		if d1.info.IsDir() && d2.info.IsDir() {
-			if msg, err := equalDirContent(d1.path, d2.path); err != nil {
+			if msg, err := compareDirContent(d1.path, d2.path); err != nil {
 				log.Fatal(err)
 			} else if msg != "" {
 				return msg, nil

@@ -16,6 +16,11 @@
 !sample/obs/src/**
 !sample/obs/dst
 !sample/obs/dst/**
+!sample/std
+!sample/std/src
+!sample/std/src/**
+!sample/std/dst
+!sample/std/dst/**
 
 !go.mod
 !main.go

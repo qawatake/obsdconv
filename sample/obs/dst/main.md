@@ -57,7 +57,7 @@ The following formats will be unchanged.
 #will_remain
 
 ### Internal Links
-[[blank.md]]
+[[blank]]
 
 ### Obsidian URL
 [obsidian url](obsidian://open?vault=obsidian&file=blank)

@@ -1,14 +1,20 @@
 ---
 aliases:
 - existing-alias
+- sample file for -std (= -cptag -rmtag -title -alias -link -cmmt -strictref) <<  >>
 tags:
 - existing-tag
+- obsidian
+- will_be_removed_in_title_and_alias
+- will_remain
+title: sample file for -std (= -cptag -rmtag -title -alias -link -cmmt -strictref)
+  <<  >>
 ---
-# sample file for -obs (= -cptag -title -alias) << #will_be_removed_in_title_and_alias >>
+# sample file for -std (= -cptag -rmtag -title -alias -link -cmmt -strictref) <<  >>
 
 ## Copy tags
 Tags will be copied to `tags` field in front matter.
-<< #obsidian >> <- this tag will be copied.
+<<  >> <- this tag will be copied (and be removed).
 
 ### Not tags
 Tags are escaped in the following.
@@ -24,9 +30,8 @@ $$
 $$
 
 #### Comment Block
-%%
-	#comment-block
-%%
+
+(↑ this comment block will be removed)
 
 #### Inline Code
 `#inline-code`
@@ -45,17 +50,17 @@ In this case,
 H1 content will be copied to `aliases` field in front matter.
 H1 content will be processed like `title`.
 
-## Obsidian formats uneffected
-The following formats will be unchanged.
+### Remove Tags
+<<  >> <- this tag will be removed
 
-### Tags
-#will_remain
-
+## Convert Links
 ### Internal Links
-[[blank]]
+[blank](blank.md)
 
 ### Obsidian URL
-[obsidian url](obsidian://open?vault=obsidian&file=blank)
+[obsidian url](blank.md)
 
 ### Embeds
-![[image.png]]
+![image.png](image.png)
+
+## Remove Obsidian Comment Blocks
