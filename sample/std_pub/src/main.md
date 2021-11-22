@@ -9,7 +9,7 @@ tags:
 
 ## Copy tags
 Tags will be copied to `tags` field in front matter.
-<< #obsidian >> <- this tag will be copied (and be removed).
+<< #obsidian >> <- `#obsidian` will be copied (and be removed).
 
 ### Not tags
 Tags are escaped in the following.
@@ -48,7 +48,7 @@ H1 content will be copied to `aliases` field in front matter.
 H1 content will be processed like `title`.
 
 ### Remove Tags
-<< #will_remain >> <- this tag will be removed
+<< #will_be_removed_from_text >> <- `#will_be_removed_from_text` will be removed
 
 ## Convert Links
 ### Internal Links
