@@ -32,7 +32,11 @@ That is, obsdconv
 - convert internal links, embeds, and Obsidian URI's,
 
 See `sample` directory.
-We can get `sample/ouput.md` from `sample/input.md` by running `obsdconv -src sample -dst sample -std` (and renaming the generated file).
+We can get `sample/std/dst` from `sample/std/src` by running `obsdconv -src sample/std/src -dst sample/std/dst -std` at the root directory.
+We also provide other sample directories, each directory name corresponds to specified flags:
+- `sample/obs` corresponds to `-obs`
+- `sample/std_rmh1` corresponds to `-std -rmh1`
+- `sample/std_pub` corresponds to `-std -pub`
 
 ## Options
 Available options are as follows:
