@@ -13,7 +13,7 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	rootDir := "sample"
+	sampleDir := "sample"
 	src := "src"
 	dst := "dst"
 	tmp := "tmp"
@@ -35,40 +35,40 @@ func TestRun(t *testing.T) {
 		{
 			name: "-obs",
 			cmdflags: map[string]string{
-				FLAG_SOURCE:         filepath.Join(rootDir, "obs", src),
-				FLAG_DESTINATION:    filepath.Join(rootDir, "obs", tmp),
+				FLAG_SOURCE:         filepath.Join(sampleDir, "obs", src),
+				FLAG_DESTINATION:    filepath.Join(sampleDir, "obs", tmp),
 				FLAG_OBSIDIAN_USAGE: "1",
 			},
-			wantDstDir: filepath.Join(rootDir, "obs", dst),
+			wantDstDir: filepath.Join(sampleDir, "obs", dst),
 		},
 		{
 			name: "-std",
 			cmdflags: map[string]string{
-				FLAG_SOURCE:         filepath.Join(rootDir, "std", src),
-				FLAG_DESTINATION:    filepath.Join(rootDir, "std", tmp),
+				FLAG_SOURCE:         filepath.Join(sampleDir, "std", src),
+				FLAG_DESTINATION:    filepath.Join(sampleDir, "std", tmp),
 				FLAG_STANDARD_USAGE: "1",
 			},
-			wantDstDir: filepath.Join(rootDir, "std", dst),
+			wantDstDir: filepath.Join(sampleDir, "std", dst),
 		},
 		{
 			name: "-std -rmh1",
 			cmdflags: map[string]string{
-				FLAG_SOURCE:         filepath.Join(rootDir, "std_rmh1", src),
-				FLAG_DESTINATION:    filepath.Join(rootDir, "std_rmh1", tmp),
+				FLAG_SOURCE:         filepath.Join(sampleDir, "std_rmh1", src),
+				FLAG_DESTINATION:    filepath.Join(sampleDir, "std_rmh1", tmp),
 				FLAG_STANDARD_USAGE: "1",
 				FLAG_REMOVE_H1:      "1",
 			},
-			wantDstDir: filepath.Join(rootDir, "std_rmh1", dst),
+			wantDstDir: filepath.Join(sampleDir, "std_rmh1", dst),
 		},
 		{
 			name: "-std -pub",
 			cmdflags: map[string]string{
-				FLAG_SOURCE:         filepath.Join(rootDir, "std_pub", src),
-				FLAG_DESTINATION:    filepath.Join(rootDir, "std_pub", tmp),
+				FLAG_SOURCE:         filepath.Join(sampleDir, "std_pub", src),
+				FLAG_DESTINATION:    filepath.Join(sampleDir, "std_pub", tmp),
 				FLAG_STANDARD_USAGE: "1",
 				FLAG_PUBLISHABLE:    "1",
 			},
-			wantDstDir: filepath.Join(rootDir, "std_pub", dst),
+			wantDstDir: filepath.Join(sampleDir, "std_pub", dst),
 		},
 	}
 
