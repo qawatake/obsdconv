@@ -6,11 +6,11 @@ import (
 	"testing"
 )
 
-func TestSetFlags(t *testing.T) {
+func TestSetConfig(t *testing.T) {
 	cases := []struct {
 		name      string
 		cmdflags  map[string]string
-		wantflags flagBundle
+		wantConfig configuration
 	}{
 		{
 			name: "for obsidian usage",
@@ -19,7 +19,7 @@ func TestSetFlags(t *testing.T) {
 				FLAG_DESTINATION:    "dst",
 				FLAG_OBSIDIAN_USAGE: "1",
 			},
-			wantflags: flagBundle{
+			wantConfig: configuration{
 				src:   "src",
 				dst:   "dst",
 				cptag: true,
@@ -35,17 +35,17 @@ func TestSetFlags(t *testing.T) {
 				FLAG_DESTINATION:    "dst",
 				FLAG_STANDARD_USAGE: "1",
 			},
-			wantflags: flagBundle{
-				src:         "src",
-				dst:         "dst",
-				rmtag:       true,
-				cptag:       true,
-				title:       true,
-				alias:       true,
-				link:        true,
-				strictref:   true,
-				cmmt:        true,
-				std:         true,
+			wantConfig: configuration{
+				src:       "src",
+				dst:       "dst",
+				rmtag:     true,
+				cptag:     true,
+				title:     true,
+				alias:     true,
+				link:      true,
+				strictref: true,
+				cmmt:      true,
+				std:       true,
 			},
 		},
 		{
@@ -57,48 +57,48 @@ func TestSetFlags(t *testing.T) {
 				FLAG_STRICT_REF:     "0",
 				FLAG_STANDARD_USAGE: "1",
 			},
-			wantflags: flagBundle{
-				src:         "src",
-				dst:         "dst",
-				rmtag:       false,
-				cptag:       true,
-				title:       true,
-				alias:       true,
-				link:        true,
-				cmmt:        true,
-				strictref:   false,
-				obs:         false,
-				std:         true,
+			wantConfig: configuration{
+				src:       "src",
+				dst:       "dst",
+				rmtag:     false,
+				cptag:     true,
+				title:     true,
+				alias:     true,
+				link:      true,
+				cmmt:      true,
+				strictref: false,
+				obs:       false,
+				std:       true,
 			},
 		},
 	}
 
 	for _, tt := range cases {
 		flagset := flag.NewFlagSet(fmt.Sprintf("TestSetFlags | %s", tt.name), flag.ExitOnError)
-		gotflags := new(flagBundle)
-		initFlags(flagset, gotflags)
+		gotConfig := new(configuration)
+		initFlags(flagset, gotConfig)
 
 		// テスト用コマンドライン引数の設定
 		for cmdname, cmdvalue := range tt.cmdflags {
 			flagset.Set(cmdname, cmdvalue)
 		}
 
-		setFlags(flagset, gotflags)
-		if *gotflags != tt.wantflags {
-			t.Errorf("[ERROR | %s]\n\t got: %+v,\n\twant: %+v", tt.name, *gotflags, tt.wantflags)
+		setConfig(flagset, gotConfig)
+		if *gotConfig != tt.wantConfig {
+			t.Errorf("[ERROR | %s]\n\t got: %+v,\n\twant: %+v", tt.name, *gotConfig, tt.wantConfig)
 		}
 	}
 }
 
-func TestVerifyFlags(t *testing.T) {
+func TestVerifyConfig(t *testing.T) {
 	cases := []struct {
 		name    string
-		flags   flagBundle
+		config   configuration
 		wantErr mainErr
 	}{
 		{
 			name: "src not set",
-			flags: flagBundle{
+			config: configuration{
 				src: "",
 				dst: "dst",
 			},
@@ -106,7 +106,7 @@ func TestVerifyFlags(t *testing.T) {
 		},
 		{
 			name: "dst not set",
-			flags: flagBundle{
+			config: configuration{
 				src: "src",
 				dst: "",
 			},
@@ -114,7 +114,7 @@ func TestVerifyFlags(t *testing.T) {
 		},
 		{
 			name: fmt.Sprintf("%s set but not %s", FLAG_STRICT_REF, FLAG_CONVERT_LINKS),
-			flags: flagBundle{
+			config: configuration{
 				src:       "src",
 				dst:       "dst",
 				link:      false,
@@ -124,7 +124,7 @@ func TestVerifyFlags(t *testing.T) {
 		},
 		{
 			name: "src begins with \"-\"",
-			flags: flagBundle{
+			config: configuration{
 				src: "-src",
 				dst: "dst",
 			},
@@ -132,7 +132,7 @@ func TestVerifyFlags(t *testing.T) {
 		},
 		{
 			name: "dst begins with \"-\"",
-			flags: flagBundle{
+			config: configuration{
 				src: "src",
 				dst: "-dst",
 			},
@@ -141,9 +141,9 @@ func TestVerifyFlags(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		err := verifyFlags(&tt.flags)
+		err := verifyConfig(&tt.config)
 		if err == nil && tt.wantErr != nil {
-			t.Errorf("[ERROR | %s] expected error did not occurr with %+v", tt.name, tt.flags)
+			t.Errorf("[ERROR | %s] expected error did not occurr with %+v", tt.name, tt.config)
 		}
 		if err != nil && tt.wantErr == nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)

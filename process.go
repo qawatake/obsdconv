@@ -41,17 +41,17 @@ func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
 	}
 }
 
-func newDefaultProcessor(flags *flagBundle) process.Processor {
-	db := convert.NewPathDB(flags.src)
-	if flags.strictref {
+func newDefaultProcessor(config *configuration) process.Processor {
+	db := convert.NewPathDB(config.src)
+	if config.strictref {
 		db = convert.WrapForReturningNotFoundPathError(db)
 	}
 
-	bc := newBodyConverterImpl(db, flags.cptag, flags.rmtag, flags.cmmt, flags.title, flags.link, flags.rmH1)
-	yc := newYamlConverterImpl(flags.publishable)
+	bc := newBodyConverterImpl(db, config.cptag, config.rmtag, config.cmmt, config.title, config.link, config.rmH1)
+	yc := newYamlConverterImpl(config.publishable)
 	passer := argPasserFunc(passArg)
-	examinator := newYamlExaminatorImpl(flags.publishable)
-	return newProcessorImplWithErrHandling(flags.debug, process.NewProcessor(bc, yc, passer, examinator))
+	examinator := newYamlExaminatorImpl(config.publishable)
+	return newProcessorImplWithErrHandling(config.debug, process.NewProcessor(bc, yc, passer, examinator))
 }
 
 func handleErr(path string, err error) (public error, debug error) {

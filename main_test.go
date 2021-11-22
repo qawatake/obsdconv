@@ -93,17 +93,17 @@ func TestRun(t *testing.T) {
 	}
 
 	for _, tt := range cases {
-		// flags を設定
-		flags := new(flagBundle)
+		// config を設定
+		config := new(configuration)
 		flagset := flag.NewFlagSet(fmt.Sprintf("TestSetFlags | %s", tt.name), flag.ExitOnError)
-		initFlags(flagset, flags)
+		initFlags(flagset, config)
 		for cmdname, cmdvalue := range tt.cmdflags { // flag.Parse() に相当
 			flagset.Set(cmdname, cmdvalue)
 		}
-		setFlags(flagset, flags)
+		setConfig(flagset, config)
 
 		versionBuf := new(bytes.Buffer)
-		err := run(tt.argVersion, flags, versionBuf)
+		err := run(tt.argVersion, config, versionBuf)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected err occurred: %v", tt.name, err)
 		}
@@ -114,15 +114,15 @@ func TestRun(t *testing.T) {
 			continue
 		}
 
-		if msg, err := compareDirContent(flags.dst, tt.wantDstDir); err != nil {
+		if msg, err := compareDirContent(config.dst, tt.wantDstDir); err != nil {
 			t.Fatalf("[FATAL | content // %s] unexpected error occurred: %v", tt.name, err)
 		} else if msg != "" {
 			t.Errorf("[ERROR | content // %s] %s", tt.name, msg)
 		}
 
 		// remove generated directory
-		if err := os.RemoveAll(flags.dst); err != nil {
-			t.Fatalf("[FATAL | %s] failed to remove generated directory %s", tt.name, flags.dst)
+		if err := os.RemoveAll(config.dst); err != nil {
+			t.Fatalf("[FATAL | %s] failed to remove generated directory %s", tt.name, config.dst)
 		}
 	}
 }

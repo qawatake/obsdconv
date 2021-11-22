@@ -20,33 +20,33 @@ const (
 )
 
 func main() {
-	// flags を設定
-	flags := new(flagBundle)
-	initFlags(flag.CommandLine, flags)
+	// config を設定
+	config := new(configuration)
+	initFlags(flag.CommandLine, config)
 	flag.Parse()
-	setFlags(flag.CommandLine, flags)
+	setConfig(flag.CommandLine, config)
 
 	// main 部分
-	err := run(Version, flags, os.Stdout)
+	err := run(Version, config, os.Stdout)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(version string, flags *flagBundle, w io.Writer) (err error) {
-	if flags.ver {
+func run(version string, config *configuration, w io.Writer) (err error) {
+	if config.ver {
 		fmt.Fprintf(w, "v%s\n", version)
 		return nil
 	}
-	if err := verifyFlags(flags); err != nil {
+	if err := verifyConfig(config); err != nil {
 		return err
 	}
-	processor := newDefaultProcessor(flags)
-	skipper, err := process.NewSkipper(filepath.Join(flags.src, DEFAULT_IGNORE_FILE_NAME))
+	processor := newDefaultProcessor(config)
+	skipper, err := process.NewSkipper(filepath.Join(config.src, DEFAULT_IGNORE_FILE_NAME))
 	if err != nil {
 		return err
 	}
-	if err := process.Walk(flags.src, flags.dst, skipper, processor); err != nil {
+	if err := process.Walk(config.src, config.dst, skipper, processor); err != nil {
 		return err
 	}
 	return nil

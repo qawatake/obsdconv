@@ -24,7 +24,7 @@ const (
 	FLAG_DEBUG          = "debug"
 )
 
-type flagBundle struct {
+type configuration struct {
 	src         string
 	dst         string
 	rmtag       bool
@@ -93,22 +93,22 @@ func newMainErr(kind mainErrKind) mainErr {
 	return err
 }
 
-func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
-	flagset.StringVar(&flags.src, FLAG_SOURCE, "", "source directory")
-	flagset.StringVar(&flags.dst, FLAG_DESTINATION, "", "destination directory")
-	flagset.BoolVar(&flags.rmtag, FLAG_REMOVE_TAGS, false, "remove tag")
-	flagset.BoolVar(&flags.cptag, FLAG_COPY_TAGS, false, "copy tag to tags field of front matter")
-	flagset.BoolVar(&flags.title, FLAG_COPY_TITLE, false, "copy h1 content to title field of front matter")
-	flagset.BoolVar(&flags.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
-	flagset.BoolVar(&flags.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
-	flagset.BoolVar(&flags.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
-	flagset.BoolVar(&flags.publishable, FLAG_PUBLISHABLE, false, "convert only files with publish: true or draft: false. For files with publish: true, add draft: false.")
-	flagset.BoolVar(&flags.rmH1, FLAG_REMOVE_H1, false, "remove H1")
-	flagset.BoolVar(&flags.strictref, FLAG_STRICT_REF, false, fmt.Sprintf("return error when ref target is not found. available only when %s is on", FLAG_CONVERT_LINKS))
-	flagset.BoolVar(&flags.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
-	flagset.BoolVar(&flags.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -strictref")
-	flagset.BoolVar(&flags.ver, FLAG_VERSION, false, "display the version currently installed")
-	flagset.BoolVar(&flags.debug, FLAG_DEBUG, false, "display error message for developers")
+func initFlags(flagset *flag.FlagSet, config *configuration) {
+	flagset.StringVar(&config.src, FLAG_SOURCE, "", "source directory")
+	flagset.StringVar(&config.dst, FLAG_DESTINATION, "", "destination directory")
+	flagset.BoolVar(&config.rmtag, FLAG_REMOVE_TAGS, false, "remove tag")
+	flagset.BoolVar(&config.cptag, FLAG_COPY_TAGS, false, "copy tag to tags field of front matter")
+	flagset.BoolVar(&config.title, FLAG_COPY_TITLE, false, "copy h1 content to title field of front matter")
+	flagset.BoolVar(&config.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
+	flagset.BoolVar(&config.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
+	flagset.BoolVar(&config.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
+	flagset.BoolVar(&config.publishable, FLAG_PUBLISHABLE, false, "convert only files with publish: true or draft: false. For files with publish: true, add draft: false.")
+	flagset.BoolVar(&config.rmH1, FLAG_REMOVE_H1, false, "remove H1")
+	flagset.BoolVar(&config.strictref, FLAG_STRICT_REF, false, fmt.Sprintf("return error when ref target is not found. available only when %s is on", FLAG_CONVERT_LINKS))
+	flagset.BoolVar(&config.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
+	flagset.BoolVar(&config.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -strictref")
+	flagset.BoolVar(&config.ver, FLAG_VERSION, false, "display the version currently installed")
+	flagset.BoolVar(&config.debug, FLAG_DEBUG, false, "display error message for developers")
 }
 
 // 実行前に↓が必要
@@ -116,65 +116,65 @@ func initFlags(flagset *flag.FlagSet, flags *flagBundle) {
 // 2. flag の値の設定
 // 	- flag.CommandLine => flag.Parse()
 //	- それ以外 => flagset.Set("フラグ名", "フラグの値を表す文字列")
-func setFlags(flagset *flag.FlagSet, flags *flagBundle) {
-	orgFlag := *flags
+func setConfig(flagset *flag.FlagSet, config *configuration) {
+	orgFlag := *config
 	setflags := make(map[string]struct{})
 	flagset.Visit(func(f *flag.Flag) {
 		setflags[f.Name] = struct{}{}
 	})
 
-	if flags.obs || flags.std {
-		flags.cptag = true
-		flags.title = true
-		flags.alias = true
+	if config.obs || config.std {
+		config.cptag = true
+		config.title = true
+		config.alias = true
 	}
-	if flags.std {
-		flags.rmtag = true
-		flags.link = true
-		flags.cmmt = true
-		flags.strictref = true
+	if config.std {
+		config.rmtag = true
+		config.link = true
+		config.cmmt = true
+		config.strictref = true
 	}
 
 	if _, ok := setflags[FLAG_COPY_TAGS]; ok {
-		flags.cptag = orgFlag.cptag
+		config.cptag = orgFlag.cptag
 	}
 	if _, ok := setflags[FLAG_COPY_TITLE]; ok {
-		flags.title = orgFlag.title
+		config.title = orgFlag.title
 	}
 	if _, ok := setflags[FLAG_COPY_ALIASES]; ok {
-		flags.alias = orgFlag.alias
+		config.alias = orgFlag.alias
 	}
 	if _, ok := setflags[FLAG_REMOVE_TAGS]; ok {
-		flags.rmtag = orgFlag.rmtag
+		config.rmtag = orgFlag.rmtag
 	}
 	if _, ok := setflags[FLAG_CONVERT_LINKS]; ok {
-		flags.link = orgFlag.link
+		config.link = orgFlag.link
 	}
 	if _, ok := setflags[FLAG_REMOVE_COMMENT]; ok {
-		flags.cmmt = orgFlag.cmmt
+		config.cmmt = orgFlag.cmmt
 	}
 	if _, ok := setflags[FLAG_PUBLISHABLE]; ok {
-		flags.publishable = orgFlag.publishable
+		config.publishable = orgFlag.publishable
 	}
 	if _, ok := setflags[FLAG_STRICT_REF]; ok {
-		flags.strictref = orgFlag.strictref
+		config.strictref = orgFlag.strictref
 	}
 }
 
-func verifyFlags(flags *flagBundle) error {
-	if flags.src == "" {
+func verifyConfig(config *configuration) error {
+	if config.src == "" {
 		return newMainErr(MAIN_ERR_KIND_SOURCE_NOT_SET)
 	}
-	if flags.dst == "" {
+	if config.dst == "" {
 		return newMainErr(MAIN_ERR_KIND_DESTINATION_NOT_SET)
 	}
-	if strings.HasPrefix(flags.src, "-") {
+	if strings.HasPrefix(config.src, "-") {
 		return newMainErr(MAIN_ERR_KIND_INVALID_SOURCE_FORMAT)
 	}
-	if strings.HasPrefix(flags.dst, "-") {
+	if strings.HasPrefix(config.dst, "-") {
 		return newMainErr(MAIN_ERR_KIND_INVALID_DESTINATION_FORMAT)
 	}
-	if flags.strictref && !flags.link {
+	if config.strictref && !config.link {
 		return newMainErr(MAIN_ERR_KIND_STRICTREF_NEEDS_LINK)
 	}
 	return nil
