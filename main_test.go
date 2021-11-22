@@ -3,546 +3,222 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"io"
+	"flag"
+	"fmt"
+	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/qawatake/obsdconv/convert"
 )
 
-func TestExamineYaml(t *testing.T) {
+func TestRun(t *testing.T) {
+	sampleDir := "sample"
+	src := "src"
+	dst := "dst"
+	tmp := "tmp"
 	cases := []struct {
 		name        string
-		publishable bool
-		yml         []byte
-		want        bool
+		cmdflags    map[string]string
+		argVersion  string
+		wantDstDir  string
+		wantVersion string
 	}{
 		{
-			name:        "not publishable",
-			publishable: false,
-			yml: []byte(`publish: false
-draft: true`),
-			want: true,
+			name: "-version",
+			cmdflags: map[string]string{
+				FLAG_VERSION: "1",
+			},
+			argVersion:  "1.0.0",
+			wantVersion: "v1.0.0\n",
 		},
 		{
-			name:        "publishable && publish: true",
-			publishable: true,
-			yml:         []byte(`publish: true`),
-			want:        true,
+			name: "-obs",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(sampleDir, "obs", src),
+				FLAG_DESTINATION:    filepath.Join(sampleDir, "obs", tmp),
+				FLAG_OBSIDIAN_USAGE: "1",
+			},
+			wantDstDir: filepath.Join(sampleDir, "obs", dst),
 		},
 		{
-			name:        "publishable && publish: false",
-			publishable: true,
-			yml:         []byte(`publish: false`),
-			want:        false,
+			name: "-std",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(sampleDir, "std", src),
+				FLAG_DESTINATION:    filepath.Join(sampleDir, "std", tmp),
+				FLAG_STANDARD_USAGE: "1",
+			},
+			wantDstDir: filepath.Join(sampleDir, "std", dst),
 		},
 		{
-			name:        "publishable && draft: false",
-			publishable: true,
-			yml:         []byte(`draft: false`),
-			want:        true,
+			name: "-std -rmh1",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(sampleDir, "std_rmh1", src),
+				FLAG_DESTINATION:    filepath.Join(sampleDir, "std_rmh1", tmp),
+				FLAG_STANDARD_USAGE: "1",
+				FLAG_REMOVE_H1:      "1",
+			},
+			wantDstDir: filepath.Join(sampleDir, "std_rmh1", dst),
 		},
 		{
-			name:        "publishable && draft: true",
-			publishable: true,
-			yml:         []byte(`draft: true`),
-			want:        false,
+			name: "-std -pub",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(sampleDir, "std_pub", src),
+				FLAG_DESTINATION:    filepath.Join(sampleDir, "std_pub", tmp),
+				FLAG_STANDARD_USAGE: "1",
+				FLAG_PUBLISHABLE:    "1",
+			},
+			wantDstDir: filepath.Join(sampleDir, "std_pub", dst),
 		},
 	}
 
 	for _, tt := range cases {
-		got, err := newYamlExaminatorImpl(tt.publishable).ExamineYaml(tt.yml)
-		if err != nil {
-			t.Fatalf("[FATAL | %s] ExamineYaml failed: %v", tt.name, err)
+		// flags を設定
+		flags := new(flagBundle)
+		flagset := flag.NewFlagSet(fmt.Sprintf("TestSetFlags | %s", tt.name), flag.ExitOnError)
+		initFlags(flagset, flags)
+		for cmdname, cmdvalue := range tt.cmdflags { // flag.Parse() に相当
+			flagset.Set(cmdname, cmdvalue)
 		}
-		if got != tt.want {
-			t.Errorf("[ERROR | %s] got: %v, want: %v", tt.name, got, tt.want)
+		setFlags(flagset, flags)
+
+		versionBuf := new(bytes.Buffer)
+		err := run(tt.argVersion, flags, versionBuf)
+		if err != nil {
+			t.Fatalf("[FATAL | %s] unexpected err occurred: %v", tt.name, err)
+		}
+		if gotVersion := versionBuf.String(); gotVersion != "" {
+			if gotVersion != tt.wantVersion {
+				t.Errorf("[ERROR | version // %s] got: %q, want: %q", tt.name, gotVersion, tt.wantVersion)
+			}
+			continue
+		}
+
+		if msg, err := compareDirContent(flags.dst, tt.wantDstDir); err != nil {
+			t.Fatalf("[FATAL | content // %s] unexpected error occurred: %v", tt.name, err)
+		} else if msg != "" {
+			t.Errorf("[ERROR | content // %s] %s", tt.name, msg)
+		}
+
+		// remove generated directory
+		if err := os.RemoveAll(flags.dst); err != nil {
+			t.Fatalf("[FATAL | %s] failed to remove generated directory %s", tt.name, flags.dst)
 		}
 	}
 }
 
-func TestConvertBody(t *testing.T) {
+// if contents fo two directories are the same, msg = ""
+func compareDirContent(dir1, dir2 string) (msg string, err error) {
 	const (
-		test_CONVERT_BODY_DIR = "testdata/convertbody"
+		capacity = 100
 	)
-	cases := []struct {
-		name         string
-		rootDir      string
-		srcDir       string
-		rawFileName  string
-		cptag        bool
-		rmtag        bool
-		cmmt         bool
-		title        bool
-		link         bool
-		rmH1         bool
-		wantTitle    string
-		wantTags     []string
-		wantFileName string
-	}{
-		{
-			name:         "-cptag -title",
-			rootDir:      "cptag_title",
-			srcDir:       "src",
-			rawFileName:  "src.md",
-			cptag:        true,
-			title:        true,
-			wantTitle:    "test source file <<  >>",
-			wantTags:     []string{"obsidian", "test"},
-			wantFileName: "want.md",
-		},
-		{
-			name:         "-rmtag -title -cptag",
-			rootDir:      "rmtag_title_cptag",
-			srcDir:       "src",
-			rawFileName:  "src.md",
-			rmtag:        true,
-			title:        true,
-			cptag:        true,
-			wantTitle:    "test source file <<  >>",
-			wantTags:     []string{"obsidian", "test"},
-			wantFileName: "want.md",
-		},
-		{
-			name:         "-rmtag -title -cptag -cmmt",
-			rootDir:      "rmtag_title_cptag_cmmt",
-			srcDir:       "src",
-			rawFileName:  "src.md",
-			rmtag:        true,
-			title:        true,
-			cptag:        true,
-			cmmt:         true,
-			wantTitle:    "test source file <<  >>",
-			wantTags:     []string{"obsidian", "test"},
-			wantFileName: "want.md",
-		},
-		{
-			name:         "-rmtag -title -cptag -cmmt -link",
-			rootDir:      "rmtag_title_cptag_cmmt_link",
-			srcDir:       "src",
-			rawFileName:  "src.md",
-			rmtag:        true,
-			title:        true,
-			cptag:        true,
-			cmmt:         true,
-			link:         true,
-			wantTitle:    "test source file <<  >>",
-			wantTags:     []string{"obsidian", "test"},
-			wantFileName: "want.md",
-		},
-	}
+	data1 := make([]struct {
+		path string
+		info fs.FileInfo
+	}, 0, capacity)
+	data2 := make([]struct {
+		path string
+		info fs.FileInfo
+	}, 0, capacity)
 
-	// src ディレクトリ作成
-	originalPath := filepath.Join(test_CONVERT_BODY_DIR, "src.md")
-	originalFile, err := os.Open(originalPath)
+	err = filepath.Walk(dir1, func(path string, info fs.FileInfo, err error) error {
+		data1 = append(data1, struct {
+			path string
+			info fs.FileInfo
+		}{
+			path: path,
+			info: info,
+		})
+		return nil
+	})
 	if err != nil {
-		t.Fatalf("[FATAL] failed to open: %v", err)
+		log.Fatal(err)
 	}
-	originalContent, err := io.ReadAll(originalFile)
-	originalFile.Close()
+	err = filepath.Walk(dir2, func(path string, info fs.FileInfo, err error) error {
+		data2 = append(data2, struct {
+			path string
+			info fs.FileInfo
+		}{
+			path: path,
+			info: info,
+		})
+		return nil
+	})
 	if err != nil {
-		t.Fatalf("[FATAL] failed to read: %v", err)
-	}
-	for _, tt := range cases {
-		srcDirPath := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, "src")
-		if err := os.RemoveAll(srcDirPath); err != nil {
-			t.Fatalf("[FATAL] failed to remove tmp dir at the beginning: %v", err)
-		}
-		if err := os.Mkdir(srcDirPath, 0o777); err != nil {
-			t.Fatalf("[FATAL] failed to create tmp dir: %v", err)
-		}
-		if err := os.WriteFile(filepath.Join(srcDirPath, "image.png"), nil, 0o666); err != nil {
-			t.Fatalf("[FATAL] failed to write: %v", err)
-		}
-		if err := os.WriteFile(filepath.Join(srcDirPath, "test.md"), nil, 0o666); err != nil {
-			t.Fatalf("[FATAL] failed to write: %v", err)
-		}
-		if err := os.WriteFile(filepath.Join(srcDirPath, "src.md"), originalContent, 0o666); err != nil {
-			t.Fatalf("[FATAL] failed to write: %v", err)
-		}
+		log.Fatal(err)
 	}
 
-	// テスト部
-	for _, tt := range cases {
-		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
-		db := convert.NewPathDB(vault)
-		c := newBodyConverterImpl(db, tt.cptag, tt.rmtag, tt.cmmt, tt.title, tt.link, tt.rmH1)
+	if len(data1) != len(data2) {
+		return fmt.Sprintf("number of files in directories are diffrent - %s: %d, %s: %d", dir1, len(data1), dir2, len(data2)), nil
+	}
 
-		srcFileName := filepath.Join(vault, tt.rawFileName)
-		srcFile, err := os.Open(srcFileName)
+	for id := 1; id < len(data1); id++ { // exclude root directory
+		d1 := data1[id]
+		d2 := data2[id]
+		path1, err := filepath.Rel(dir1, d1.path)
 		if err != nil {
-			t.Fatalf("[FATAL | %s] failed to open %s: %v", tt.name, srcFileName, err)
+			log.Fatal(err)
 		}
-		raw, err := io.ReadAll(srcFile)
+		path2, err := filepath.Rel(dir2, d2.path)
 		if err != nil {
-			t.Fatalf("[FATAL | %s] failed to read: %s", tt.name, srcFileName)
+			log.Fatal(err)
 		}
-		srcFile.Close()
-
-		// output, gotTitle, gotTags, err := c.ConvertBody([]rune(string(raw)))
-		output, aux, err := c.ConvertBody([]rune(string(raw)))
-		if err != nil {
-			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
+		if path1 != path2 {
+			return fmt.Sprintf("paths are different - %s vs %s", d1.path, d2.path), nil
 		}
 
-		gotTitle := ""
-		var gotTags map[string]struct{}
-		if v, ok := aux.(*bodyConvAuxOutImpl); !ok {
-			t.Fatalf("[FATAL | %s] aux (BodyConvAuxOut) cannot converted to bodyConvAuxOutImpl", tt.name)
+		// directories
+		if d1.info.IsDir() && d2.info.IsDir() {
+			if msg, err := compareDirContent(d1.path, d2.path); err != nil {
+				log.Fatal(err)
+			} else if msg != "" {
+				return msg, nil
+			}
+			continue
+		}
+
+		// regular file and directory
+		if d1.info.IsDir() || d2.info.IsDir() {
+			if d1.info.IsDir() {
+				return fmt.Sprintf("%s is a file but %s is a directory", d2.path, d1.path), nil
+			}
+			if d2.info.IsDir() {
+				return fmt.Sprintf("%s is a file but %s is a directory", d1.path, d2.path), nil
+			}
+		}
+
+		var scanner1 *bufio.Scanner
+		var scanner2 *bufio.Scanner
+		if b, err := os.ReadFile(d1.path); err != nil {
+			log.Fatal(err)
 		} else {
-			gotTitle = v.title
-			gotTags = v.tags
+			scanner1 = bufio.NewScanner(bytes.NewReader(b))
+		}
+		if b, err := os.ReadFile(d2.path); err != nil {
+			log.Fatal(err)
+		} else {
+			scanner2 = bufio.NewScanner(bytes.NewReader(b))
 		}
 
-		// 取得した title の確認
-		if gotTitle != tt.wantTitle {
-			t.Errorf("[ERROR | title - %s] got: %q, want: %q", tt.name, gotTitle, tt.wantTitle)
-		}
-
-		// 取得した tag のチェック
-		for _, tag := range tt.wantTags {
-			if _, ok := gotTags[tag]; !ok {
-				t.Errorf("[ERROR | tag - %s] tag: %s not found", tt.name, tag)
-			}
-			delete(gotTags, tag)
-		}
-		if len(gotTags) > 0 {
-			t.Errorf("[ERROR | tag - %s] got unexpected tags: %v", tt.name, gotTags)
-		}
-
-		// file content の確認
-		wantFileName := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.wantFileName)
-		wantFile, err := os.Open(wantFileName)
-		if err != nil {
-			t.Fatalf("[FATAL | %s] failed to open %s: %v", tt.name, wantFileName, err)
-		}
-		wantText, err := io.ReadAll(wantFile)
-		if err != nil {
-			t.Fatalf("[FATAL | %s] failed to read: %s", tt.name, wantFileName)
-		}
-		wantFile.Close()
-		if string(output) != string(wantText) {
-			gotscanner := bufio.NewScanner(bytes.NewReader([]byte(string(output))))
-			wantscanner := bufio.NewScanner(bytes.NewReader(wantText))
-			linenum := 1
-			errDisplayed := false
-			for gotscanner.Scan() && wantscanner.Scan() {
-				if gotscanner.Text() != wantscanner.Text() {
-					t.Errorf("[ERROR | %s] got output differs from wanted output in line %d:\n got: %q\nwant: %q", tt.name, linenum, gotscanner.Text(), wantscanner.Text())
-					errDisplayed = true
-					break
+		line := 1
+		for {
+			if !scanner1.Scan() {
+				if scanner2.Scan() {
+					return fmt.Sprintf("path:%s, line: %d, more lines than %s", d2.path, line, d1.path), nil
 				}
-				linenum++
+				break
 			}
-			if !errDisplayed {
-				t.Errorf("[ERROR | %s] output differs from wanted output, but couldn't catch the error line", tt.name)
+			if !scanner2.Scan() {
+				if scanner1.Scan() {
+					return fmt.Sprintf("path:%s, line: %d, more lines than %s", d1.path, line, d2.path), nil
+				}
+				break
 			}
-		}
-	}
-
-	// src ディレクトリを削除
-	for _, tt := range cases {
-		srcDirPath := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, "src")
-		if err := os.RemoveAll(srcDirPath); err != nil {
-			t.Fatalf("[FATAL] failed to remove tmp dir at the end: %v", err)
-		}
-	}
-}
-
-func TestConvertYAML(t *testing.T) {
-	cases := []struct {
-		name        string
-		publishable bool
-		raw         []byte
-		title       string
-		alias       string
-		tags        []string
-		want        string
-	}{
-		{
-			name: "no overlap",
-			raw: []byte(`cssclass: index-page
-publish: true`),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			want: `aliases:
-- today
-cssclass: index-page
-publish: true
-tags:
-- todo
-- math
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "title overlaps",
-			raw: []byte(`cssclass: index-page
-publish: true
-title: 211026`),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			want: `aliases:
-- today
-cssclass: index-page
-publish: true
-tags:
-- todo
-- math
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "add aliases",
-			raw: []byte(`cssclass: index-page
-publish: true
-aliases:
-- today
-`),
-			title: "211027",
-			alias: "birthday",
-			tags:  []string{"todo", "math"},
-			want: `aliases:
-- today
-- birthday
-cssclass: index-page
-publish: true
-tags:
-- todo
-- math
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "alias coincides",
-			raw: []byte(`cssclass: index-page
-publish: true
-aliases:
-- today
-`),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			want: `aliases:
-- today
-cssclass: index-page
-publish: true
-tags:
-- todo
-- math
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "add tags",
-			raw: []byte(`cssclass: index-page
-publish: true
-tags:
-- book
-`),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			want: `aliases:
-- today
-cssclass: index-page
-publish: true
-tags:
-- book
-- todo
-- math
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "tags overlap",
-			raw: []byte(`cssclass: index-page
-publish: true
-tags:
-- book
-- math
-`),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			want: `aliases:
-- today
-cssclass: index-page
-publish: true
-tags:
-- book
-- math
-- todo
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "publishable",
-			raw: []byte(`cssclass: index-page
-publish: true
-`),
-			title:       "211027",
-			alias:       "today",
-			tags:        []string{"todo", "math"},
-			publishable: true,
-			want: `aliases:
-- today
-cssclass: index-page
-draft: false
-publish: true
-tags:
-- todo
-- math
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "not publishable",
-			raw: []byte(`cssclass: index-page
-publish: false`),
-			title:       "211027",
-			alias:       "today",
-			tags:        []string{"todo", "math"},
-			publishable: true,
-			want: `aliases:
-- today
-cssclass: index-page
-draft: true
-publish: false
-tags:
-- todo
-- math
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "no publish field",
-			raw: []byte(`cssclass: index-page
-`),
-			title:       "211027",
-			alias:       "today",
-			tags:        []string{"todo", "math"},
-			publishable: true,
-			want: `aliases:
-- today
-cssclass: index-page
-draft: true
-tags:
-- todo
-- math
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "draft field wins publish field",
-			raw: []byte(`cssclass: index-page
-publish: true
-draft: true`),
-			title:       "211027",
-			alias:       "today",
-			tags:        []string{"todo", "math"},
-			publishable: true,
-			want: `aliases:
-- today
-cssclass: index-page
-draft: true
-publish: true
-tags:
-- todo
-- math
-title: "211027"
-`,
-		},
-		//////////
-		{
-			name: "no publishable flag",
-			raw: []byte(`cssclass: index-page
-publish: true
-`),
-			title: "211027",
-			alias: "today",
-			tags:  []string{"todo", "math"},
-			// flags: &flagBundle{},
-			want: `aliases:
-- today
-cssclass: index-page
-publish: true
-tags:
-- todo
-- math
-title: "211027"
-`,
-		},
-	}
-
-	for _, tt := range cases {
-		yc := newYamlConverterImpl(tt.publishable)
-		auxinput := newYamlConvAuxInImpl(tt.title, tt.alias, tt.tags)
-		got, err := yc.ConvertYAML(tt.raw, auxinput)
-		// got, err := yc.ConvertYAML(tt.raw, tt.title, tt.alias, tt.tags)
-		if err != nil {
-			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
-		}
-		if string(got) != tt.want {
-			t.Errorf("[ERROR | %s]\ngot:\n%q\nwant:\n%q", tt.name, string(got), tt.want)
-		}
-	}
-}
-
-func TestPassArg(t *testing.T) {
-	tt := struct {
-		name       string
-		iter       int
-		frombody   bodyConvAuxOutImpl
-		wantToyaml yamlConvAuxInImpl
-	}{
-		name: "simple",
-		iter: 20,
-		frombody: bodyConvAuxOutImpl{
-			title: "title",
-			tags:  map[string]struct{}{"c": {}, "a": {}, "b": {}},
-		},
-		wantToyaml: yamlConvAuxInImpl{
-			title:   "title",
-			alias:   "title",
-			newtags: []string{"a", "b", "c"},
-		},
-	}
-
-	for range make([]struct{}, tt.iter) {
-		got, err := passArg(&tt.frombody)
-		if err != nil {
-			t.Fatalf("[FATAL] unexpected error occurred: %v", err)
-		}
-		gotToyaml, _ := got.(*yamlConvAuxInImpl)
-		if gotToyaml.title != tt.wantToyaml.title {
-			t.Errorf("[ERROR | title - %s] got: %s, want: %s", tt.name, gotToyaml.title, tt.wantToyaml.title)
-		}
-		if gotToyaml.alias != tt.wantToyaml.alias {
-			t.Errorf("[ERROR | alias - %s] got: %s, want: %s", tt.name, gotToyaml.alias, tt.wantToyaml.alias)
-		}
-		if len(gotToyaml.newtags) != len(tt.wantToyaml.newtags) {
-			t.Errorf("[ERROR | tags - %s] got: %s, want: %s", tt.name, gotToyaml.newtags, tt.wantToyaml.newtags)
-			return
-		}
-		for i, gotTag := range gotToyaml.newtags {
-			wantTag := tt.wantToyaml.newtags[i]
-			if gotTag != wantTag {
-				t.Errorf("[ERROR | tags - %s] got: %s, want: %s", tt.name, gotToyaml.newtags, tt.wantToyaml.newtags)
-				return
+			if !bytes.Equal(scanner1.Bytes(), scanner2.Bytes()) {
+				return fmt.Sprintf("line: %d in %s and %s are different:\n%q\n%q", line, d1.path, d2.path, scanner1.Text(), scanner2.Text()), nil
 			}
+			line++
 		}
 	}
+	return "", nil
 }

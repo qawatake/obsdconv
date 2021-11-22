@@ -39,7 +39,7 @@
 !examineyaml.go
 !passarg.go
 !flag_test.go
-!run_test.go
+!process_test.go
 !main_test.go
 
 !testdata
