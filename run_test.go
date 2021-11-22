@@ -1,15 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"fmt"
-	"io"
+	"io/fs"
+	"log"
+	"os"
 	"path/filepath"
-	"strings"
 	"testing"
-
-	"github.com/pkg/errors"
 )
 
 func TestRun(t *testing.T) {
@@ -65,101 +65,126 @@ func TestRun(t *testing.T) {
 			continue
 		}
 
-		if !equalDirContent(flags.dst, tt.wantDstDir) {
-			t.Fatalf("[ERROR | content // %s]", tt.name)
+		if msg, err := equalDirContent(flags.dst, tt.wantDstDir); err != nil {
+			t.Fatalf("[FATAL | content // %s] unexpected error occurred: %v", tt.name, err)
+		} else if msg != "" {
+			t.Fatalf("[ERROR | content // %s] %s", tt.name, msg)
 		}
 	}
 }
 
-func equalDirContent(dir1, dir2 string) bool {
-	return true
-}
-
-func equalFileContent(file1, file2 io.Reader) (eq bool, err error) {
-	// // check if file1 and files are not directories
-	// if info, err := os.Lstat(file1); err != nil {
-	// 	return false, errors.Wrapf(err, "failed to get info about %s", file1)
-	// } else if info.IsDir() {
-	// 	return false, fmt.Errorf("%s is a directory", file1)
-	// }
-	// if info, err := os.Lstat(file2); err != nil {
-	// 	return false, errors.Wrapf(err, "failed to get info about %s", file2)
-	// } else if info.IsDir() {
-	// 	return false, fmt.Errorf("%s is a directory", file2)
-	// }
-
-	// f1, err := os.Open(file1)
-	// if err != nil {
-	// 	return false, errors.Wrapf(err, "failed to open %s", file1)
-	// }
-	// f2, err := os.Open(file2)
-	// if err != nil {
-	// 	return false, errors.Wrapf(err, "failed to open %s", file2)
-	// }
+// if contents fo two directories are the same, msg = ""
+func equalDirContent(dir1, dir2 string) (msg string, err error) {
 	const (
-		chuncksize = 1000
+		capacity = 100
 	)
-	chunk1 := make([]byte, chuncksize)
-	chunk2 := make([]byte, chuncksize)
+	data1 := make([]struct {
+		path string
+		info fs.FileInfo
+	}, 0, capacity)
+	data2 := make([]struct {
+		path string
+		info fs.FileInfo
+	}, 0, capacity)
 
-	for {
-		size1, err1 := file1.Read(chunk1)
-		size2, err2 := file2.Read(chunk2)
-
-		if err1 != nil && err1 != io.EOF {
-			return false, errors.Wrap(err1, "failed to read file1")
-		}
-		if err2 != nil && err2 != io.EOF {
-			return false, errors.Wrap(err1, "failed to read file2")
-		}
-
-		if (err1 == io.EOF && err2 != io.EOF) || (err1 != io.EOF && err2 == io.EOF) {
-			return false, nil
-		}
-
-		if err1 == io.EOF && err2 == io.EOF {
-			return true, nil
-		}
-
-		if !bytes.Equal(chunk1[:size1], chunk2[:size2]) {
-			return false, nil
-		}
+	err = filepath.Walk(dir1, func(path string, info fs.FileInfo, err error) error {
+		data1 = append(data1, struct {
+			path string
+			info fs.FileInfo
+		}{
+			path: path,
+			info: info,
+		})
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
-}
-
-func TestEqualFileContent(t *testing.T) {
-	cases := []struct {
-		content1 string
-		content2 string
-		want     bool
-	}{
-		{
-			content1: "abc\ndef\n",
-			content2: "abc\ndef\n",
-			want:     true,
-		},
-		{
-			content1: "abc\ndef\n",
-			content2: "abc\r\ndef\r\n",
-			want:     false,
-		},
-		{
-			content1: "abc\ndef\n",
-			content2: "abc\ndef\nghi\n",
-			want:     false,
-		},
-		{
-			content1: "abc\ndef\n",
-			content2: "abc\n",
-			want:     false,
-		},
+	err = filepath.Walk(dir2, func(path string, info fs.FileInfo, err error) error {
+		data2 = append(data2, struct {
+			path string
+			info fs.FileInfo
+		}{
+			path: path,
+			info: info,
+		})
+		return nil
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	for _, tt := range cases {
-		if got, err := equalFileContent(strings.NewReader(tt.content1), strings.NewReader(tt.content2)); err != nil {
-			t.Fatalf("[FATAL] unexpected err occurred: %v", err)
-		} else if got != tt.want {
-			t.Errorf("[ERROR] got: %v, want: %v\ncontent1: %q\ncontent2: %q", got, tt.want, string(tt.content1), string(tt.content2))
+	if len(data1) != len(data2) {
+		return fmt.Sprintf("number of files in directories are diffrent - %s: %d, %s: %d", dir1, len(data1), dir2, len(data2)), nil
+	}
+
+	for id := 1; id < len(data1); id++ { // exclude root directory
+		d1 := data1[id]
+		d2 := data2[id]
+		path1, err := filepath.Rel(dir1, d1.path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		path2, err := filepath.Rel(dir2, d2.path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if path1 != path2 {
+			return fmt.Sprintf("paths are different - %s vs %s", d1.path, d2.path), nil
+		}
+
+		// directories
+		if d1.info.IsDir() && d2.info.IsDir() {
+			if msg, err := equalDirContent(d1.path, d2.path); err != nil {
+				log.Fatal(err)
+			} else if msg != "" {
+				return msg, nil
+			}
+			continue
+		}
+
+		// regular file and directory
+		if d1.info.IsDir() || d2.info.IsDir() {
+			if d1.info.IsDir() {
+				return fmt.Sprintf("%s is a file but %s is a directory", d2.path, d1.path), nil
+			}
+			if d2.info.IsDir() {
+				return fmt.Sprintf("%s is a file but %s is a directory", d1.path, d2.path), nil
+			}
+		}
+
+		var scanner1 *bufio.Scanner
+		var scanner2 *bufio.Scanner
+		if b, err := os.ReadFile(d1.path); err != nil {
+			log.Fatal(err)
+		} else {
+			scanner1 = bufio.NewScanner(bytes.NewReader(b))
+		}
+		if b, err := os.ReadFile(d2.path); err != nil {
+			log.Fatal(err)
+		} else {
+			scanner2 = bufio.NewScanner(bytes.NewReader(b))
+		}
+
+		line := 1
+		for {
+			if !scanner1.Scan() {
+				if scanner2.Scan() {
+					return fmt.Sprintf("path:%s, line: %d, more lines than %s", d2.path, line, d1.path), nil
+				}
+				break
+			}
+			if !scanner2.Scan() {
+				if scanner1.Scan() {
+					return fmt.Sprintf("path:%s, line: %d, more lines than %s", d1.path, line, d2.path), nil
+				}
+				break
+			}
+			if !bytes.Equal(scanner1.Bytes(), scanner2.Bytes()) {
+				return fmt.Sprintf("line: %d in %s and %s are different:\n%q\n%q", line, d1.path, d2.path, scanner1.Text(), scanner2.Text()), nil
+			}
+			line++
 		}
 	}
+	return "", nil
 }
