@@ -2,20 +2,20 @@ on:
   push:
     paths:
       - '.github/workflows/test.yml'
-      - 'testdata'
-      - 'sample'
-      - 'scan/testdata'
-      - 'convert/testdata'
-      - 'process/testdata'
+      - 'testdata/**'
+      - 'sample/**'
+      - 'scan/testdata/**'
+      - 'convert/testdata/**'
+      - 'process/testdata/**'
       - '**.go'
   pull_request:
     paths:
       - '.github/workflows/test.yml'
-      - 'testdata'
-      - 'sample'
-      - 'scan/testdata'
-      - 'convert/testdata'
-      - 'process/testdata'
+      - 'testdata/**'
+      - 'sample/**'
+      - 'scan/testdata/**'
+      - 'convert/testdata/**'
+      - 'process/testdata/**'
       - '**.go'
   workflow_dispatch:
 name: test
