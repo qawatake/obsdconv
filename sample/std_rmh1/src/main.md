@@ -4,7 +4,8 @@ aliases:
 tags:
 - existing-tag
 ---
-# sample file for -std (= -cptag -rmtag -title -alias -link -cmmt -strictref) << #will_be_removed_in_title_and_alias >>
+# sample file for -std -rmh1 << #will_be_removed_in_title_and_alias >>
+↑ this H1 will be removed.
 
 ## Copy tags
 Tags will be copied to `tags` field in front matter.

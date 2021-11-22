@@ -60,6 +60,16 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(rootDir, "std_rmh1", dst),
 		},
+		{
+			name: "-std -pub",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(rootDir, "std_pub", src),
+				FLAG_DESTINATION:    filepath.Join(rootDir, "std_pub", tmp),
+				FLAG_STANDARD_USAGE: "1",
+				FLAG_PUBLISHABLE:    "1",
+			},
+			wantDstDir: filepath.Join(rootDir, "std_pub", dst),
+		},
 	}
 
 	for _, tt := range cases {
@@ -87,7 +97,12 @@ func TestRun(t *testing.T) {
 		if msg, err := compareDirContent(flags.dst, tt.wantDstDir); err != nil {
 			t.Fatalf("[FATAL | content // %s] unexpected error occurred: %v", tt.name, err)
 		} else if msg != "" {
-			t.Fatalf("[ERROR | content // %s] %s", tt.name, msg)
+			t.Errorf("[ERROR | content // %s] %s", tt.name, msg)
+		}
+
+		// remove generated directory
+		if err := os.RemoveAll(flags.dst); err != nil {
+			t.Fatalf("[FATAL | %s] failed to remove generated directory %s", tt.name, flags.dst)
 		}
 	}
 }

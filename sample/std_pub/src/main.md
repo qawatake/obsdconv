@@ -1,19 +1,15 @@
 ---
 aliases:
 - existing-alias
-- sample file for -std -rmh1 <<  >>
+publish: true
 tags:
 - existing-tag
-- obsidian
-- will_be_removed_in_title_and_alias
-- will_remain
-title: sample file for -std -rmh1 <<  >>
 ---
-↑ this H1 will be removed.
+# sample file for -std (= -cptag -rmtag -title -alias -link -cmmt -strictref) << #will_be_removed_in_title_and_alias >>
 
 ## Copy tags
 Tags will be copied to `tags` field in front matter.
-<<  >> <- this tag will be copied (and be removed).
+<< #obsidian >> <- this tag will be copied (and be removed).
 
 ### Not tags
 Tags are escaped in the following.
@@ -29,7 +25,9 @@ $$
 $$
 
 #### Comment Block
-
+%%
+	#comment-block
+%%
 (↑ this comment block will be removed)
 
 #### Inline Code
@@ -50,16 +48,23 @@ H1 content will be copied to `aliases` field in front matter.
 H1 content will be processed like `title`.
 
 ### Remove Tags
-<<  >> <- this tag will be removed
+<< #will_remain >> <- this tag will be removed
 
 ## Convert Links
 ### Internal Links
-[blank](blank.md)
+[[blank]]
 
 ### Obsidian URL
-[obsidian url](blank.md)
+[obsidian url](obsidian://open?vault=obsidian&file=blank)
 
 ### Embeds
-![image.png](image.png)
+![[image.png]]
 
 ## Remove Obsidian Comment Blocks
+%%
+This comment block will be removed.
+%%
+
+## Publish
+The generated file will contain `draft: false`, since this file contains `publish: true` in its front matter.
+On the other hand, `blank.md` in the same directory will not be generated, since it contains no `publish` nor `draft` field in its frontmatter.

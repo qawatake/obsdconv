@@ -1,15 +1,18 @@
 ---
 aliases:
 - existing-alias
-- sample file for -std -rmh1 <<  >>
+- sample file for -std (= -cptag -rmtag -title -alias -link -cmmt -strictref) <<  >>
+draft: false
+publish: true
 tags:
 - existing-tag
 - obsidian
 - will_be_removed_in_title_and_alias
 - will_remain
-title: sample file for -std -rmh1 <<  >>
+title: sample file for -std (= -cptag -rmtag -title -alias -link -cmmt -strictref)
+  <<  >>
 ---
-↑ this H1 will be removed.
+# sample file for -std (= -cptag -rmtag -title -alias -link -cmmt -strictref) <<  >>
 
 ## Copy tags
 Tags will be copied to `tags` field in front matter.
@@ -63,3 +66,8 @@ H1 content will be processed like `title`.
 ![image.png](image.png)
 
 ## Remove Obsidian Comment Blocks
+
+
+## Publish
+The generated file will contain `draft: false`, since this file contains `publish: true` in its front matter.
+On the other hand, `blank.md` in the same directory will not be generated, since it contains no `publish` nor `draft` field in its frontmatter.
