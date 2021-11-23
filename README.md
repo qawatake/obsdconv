@@ -47,6 +47,7 @@ flag | meaning | \*
 `dst` | destination to which generated files located | **required**
 `rmtag` | remove tags from text. | optional
 `cptag` | copy tags from text to `tags` field in front matter. | optional
+`synctag` | remove all `tags` in front matter and then copy tags from text. | optional
 `title` | copy H1 content to `title` field in front matter. | optional
 `alias` | copy H1 content to `aliases` field in front matter. | optional
 `link` | convert internal links, embeds, and Obsidian URI in the standart format. | optional
