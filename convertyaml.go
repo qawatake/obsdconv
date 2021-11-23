@@ -23,11 +23,13 @@ func newYamlConvAuxInImpl(title string, alias string, newtags []string) *yamlCon
 }
 
 type yamlConverterImpl struct {
+	synctag     bool
 	publishable bool
 }
 
-func newYamlConverterImpl(publishable bool) *yamlConverterImpl {
+func newYamlConverterImpl(synctag bool, publishable bool) *yamlConverterImpl {
 	return &yamlConverterImpl{
+		synctag:     synctag,
 		publishable: publishable,
 	}
 }
@@ -78,6 +80,9 @@ func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (
 		}
 	}
 
+	if c.synctag {
+		delete(m, "tags")
+	}
 	if v, ok := m["tags"]; !ok {
 		if len(newtags) > 0 {
 			tags := make([]string, len(newtags))

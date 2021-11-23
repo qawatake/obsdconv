@@ -11,6 +11,7 @@ const (
 	FLAG_DESTINATION    = "dst"
 	FLAG_REMOVE_TAGS    = "rmtag"
 	FLAG_COPY_TAGS      = "cptag"
+	FLAG_SYNC_TAGS      = "synctag"
 	FLAG_COPY_TITLE     = "title"
 	FLAG_COPY_ALIASES   = "alias"
 	FLAG_CONVERT_LINKS  = "link"
@@ -29,6 +30,7 @@ type configuration struct {
 	dst         string
 	rmtag       bool
 	cptag       bool
+	synctag     bool
 	title       bool
 	alias       bool
 	link        bool
@@ -98,6 +100,7 @@ func initFlags(flagset *flag.FlagSet, config *configuration) {
 	flagset.StringVar(&config.dst, FLAG_DESTINATION, "", "destination directory")
 	flagset.BoolVar(&config.rmtag, FLAG_REMOVE_TAGS, false, "remove tag")
 	flagset.BoolVar(&config.cptag, FLAG_COPY_TAGS, false, "copy tag to tags field of front matter")
+	flagset.BoolVar(&config.synctag, FLAG_SYNC_TAGS, false, "remove all tags in front matter and then copy tags from text")
 	flagset.BoolVar(&config.title, FLAG_COPY_TITLE, false, "copy h1 content to title field of front matter")
 	flagset.BoolVar(&config.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
 	flagset.BoolVar(&config.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")

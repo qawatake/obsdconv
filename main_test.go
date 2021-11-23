@@ -134,6 +134,16 @@ func TestRun(t *testing.T) {
 				convert.ERR_KIND_PATH_NOT_FOUND,
 			},
 		},
+		{
+			name: "-obs -synctag",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "obs_synctag", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "obs_synctag", tmp),
+				FLAG_OBSIDIAN_USAGE: "1",
+				FLAG_SYNC_TAGS:      "1",
+			},
+			wantDstDir: filepath.Join(testdataDir, "obs_synctag", dst),
+		},
 	}
 
 	for _, tt := range cases {

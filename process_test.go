@@ -253,6 +253,7 @@ func TestConvertBody(t *testing.T) {
 func TestConvertYAML(t *testing.T) {
 	cases := []struct {
 		name        string
+		synctag     bool
 		publishable bool
 		raw         []byte
 		title       string
@@ -485,10 +486,31 @@ tags:
 title: "211027"
 `,
 		},
+		{
+			name:    "sync tags",
+			synctag: true,
+			raw: []byte(`cssclass: index-page
+publish: true
+tags:
+- book
+`),
+			title: "211027",
+			alias: "today",
+			tags:  []string{"todo", "math"},
+			want: `aliases:
+- today
+cssclass: index-page
+publish: true
+tags:
+- todo
+- math
+title: "211027"
+`,
+		},
 	}
 
 	for _, tt := range cases {
-		yc := newYamlConverterImpl(tt.publishable)
+		yc := newYamlConverterImpl(tt.synctag, tt.publishable)
 		auxinput := newYamlConvAuxInImpl(tt.title, tt.alias, tt.tags)
 		got, err := yc.ConvertYAML(tt.raw, auxinput)
 		// got, err := yc.ConvertYAML(tt.raw, tt.title, tt.alias, tt.tags)
