@@ -65,12 +65,12 @@
 !testdata/run/std_strictref0_ignore/src
 !testdata/run/std_strictref0_ignore/src/**
 !testdata/run/std_strictref0_ignore/dst
-!testdata/run/std_strictref0_ignore/src/**
+!testdata/run/std_strictref0_ignore/dst/**
 !testdata/run/std_ignore
 !testdata/run/std_ignore/src
 !testdata/run/std_ignore/src/**
 !testdata/run/std_ignore/dst
-!testdata/run/std_ignore/src/**
+!testdata/run/std_ignore/dst/**
 
 !process
 !process/walk.go
