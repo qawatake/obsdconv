@@ -10,6 +10,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/pkg/errors"
+	"github.com/qawatake/obsdconv/convert"
 )
 
 func TestRun(t *testing.T) {
@@ -18,21 +21,30 @@ func TestRun(t *testing.T) {
 	src := "src"
 	dst := "dst"
 	tmp := "tmp"
+	errMsgs := map[convert.ErrKind]string{
+		convert.ERR_KIND_UNEXPECTED:                       "unexpected error",
+		convert.ERR_KIND_INVALID_INTERNAL_LINK_CONTENT:    "invalid internal link content",
+		convert.ERR_KIND_NO_REF_SPECIFIED_IN_OBSIDIAN_URL: "no ref specified in obsidian url",
+		convert.ERR_KIND_UNEXPECTED_HREF:                  "unexpected href",
+		convert.ERR_KIND_INVALID_SHORTHAND_OBSIDIAN_URL:   "invalid shorthand obsidian url",
+		convert.ERR_KIND_PATH_NOT_FOUND:                   "path not found",
+	}
+
 	cases := []struct {
-		name        string
-		cmdflags    map[string]string
-		argVersion  string
-		wantDstDir  string
-		wantVersion string
-		wantErr     error
+		name            string
+		cmdflags        map[string]string
+		version         string
+		wantDstDir      string
+		wantVersionText string
+		wantErrKinds    []convert.ErrKind
 	}{
 		{
 			name: "-version",
 			cmdflags: map[string]string{
 				FLAG_VERSION: "1",
 			},
-			argVersion:  "1.0.0",
-			wantVersion: "v1.0.0\n",
+			version:         "1.0.0",
+			wantVersionText: "v1.0.0",
 		},
 		{
 			name: "[SAMPLE] -obs",
@@ -118,6 +130,9 @@ func TestRun(t *testing.T) {
 				FLAG_STANDARD_USAGE: "1",
 			},
 			wantDstDir: filepath.Join(testdataDir, "std_ignore", dst),
+			wantErrKinds: []convert.ErrKind{
+				convert.ERR_KIND_PATH_NOT_FOUND,
+			},
 		},
 	}
 
@@ -131,24 +146,51 @@ func TestRun(t *testing.T) {
 		}
 		setConfig(flagset, config)
 
-		versionBuf := new(bytes.Buffer)
-		err := run(tt.argVersion, config, versionBuf)
+		gotVersionText, gotBufferredErrs, err := run(tt.version, config)
 		if err != nil {
-			if tt.wantErr == nil {
-				t.Fatalf("[FATAL | %s] unexpected err occurred: %v", tt.name, err)
-			}
-			continue
+			t.Fatalf("[FATAL | %s] unexpected err occurred: %v", tt.name, err)
 		}
-		if err == nil && tt.wantErr != nil {
-			t.Errorf("[ERROR | %s] expected err did not occurred", tt.name)
-		}
-		if gotVersion := versionBuf.String(); gotVersion != "" {
-			if gotVersion != tt.wantVersion {
-				t.Errorf("[ERROR | version // %s] got: %q, want: %q", tt.name, gotVersion, tt.wantVersion)
-			}
+
+		// check version text
+		if gotVersionText != tt.wantVersionText {
+			t.Errorf("[ERROR | version // %s] got: %q, want: %q", tt.name, gotVersionText, tt.wantVersionText)
 			continue
 		}
 
+		// check non-interfering errors
+		caught := false
+		for id := 0; ; id++ {
+			if id == len(gotBufferredErrs) {
+				if id < len(tt.wantErrKinds) {
+					t.Errorf("[ERROR | %s] expected err did not occurred: %s", tt.name, errMsgs[tt.wantErrKinds[id]])
+					caught = true
+				}
+				break
+			}
+			if id == len(tt.wantErrKinds) {
+				if id < len(gotBufferredErrs) {
+					t.Fatalf("[FATAL | %s] unexpected buffered err occurred: %v", tt.name, gotBufferredErrs[id])
+				}
+				break
+			}
+
+			gotErr := gotBufferredErrs[id]
+			wantErrKind := tt.wantErrKinds[id]
+			e, ok := errors.Cause(gotErr).(convert.ErrTransform)
+			if !ok {
+				t.Fatalf("[Fatalf | %s] unexpected buffered err occurred: %v", tt.name, gotErr)
+			}
+			if e.Kind() != wantErrKind {
+				t.Errorf("[ERROR | buffered err - %s]\n got: %v\nwant:%s", tt.name, gotErr, errMsgs[wantErrKind])
+				caught = true
+				break
+			}
+		}
+		if caught {
+			continue
+		}
+
+		// check generated directries
 		if msg, err := compareDirContent(config.dst, tt.wantDstDir); err != nil {
 			t.Fatalf("[FATAL | content // %s] unexpected error occurred: %v", tt.name, err)
 		} else if msg != "" {

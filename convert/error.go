@@ -53,6 +53,7 @@ type errTransformImpl struct {
 
 type ErrTransform interface {
 	Kind() ErrKind
+	Error() string
 }
 
 func (e *errTransformImpl) Error() string {

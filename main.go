@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -27,30 +26,36 @@ func main() {
 	setConfig(flag.CommandLine, config)
 
 	// main 部分
-	err := run(Version, config, os.Stdout)
+	versionText, bufferredErrs, err := run(Version, config)
 	if err != nil {
 		log.Fatal(err)
 	}
+	if versionText != "" {
+		fmt.Println(versionText)
+		return
+	}
+	for _, err := range bufferredErrs {
+		fmt.Fprintln(os.Stderr, err)
+	}
 }
 
-func run(version string, config *configuration, w io.Writer) (err error) {
+func run(version string, config *configuration) (verionText string, bufferredErrs []error, err error) {
 	if config.ver {
-		fmt.Fprintf(w, "v%s\n", version)
-		return nil
+		return fmt.Sprintf("v%s", version), nil, nil
 	}
 	if err := verifyConfig(config); err != nil {
-		return err
+		return "", nil, err
 	}
 	skipper, err := process.NewSkipper(filepath.Join(config.src, DEFAULT_IGNORE_FILE_NAME))
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 	processor, err := newDefaultProcessor(config)
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 	if err := process.Walk(config.src, config.dst, skipper, processor); err != nil {
-		return err
+		return "", nil, err
 	}
-	return nil
+	return "", processor.errbuf, nil
 }

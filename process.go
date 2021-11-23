@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/pkg/errors"
@@ -11,8 +10,9 @@ import (
 )
 
 type processorImplWithErrHandling struct {
-	debug bool
-	sub   process.Processor
+	debug  bool
+	sub    process.Processor
+	errbuf []error
 }
 
 func newProcessorImplWithErrHandling(debug bool, subprocessor process.Processor) *processorImplWithErrHandling {
@@ -30,8 +30,11 @@ func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
 	}
 
 	// 予想済みのエラーの場合は処理を止めずに, エラー出力だけする
-	public, debug := handleErr(orgpath, err)
+	public, debug, buffered := handleErr(orgpath, err)
 	if public == nil && debug == nil {
+		if buffered != nil {
+			p.errbuf = append(p.errbuf, buffered)
+		}
 		return nil
 	}
 
@@ -42,7 +45,7 @@ func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
 	}
 }
 
-func newDefaultProcessor(config *configuration) (processor process.Processor, err error) {
+func newDefaultProcessor(config *configuration) (processor *processorImplWithErrHandling, err error) {
 	skipper, err := process.NewSkipper(filepath.Join(config.src, DEFAULT_IGNORE_FILE_NAME))
 	if err != nil {
 		return nil, err
@@ -60,12 +63,12 @@ func newDefaultProcessor(config *configuration) (processor process.Processor, er
 	return newProcessorImplWithErrHandling(config.debug, process.NewProcessor(bc, yc, passer, examinator)), nil
 }
 
-func handleErr(path string, err error) (public error, debug error) {
+func handleErr(path string, err error) (public error, debug error, buffered error) {
 	orgErr := errors.Cause(err)
 	e, ok := orgErr.(convert.ErrConvert)
 	if !ok {
 		e := fmt.Errorf("[FATAL] path: %s | %v", path, err)
-		return e, e
+		return e, e, nil
 	}
 
 	line := e.Line()
@@ -73,16 +76,15 @@ func handleErr(path string, err error) (public error, debug error) {
 	if !ok {
 		public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
 		debug = fmt.Errorf("[FATAL] path: %s, around line: %d | cause of source of ErrConvert does not implement ErrTransform: ErrConvert: %w", path, line, e)
-		return public, debug
+		return public, debug, nil
 	}
 
 	if ee.Kind() == convert.ERR_KIND_UNEXPECTED {
 		public = fmt.Errorf("[FATAL] path: %s, around line: %d | failed to convert", path, line)
 		debug = fmt.Errorf("[FATAL] path: %s, around line: %d | undefined kind of ErrTransform: ErrTransform: %w", path, line, ee)
-		return public, debug
+		return public, debug, nil
 	}
 
 	// 想定済みのエラー
-	fmt.Fprintf(os.Stderr, "[ERROR] path: %s, around line: %d | %v\n", path, line, ee)
-	return nil, nil
+	return nil, nil, errors.Wrapf(ee, "[ERROR] path: %s, around line: %d", path, line)
 }
