@@ -118,6 +118,9 @@ func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (
 		}
 	}
 
+	if len(m) == 0 {
+		return nil, nil
+	}
 	output, err = yaml.Marshal(m)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal output yaml: %w", err)

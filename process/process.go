@@ -89,7 +89,13 @@ func (p *ProcessorImpl) Process(orgpath, newpath string) error {
 	}
 	defer writeTo.Close()
 
-	fmt.Fprintf(writeTo, "---\n%s---\n%s", string(yml), string(output))
+	// front matter
+	if yml != nil {
+		fmt.Fprintf(writeTo, "---\n%s---\n", string(yml))
+	}
+
+	// body
+	io.WriteString(writeTo, string(output))
 	return nil
 }
 
