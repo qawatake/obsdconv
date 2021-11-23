@@ -105,7 +105,7 @@ func initFlags(flagset *flag.FlagSet, config *configuration) {
 	flagset.BoolVar(&config.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
 	flagset.BoolVar(&config.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
 	flagset.BoolVar(&config.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
-	flagset.BoolVar(&config.publishable, FLAG_PUBLISHABLE, false, "convert only files with publish: true or draft: false. For files with publish: true, add draft: false.")
+	flagset.BoolVar(&config.publishable, FLAG_PUBLISHABLE, false, "process only files with publish: true or draft: false. For files with publish: true, add draft: false.")
 	flagset.BoolVar(&config.rmH1, FLAG_REMOVE_H1, false, "remove H1")
 	flagset.BoolVar(&config.strictref, FLAG_STRICT_REF, false, fmt.Sprintf("return error when ref target is not found. available only when %s is on", FLAG_CONVERT_LINKS))
 	flagset.BoolVar(&config.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")

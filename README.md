@@ -52,7 +52,7 @@ flag | meaning | \*
 `alias` | copy H1 content to `aliases` field in front matter. | optional
 `link` | convert internal links, embeds, and Obsidian URI in the standart format. | optional
 `cmmt` | remove comment blocks. | optional
-`pub` | convert only files with `publish: true` or `draft: false`. For files with `publish: true`, add `draft: false`. | optional
+`pub` | process only files with `publish: true` or `draft: false`. For files with `publish: true`, add `draft: false`. | optional
 `rmh1` | remove H1. | optional
 `strictref` | return error when ref target is not found. available only when `link` is on. | optional
 `obs` | = `-cptag -title -alias` | optional
