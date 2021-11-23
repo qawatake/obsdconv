@@ -24,6 +24,7 @@ func TestRun(t *testing.T) {
 		argVersion  string
 		wantDstDir  string
 		wantVersion string
+		wantErr     error
 	}{
 		{
 			name: "-version",
@@ -99,6 +100,25 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(testdataDir, "obs_ignore", dst),
 		},
+		{
+			name: "-std -strictref=0 (ignore folders)",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "std_strictref0_ignore", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "std_strictref0_ignore", tmp),
+				FLAG_STANDARD_USAGE: "1",
+				FLAG_STRICT_REF:     "0",
+			},
+			wantDstDir: filepath.Join(testdataDir, "std_strictref0_ignore", dst),
+		},
+		{
+			name: "-std (ignore folders)",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "std_ignore", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "std_ignore", tmp),
+				FLAG_STANDARD_USAGE: "1",
+			},
+			wantDstDir: filepath.Join(testdataDir, "std_ignore", dst),
+		},
 	}
 
 	for _, tt := range cases {
@@ -114,7 +134,13 @@ func TestRun(t *testing.T) {
 		versionBuf := new(bytes.Buffer)
 		err := run(tt.argVersion, config, versionBuf)
 		if err != nil {
-			t.Fatalf("[FATAL | %s] unexpected err occurred: %v", tt.name, err)
+			if tt.wantErr == nil {
+				t.Fatalf("[FATAL | %s] unexpected err occurred: %v", tt.name, err)
+			}
+			continue
+		}
+		if err == nil && tt.wantErr != nil {
+			t.Errorf("[ERROR | %s] expected err did not occurred", tt.name)
 		}
 		if gotVersion := versionBuf.String(); gotVersion != "" {
 			if gotVersion != tt.wantVersion {

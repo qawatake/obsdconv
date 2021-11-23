@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 	"github.com/qawatake/obsdconv/convert"
@@ -41,8 +42,13 @@ func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
 	}
 }
 
-func newDefaultProcessor(config *configuration) process.Processor {
-	db := convert.NewPathDB(config.src)
+func newDefaultProcessor(config *configuration) (processor process.Processor, err error) {
+	skipper, err := process.NewSkipper(filepath.Join(config.src, DEFAULT_IGNORE_FILE_NAME))
+	if err != nil {
+		return nil, err
+	}
+	db := process.WrapForSkipping(convert.NewPathDB(config.src), skipper)
+
 	if config.strictref {
 		db = convert.WrapForReturningNotFoundPathError(db)
 	}
@@ -51,7 +57,7 @@ func newDefaultProcessor(config *configuration) process.Processor {
 	yc := newYamlConverterImpl(config.publishable)
 	passer := argPasserFunc(passArg)
 	examinator := newYamlExaminatorImpl(config.publishable)
-	return newProcessorImplWithErrHandling(config.debug, process.NewProcessor(bc, yc, passer, examinator))
+	return newProcessorImplWithErrHandling(config.debug, process.NewProcessor(bc, yc, passer, examinator)), nil
 }
 
 func handleErr(path string, err error) (public error, debug error) {

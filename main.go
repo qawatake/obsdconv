@@ -41,8 +41,11 @@ func run(version string, config *configuration, w io.Writer) (err error) {
 	if err := verifyConfig(config); err != nil {
 		return err
 	}
-	processor := newDefaultProcessor(config)
 	skipper, err := process.NewSkipper(filepath.Join(config.src, DEFAULT_IGNORE_FILE_NAME))
+	if err != nil {
+		return err
+	}
+	processor, err := newDefaultProcessor(config)
 	if err != nil {
 		return err
 	}

@@ -6,11 +6,12 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
+	"github.com/qawatake/obsdconv/convert"
 	"golang.org/x/text/unicode/norm"
 )
 
 type Skipper interface {
-	Skip(path string) bool
+	Skip(path string) (tobeskipped bool)
 }
 
 type skipperImpl struct {
@@ -49,4 +50,33 @@ func NewSkipper(skipsource string) (Skipper, error) {
 		return nil, errors.Wrapf(err, "error occurred during scanning %s", skipsource)
 	}
 	return skipper, nil
+}
+
+type pathDBWrapperImplSkipping struct {
+	original convert.PathDB
+	skipper  Skipper
+}
+
+func (w *pathDBWrapperImplSkipping) Get(fileId string) (path string, err error) {
+	if w.original == nil {
+		panic("original PathDB not set but used")
+	}
+	if w.skipper == nil {
+		panic("skipper not set but used")
+	}
+	path, err = w.original.Get(fileId)
+	if err != nil {
+		return "", err
+	}
+	if w.skipper.Skip(path) {
+		return "", err
+	}
+	return path, nil
+}
+
+func WrapForSkipping(original convert.PathDB, skipper Skipper) convert.PathDB {
+	return &pathDBWrapperImplSkipping{
+		original: original,
+		skipper:  skipper,
+	}
 }
