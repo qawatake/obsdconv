@@ -56,6 +56,11 @@
 !testdata/run/std_strictref0/src/**
 !testdata/run/std_strictref0/dst
 !testdata/run/std_strictref0/dst/**
+!testdata/run/obs_ignore
+!testdata/run/obs_ignore/src
+!testdata/run/obs_ignore/src/**
+!testdata/run/obs_ignore/dst
+!testdata/run/obs_ignore/dst/**
 
 !process
 !process/walk.go

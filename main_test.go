@@ -90,6 +90,15 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(testdataDir, "obs", dst),
 		},
+		{
+			name: "-obs (ignore folders)",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "obs_ignore", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "obs_ignore", tmp),
+				FLAG_OBSIDIAN_USAGE: "1",
+			},
+			wantDstDir: filepath.Join(testdataDir, "obs_ignore", dst),
+		},
 	}
 
 	for _, tt := range cases {
