@@ -19,7 +19,16 @@ type skipperImpl struct {
 }
 
 func (s *skipperImpl) Skip(path string) bool {
-	return s.skipdict[filepath.ToSlash(norm.NFC.String(path))]
+	// check parent directories one by one
+	// if abc/def is registered, then abc/def/ghi.md will be skipped.
+	cur := filepath.ToSlash(norm.NFC.String(path))
+	for cur != "." {
+		if s.skipdict[cur] {
+			return true
+		}
+		cur = filepath.Dir(cur)
+	}
+	return false
 }
 
 func (s *skipperImpl) add(path string) {
