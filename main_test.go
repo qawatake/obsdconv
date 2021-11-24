@@ -153,6 +153,15 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(testdataDir, "alias", dst),
 		},
+		{
+			name: "synctlal",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:             filepath.Join(testdataDir, "synctlal", src),
+				FLAG_DESTINATION:        filepath.Join(testdataDir, "synctlal", tmp),
+				FLAG_SYNC_TITLE_ALIASES: "1",
+			},
+			wantDstDir: filepath.Join(testdataDir, "synctlal", dst),
+		},
 	}
 
 	for _, tt := range cases {
@@ -214,6 +223,7 @@ func TestRun(t *testing.T) {
 			t.Fatalf("[FATAL | content // %s] unexpected error occurred: %v", tt.name, err)
 		} else if msg != "" {
 			t.Errorf("[ERROR | content // %s] %s", tt.name, msg)
+			continue
 		}
 
 		// remove generated directory

@@ -7,22 +7,23 @@ import (
 )
 
 const (
-	FLAG_SOURCE         = "src"
-	FLAG_DESTINATION    = "dst"
-	FLAG_REMOVE_TAGS    = "rmtag"
-	FLAG_COPY_TAGS      = "cptag"
-	FLAG_SYNC_TAGS      = "synctag"
-	FLAG_COPY_TITLE     = "title"
-	FLAG_COPY_ALIASES   = "alias"
-	FLAG_CONVERT_LINKS  = "link"
-	FLAG_REMOVE_COMMENT = "cmmt"
-	FLAG_PUBLISHABLE    = "pub"
-	FLAG_REMOVE_H1      = "rmh1"
-	FLAG_STRICT_REF     = "strictref"
-	FLAG_OBSIDIAN_USAGE = "obs"
-	FLAG_STANDARD_USAGE = "std"
-	FLAG_VERSION        = "version"
-	FLAG_DEBUG          = "debug"
+	FLAG_SOURCE             = "src"
+	FLAG_DESTINATION        = "dst"
+	FLAG_REMOVE_TAGS        = "rmtag"
+	FLAG_COPY_TAGS          = "cptag"
+	FLAG_SYNC_TAGS          = "synctag"
+	FLAG_COPY_TITLE         = "title"
+	FLAG_COPY_ALIASES       = "alias"
+	FLAG_SYNC_TITLE_ALIASES = "syncalias"
+	FLAG_CONVERT_LINKS      = "link"
+	FLAG_REMOVE_COMMENT     = "cmmt"
+	FLAG_PUBLISHABLE        = "pub"
+	FLAG_REMOVE_H1          = "rmh1"
+	FLAG_STRICT_REF         = "strictref"
+	FLAG_OBSIDIAN_USAGE     = "obs"
+	FLAG_STANDARD_USAGE     = "std"
+	FLAG_VERSION            = "version"
+	FLAG_DEBUG              = "debug"
 )
 
 type configuration struct {
@@ -33,6 +34,7 @@ type configuration struct {
 	synctag     bool
 	title       bool
 	alias       bool
+	synctlal    bool
 	link        bool
 	cmmt        bool
 	publishable bool
@@ -103,6 +105,7 @@ func initFlags(flagset *flag.FlagSet, config *configuration) {
 	flagset.BoolVar(&config.synctag, FLAG_SYNC_TAGS, false, "remove all tags in front matter and then copy tags from text")
 	flagset.BoolVar(&config.title, FLAG_COPY_TITLE, false, "copy h1 content to title field of front matter")
 	flagset.BoolVar(&config.alias, FLAG_COPY_ALIASES, false, "copy add h1 content to aliases field of front matter")
+	flagset.BoolVar(&config.synctlal, FLAG_SYNC_TITLE_ALIASES, false, "remove an alias appearing also in title field and then copy h1 content to title and aliases fields")
 	flagset.BoolVar(&config.link, FLAG_CONVERT_LINKS, false, "convert obsidian internal and external links to external links in the usual format")
 	flagset.BoolVar(&config.cmmt, FLAG_REMOVE_COMMENT, false, "remove obsidian comment")
 	flagset.BoolVar(&config.publishable, FLAG_PUBLISHABLE, false, "process only files with publish: true or draft: false. For files with publish: true, add draft: false.")

@@ -56,10 +56,9 @@ func newDefaultProcessor(config *configuration) (processor *processorImplWithErr
 		db = convert.WrapForReturningNotFoundPathError(db)
 	}
 
-	bc := newBodyConverterImpl(db, config.cptag || config.synctag, config.rmtag, config.cmmt, config.title || config.alias, config.link, config.rmH1)
-	yc := newYamlConverterImpl(config.synctag, config.publishable)
-	// passer := argPasserFunc(passArg)
-	passer := newArgPasserImpl(config.title, config.alias)
+	bc := newBodyConverterImpl(db, config.cptag || config.synctag, config.rmtag, config.cmmt, config.title || config.alias || config.synctlal, config.link, config.rmH1)
+	yc := newYamlConverterImpl(config.synctag, config.synctlal, config.publishable)
+	passer := newArgPasserImpl(config.title || config.synctlal, config.alias || config.synctlal)
 	examinator := newYamlExaminatorImpl(config.publishable)
 	return newProcessorImplWithErrHandling(config.debug, process.NewProcessor(bc, yc, passer, examinator)), nil
 }

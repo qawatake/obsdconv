@@ -24,12 +24,14 @@ func newYamlConvAuxInImpl(title string, alias string, newtags []string) *yamlCon
 
 type yamlConverterImpl struct {
 	synctag     bool
+	synctlal    bool
 	publishable bool
 }
 
-func newYamlConverterImpl(synctag bool, publishable bool) *yamlConverterImpl {
+func newYamlConverterImpl(synctag bool, synctlal bool, publishable bool) *yamlConverterImpl {
 	return &yamlConverterImpl{
 		synctag:     synctag,
+		synctlal:    synctlal,
 		publishable: publishable,
 	}
 }
@@ -52,6 +54,18 @@ func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (
 		return nil, fmt.Errorf("failed to unmarshal front matter: %w", err)
 	}
 
+	// synctlal
+	existingTitle := ""
+	if c.synctlal {
+		if v, ok := m["title"]; ok {
+			if vv, ok := v.(string); !ok {
+				return nil, fmt.Errorf("aliases field found but its field type is not string: %T", v)
+			} else {
+				existingTitle = vv
+			}
+		}
+	}
+
 	// title
 	if title != "" {
 		m["title"] = title
@@ -59,7 +73,6 @@ func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (
 
 	// alias
 	if alias != "" {
-
 		if v, ok := m["aliases"]; !ok {
 			if alias != "" {
 				m["aliases"] = []string{alias}
@@ -69,6 +82,7 @@ func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (
 				return nil, fmt.Errorf("aliases field found but its field type is not []interface{}: %T", v)
 			} else {
 				exists := false
+				aliases := make([]string, 0, len(vv))
 				for _, a := range vv {
 					aa, ok := a.(string)
 					if !ok {
@@ -77,11 +91,15 @@ func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (
 					if aa == alias {
 						exists = true
 					}
+					if c.synctlal && aa == existingTitle {
+						continue
+					}
+					aliases = append(aliases, aa)
 				}
 				if !exists {
-					vv = append(vv, alias)
+					aliases = append(aliases, alias)
 				}
-				m["aliases"] = vv
+				m["aliases"] = aliases
 			}
 		}
 	}

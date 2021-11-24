@@ -254,6 +254,7 @@ func TestConvertYAML(t *testing.T) {
 	cases := []struct {
 		name        string
 		synctag     bool
+		synctlal    bool
 		publishable bool
 		raw         []byte
 		title       string
@@ -507,13 +508,36 @@ tags:
 title: "211027"
 `,
 		},
+		{
+			name:     "sync title and aliases",
+			synctlal: true,
+			raw: []byte(`aliases:
+- existing-alias
+- existing-title
+cssclass: index-page
+publish: true
+tags:
+- book
+title: existing-title
+`),
+			title: "211027",
+			alias: "211027",
+			want: `aliases:
+- existing-alias
+- "211027"
+cssclass: index-page
+publish: true
+tags:
+- book
+title: "211027"
+`,
+		},
 	}
 
 	for _, tt := range cases {
-		yc := newYamlConverterImpl(tt.synctag, tt.publishable)
+		yc := newYamlConverterImpl(tt.synctag, tt.synctlal, tt.publishable)
 		auxinput := newYamlConvAuxInImpl(tt.title, tt.alias, tt.tags)
 		got, err := yc.ConvertYAML(tt.raw, auxinput)
-		// got, err := yc.ConvertYAML(tt.raw, tt.title, tt.alias, tt.tags)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 		}
