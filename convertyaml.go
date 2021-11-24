@@ -88,11 +88,11 @@ func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (
 					if !ok {
 						return nil, fmt.Errorf("aliases field found but its field type is not string: %T", a)
 					}
-					if aa == alias {
-						exists = true
-					}
 					if c.synctlal && aa == existingTitle {
 						continue
+					}
+					if aa == alias {
+						exists = true
 					}
 					aliases = append(aliases, aa)
 				}

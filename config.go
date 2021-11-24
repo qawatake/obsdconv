@@ -14,7 +14,7 @@ const (
 	FLAG_SYNC_TAGS          = "synctag"
 	FLAG_COPY_TITLE         = "title"
 	FLAG_COPY_ALIASES       = "alias"
-	FLAG_SYNC_TITLE_ALIASES = "syncalias"
+	FLAG_SYNC_TITLE_ALIASES = "synctlal"
 	FLAG_CONVERT_LINKS      = "link"
 	FLAG_REMOVE_COMMENT     = "cmmt"
 	FLAG_PUBLISHABLE        = "pub"

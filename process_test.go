@@ -532,6 +532,30 @@ tags:
 title: "211027"
 `,
 		},
+		{
+			name:     "sync title and aliases when h1 = existing title = existing alias",
+			synctlal: true,
+			raw: []byte(`aliases:
+- existing-alias
+- existing-title
+cssclass: index-page
+publish: true
+tags:
+- book
+title: existing-title
+`),
+			title: "existing-title",
+			alias: "existing-title",
+			want: `aliases:
+- existing-alias
+- existing-title
+cssclass: index-page
+publish: true
+tags:
+- book
+title: existing-title
+`,
+		},
 	}
 
 	for _, tt := range cases {
