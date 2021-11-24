@@ -81,6 +81,11 @@
 !testdata/run/alias/src/**
 !testdata/run/alias/dst
 !testdata/run/alias/dst/**
+!testdata/run/synctlal
+!testdata/run/synctlal/src
+!testdata/run/synctlal/src/**
+!testdata/run/synctlal/dst
+!testdata/run/synctlal/dst/**
 
 !process
 !process/walk.go
