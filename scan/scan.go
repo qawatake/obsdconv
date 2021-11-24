@@ -138,31 +138,6 @@ func validExternalLinkHeadContent(content string) bool {
 	return !strings.Contains(content, "\r\n\r\n") && !strings.Contains(content, "\n\n")
 }
 
-func scanExternalLinkTail(raw []rune, ptr int) (advance int, ref string) {
-	if !(unescaped(raw, ptr, "(") && len(raw[ptr:]) >= 2) {
-		return 0, ""
-	}
-	cur := ptr + 1 // "(" の次
-	for {
-		adv := indexInRunes(raw[cur:], ")")
-		if adv < 0 {
-			return 0, ""
-		}
-		cur += adv // ")"
-		if unescaped(raw, cur, ")") {
-			advance = cur + 1 - ptr
-			content := string(raw[ptr+1 : cur])
-			if !validExternalLinkTailContent(content) {
-				return 0, ""
-			}
-			ref = strings.Trim(string(content), " \t\r\n")
-			return advance, ref
-		}
-		cur++ // ")" の次
-	}
-
-}
-
 // [google](https:google.com "title") の (https:google.com "title") の部分をスキャン
 func ScanExternalLinkTail(raw []rune, ptr int) (advance int, ref string, title string) {
 	if !(unescaped(raw, ptr, "(") && len(raw[ptr:]) >= 2) {
@@ -179,7 +154,7 @@ func ScanExternalLinkTail(raw []rune, ptr int) (advance int, ref string, title s
 	}
 
 	// url を抽出
-	adv := scanURL(raw, cur)
+	adv := scanExternalLinkRef(raw, cur)
 	if adv == 0 && !unescaped(raw, cur, ")") {
 		return 0, "", ""
 	}
@@ -214,9 +189,9 @@ func ScanExternalLinkTail(raw []rune, ptr int) (advance int, ref string, title s
 }
 
 // url をスキャン
-func scanURL(raw []rune, ptr int) (advance int) {
+func scanExternalLinkRef(raw []rune, ptr int) (advance int) {
 	cur := ptr
-	for cur < len(raw) && isLetterForUrl(raw[cur]) {
+	for cur < len(raw) && isLetterForExternalLinkRef(raw[cur]) {
 		cur++
 	}
 	urlcandidate := string(raw[ptr:cur])
@@ -244,12 +219,14 @@ func scanLinkTitle(raw []rune, ptr int) (advance int, title string) {
 	return 0, ""
 }
 
-func validExternalLinkTailContent(content string) bool {
-	if strings.Contains(content, "\r\n\r\n") || strings.Contains(content, "\n\n") {
+func isLetterForExternalLinkRef(r rune) bool {
+	if unicode.IsSpace(r) {
 		return false
 	}
-	uri := strings.Trim(content, " \t\r\n")
-	return validURI(uri)
+	if r == '(' || r == ')' {
+		return false
+	}
+	return true
 }
 
 func ScanExternalLink(raw []rune, ptr int) (advance int, displayName string, ref string, title string) {

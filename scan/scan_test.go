@@ -360,7 +360,7 @@ func TestScanExternalLinkHead(t *testing.T) {
 	}
 }
 
-func TestScanUrl(t *testing.T) {
+func TestScanExternalLinkRef(t *testing.T) {
 	cases := []struct {
 		raw         []rune
 		wantAdvance int
@@ -370,17 +370,13 @@ func TestScanUrl(t *testing.T) {
 			wantAdvance: 18,
 		},
 		{
-			raw:         []rune("https://google.com)"),
-			wantAdvance: 18,
-		},
-		{
 			raw:         []rune("https://google.com\n"),
 			wantAdvance: 18,
 		},
 	}
 
 	for _, tt := range cases {
-		if gotAdvance := scanURL(tt.raw, 0); gotAdvance != tt.wantAdvance {
+		if gotAdvance := scanExternalLinkRef(tt.raw, 0); gotAdvance != tt.wantAdvance {
 			t.Errorf("[ERROR] got: %d, want: %d with raw: %q", gotAdvance, tt.wantAdvance, string(tt.raw))
 		}
 
@@ -505,6 +501,13 @@ func TestScanExternalLinkTail(t *testing.T) {
 			wantAdvance: 6,
 			wantRef:     "test",
 		},
+		{
+			name:        "japanese",
+			raw:         []rune("(プログラミング.md)"),
+			ptr:         0,
+			wantAdvance: 12,
+			wantRef:     "プログラミング.md",
+		},
 	}
 
 	for _, tt := range cases {
@@ -551,13 +554,13 @@ func TestScanExternalLink(t *testing.T) {
 	for _, tt := range cases {
 		gotAdvance, gotDisplayName, gotRef, _ := ScanExternalLink(tt.raw, tt.ptr)
 		if gotAdvance != tt.wantAdvance {
-			t.Errorf("[ERROR | %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
+			t.Errorf("[ERROR | advance - %v]\ngot: %v, want: %v", tt.name, gotAdvance, tt.wantAdvance)
 		}
 		if gotDisplayName != tt.wantDisplayName {
-			t.Errorf("[ERROR | %v]\ngot: %q, want: %q", tt.name, gotDisplayName, tt.wantDisplayName)
+			t.Errorf("[ERROR | display name - %v]\ngot: %q, want: %q", tt.name, gotDisplayName, tt.wantDisplayName)
 		}
 		if gotRef != tt.wantRef {
-			t.Errorf("[ERROR | %v]\ngot: %q, want: %q", tt.name, gotRef, tt.wantRef)
+			t.Errorf("[ERROR | ref - %v]\ngot: %q, want: %q", tt.name, []rune(gotRef), []rune(tt.wantRef))
 		}
 	}
 }
