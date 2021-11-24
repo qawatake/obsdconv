@@ -76,6 +76,11 @@
 !testdata/run/obs_synctag/src/**
 !testdata/run/obs_synctag/dst
 !testdata/run/obs_synctag/dst/**
+!testdata/run/alias
+!testdata/run/alias/src
+!testdata/run/alias/src/**
+!testdata/run/alias/dst
+!testdata/run/alias/dst/**
 
 !process
 !process/walk.go

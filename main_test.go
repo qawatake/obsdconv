@@ -144,6 +144,15 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(testdataDir, "obs_synctag", dst),
 		},
+		{
+			name: "-alias",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:       filepath.Join(testdataDir, "alias", src),
+				FLAG_DESTINATION:  filepath.Join(testdataDir, "alias", tmp),
+				FLAG_COPY_ALIASES: "1",
+			},
+			wantDstDir: filepath.Join(testdataDir, "alias", dst),
+		},
 	}
 
 	for _, tt := range cases {
