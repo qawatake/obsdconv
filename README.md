@@ -48,8 +48,9 @@ flag | meaning | \*
 `rmtag` | remove tags from text. | optional
 `cptag` | copy tags from text to `tags` field in front matter. | optional
 `synctag` | remove all `tags` in front matter and then copy tags from text. | optional
-`title` | copy H1 content to `title` field in front matter. | optional
-`alias` | copy H1 content to `aliases` field in front matter. | optional
+`title` | set H1 content to `title` field in front matter. | optional
+`alias` | set H1 content to `aliases` field in front matter. | optional
+`synctlal` | remove an alias appearing also in `title` field and then set H1 content to `title` and `aliases` fields. | optional
 `link` | convert internal links, embeds, and Obsidian URI in the standart format. | optional
 `cmmt` | remove comment blocks. | optional
 `pub` | process only files with `publish: true` or `draft: false`. For files with `publish: true`, add `draft: false`. | optional
