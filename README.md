@@ -11,6 +11,8 @@ Obsdconv enables you to
 - convert internal links `[[file]]` , embeds `![[image]]`, and external links with Obsidian URI `[text](obsidian://open?vault=notes&file=filename)` to the standard format,
 - and etc.
 
+[![Image from Gyazo](https://i.gyazo.com/08f1c0cb70d1389886a4264fc0859d1f.gif)](https://gyazo.com/08f1c0cb70d1389886a4264fc0859d1f)
+
 ## Installation
 We provide binaries for multiple platforms.
 Please download the one suitable to your environment.
