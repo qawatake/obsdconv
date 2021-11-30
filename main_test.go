@@ -21,6 +21,7 @@ func TestRun(t *testing.T) {
 	src := "src"
 	dst := "dst"
 	tmp := "tmp"
+	tgt := "tgt"
 	errMsgs := map[convert.ErrKind]string{
 		convert.ERR_KIND_UNEXPECTED:                       "unexpected error",
 		convert.ERR_KIND_INVALID_INTERNAL_LINK_CONTENT:    "invalid internal link content",
@@ -154,13 +155,24 @@ func TestRun(t *testing.T) {
 			wantDstDir: filepath.Join(testdataDir, "alias", dst),
 		},
 		{
-			name: "synctlal",
+			name: "-synctlal",
 			cmdflags: map[string]string{
 				FLAG_SOURCE:             filepath.Join(testdataDir, "synctlal", src),
 				FLAG_DESTINATION:        filepath.Join(testdataDir, "synctlal", tmp),
 				FLAG_SYNC_TITLE_ALIASES: "1",
 			},
 			wantDstDir: filepath.Join(testdataDir, "synctlal", dst),
+		},
+		{
+			name: "-tgt -std -strictref=0",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "tgt", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "tgt", tmp),
+				FLAG_TARGET:         filepath.Join(testdataDir, "tgt", tgt),
+				FLAG_STANDARD_USAGE: "1",
+				FLAG_STRICT_REF:     "0",
+			},
+			wantDstDir: filepath.Join(testdataDir, "tgt", dst),
 		},
 	}
 

@@ -9,6 +9,7 @@ import (
 const (
 	FLAG_SOURCE             = "src"
 	FLAG_DESTINATION        = "dst"
+	FLAG_TARGET             = "tgt"
 	FLAG_REMOVE_TAGS        = "rmtag"
 	FLAG_COPY_TAGS          = "cptag"
 	FLAG_SYNC_TAGS          = "synctag"
@@ -29,6 +30,7 @@ const (
 type configuration struct {
 	src         string
 	dst         string
+	tgt         string
 	rmtag       bool
 	cptag       bool
 	synctag     bool
@@ -100,6 +102,7 @@ func newMainErr(kind mainErrKind) mainErr {
 func initFlags(flagset *flag.FlagSet, config *configuration) {
 	flagset.StringVar(&config.src, FLAG_SOURCE, "", "source directory")
 	flagset.StringVar(&config.dst, FLAG_DESTINATION, "", "destination directory")
+	flagset.StringVar(&config.tgt, FLAG_TARGET, "", "the path that will be processed. It can be a file or a directory. The default value of tgt = the directory specified by src flag. This option will be used when you want to process only a subset of a vault but resolve refs by the entire vault.")
 	flagset.BoolVar(&config.rmtag, FLAG_REMOVE_TAGS, false, "remove tag")
 	flagset.BoolVar(&config.cptag, FLAG_COPY_TAGS, false, "copy tag to tags field of front matter")
 	flagset.BoolVar(&config.synctag, FLAG_SYNC_TAGS, false, "remove all tags in front matter and then copy tags from text")
@@ -140,6 +143,7 @@ func setConfig(flagset *flag.FlagSet, config *configuration) {
 		config.cmmt = true
 		config.strictref = true
 	}
+	config.tgt = config.src
 
 	if _, ok := setflags[FLAG_COPY_TAGS]; ok {
 		config.cptag = orgFlag.cptag
@@ -164,6 +168,9 @@ func setConfig(flagset *flag.FlagSet, config *configuration) {
 	}
 	if _, ok := setflags[FLAG_STRICT_REF]; ok {
 		config.strictref = orgFlag.strictref
+	}
+	if _, ok := setflags[FLAG_TARGET]; ok {
+		config.tgt = orgFlag.tgt
 	}
 }
 

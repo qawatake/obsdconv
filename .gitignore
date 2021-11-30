@@ -86,6 +86,13 @@
 !testdata/run/synctlal/src/**
 !testdata/run/synctlal/dst
 !testdata/run/synctlal/dst/**
+!testdata/run/tgt
+!testdata/run/tgt/src
+!testdata/run/tgt/src/**
+!testdata/run/tgt/dst
+!testdata/run/tgt/dst/**
+!testdata/run/tgt/tgt
+!testdata/run/tgt/tgt/**
 
 !process
 !process/walk.go

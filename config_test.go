@@ -8,8 +8,8 @@ import (
 
 func TestSetConfig(t *testing.T) {
 	cases := []struct {
-		name      string
-		cmdflags  map[string]string
+		name       string
+		cmdflags   map[string]string
 		wantConfig configuration
 	}{
 		{
@@ -26,6 +26,7 @@ func TestSetConfig(t *testing.T) {
 				title: true,
 				alias: true,
 				obs:   true,
+				tgt:   "src",
 			},
 		},
 		{
@@ -46,6 +47,7 @@ func TestSetConfig(t *testing.T) {
 				strictref: true,
 				cmmt:      true,
 				std:       true,
+				tgt:       "src",
 			},
 		},
 		{
@@ -69,6 +71,20 @@ func TestSetConfig(t *testing.T) {
 				strictref: false,
 				obs:       false,
 				std:       true,
+				tgt:       "src",
+			},
+		},
+		{
+			name: "tgt overwrittedn",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:      "src",
+				FLAG_DESTINATION: "dst",
+				FLAG_TARGET:      "tgt",
+			},
+			wantConfig: configuration{
+				src: "src",
+				dst: "dst",
+				tgt: "tgt",
 			},
 		},
 	}
@@ -93,7 +109,7 @@ func TestSetConfig(t *testing.T) {
 func TestVerifyConfig(t *testing.T) {
 	cases := []struct {
 		name    string
-		config   configuration
+		config  configuration
 		wantErr mainErr
 	}{
 		{

@@ -54,7 +54,7 @@ func run(version string, config *configuration) (verionText string, bufferredErr
 	if err != nil {
 		return "", nil, err
 	}
-	if err := process.Walk(config.src, config.dst, skipper, processor); err != nil {
+	if err := process.Walk(config.tgt, config.dst, skipper, processor); err != nil {
 		return "", nil, err
 	}
 	return "", processor.errbuf, nil
