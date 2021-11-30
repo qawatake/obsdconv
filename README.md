@@ -43,8 +43,9 @@ Available options are as follows:
 
 flag | meaning | \*
 --- | --- | ---
-`src` | directory containing Obsidian files  | **required**
-`dst` | destination to which generated files located | **required**
+`src` | a markdown file or a directory containing Obsidian files.  | **required**
+`dst` | destination to which generated files located. | **required**
+`tgt` | the path to be processed. It can be a file or a directory. The default value of `tgt` = the path specified by `src`. Set this flag when you want to process only a subset of a vault but resolve refs by using the entire vault. | optional
 `rmtag` | remove tags from text. | optional
 `cptag` | copy tags from text to `tags` field in front matter. | optional
 `synctag` | remove all `tags` in front matter and then copy tags from text. | optional
