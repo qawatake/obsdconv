@@ -154,6 +154,32 @@ func TestVerifyConfig(t *testing.T) {
 			},
 			wantErr: newMainErr(MAIN_ERR_KIND_INVALID_DESTINATION_FORMAT),
 		},
+		{
+			name: "tgt is a markdown file but dst is not",
+			config: configuration{
+				src: "src",
+				dst: "dst",
+				tgt: "tgt/main.md",
+			},
+			wantErr: newMainErr(MAIN_ERR_KIND_TARGET_IS_MARKDOWN_FILE_BUT_DESTINATION_IS_NOT),
+		},
+		{
+			name: "dst is a markdown file but tgt is not",
+			config: configuration{
+				src: "src",
+				dst: "dst/main.md",
+				tgt: "tgt",
+			},
+			wantErr: newMainErr(MAIN_ERR_KIND_DESTINATION_IS_MARKDOWN_FILE_BUT_TARGET_IS_NOT),
+		},
+		{
+			name: "both tgt and dst are markdown files",
+			config: configuration{
+				src: "src",
+				dst: "dst/dst_main.md",
+				tgt: "tgt/tgt_main.md",
+			},
+		},
 	}
 
 	for _, tt := range cases {

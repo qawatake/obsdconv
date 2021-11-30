@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"path/filepath"
 	"strings"
 )
 
@@ -57,6 +58,8 @@ const (
 	MAIN_ERR_KIND_STRICTREF_NEEDS_LINK
 	MAIN_ERR_KIND_INVALID_SOURCE_FORMAT
 	MAIN_ERR_KIND_INVALID_DESTINATION_FORMAT
+	MAIN_ERR_KIND_TARGET_IS_MARKDOWN_FILE_BUT_DESTINATION_IS_NOT
+	MAIN_ERR_KIND_DESTINATION_IS_MARKDOWN_FILE_BUT_TARGET_IS_NOT
 )
 
 type mainErr interface {
@@ -90,12 +93,23 @@ func newMainErr(kind mainErrKind) mainErr {
 		err.message = fmt.Sprintf("%s shouldn't begin with \"-\"", FLAG_SOURCE)
 	case MAIN_ERR_KIND_INVALID_DESTINATION_FORMAT:
 		err.message = fmt.Sprintf("%s shouldn't begin with \"-\"", FLAG_DESTINATION)
+	case MAIN_ERR_KIND_TARGET_IS_MARKDOWN_FILE_BUT_DESTINATION_IS_NOT:
+		err.message = fmt.Sprintf("%s is a markdown file but %s is not", FLAG_TARGET, FLAG_DESTINATION)
+	case MAIN_ERR_KIND_DESTINATION_IS_MARKDOWN_FILE_BUT_TARGET_IS_NOT:
+		err.message = fmt.Sprintf("%s is a markdown file but %s is not", FLAG_DESTINATION, FLAG_TARGET)
 	default:
 		err.kind = MAIN_ERR_UNEXPECTED
 		err.message = "unexpected error"
 		return err
 	}
 	err.kind = kind
+	return err
+}
+
+func newMainErrf(kind mainErrKind, format string, a ...interface{}) mainErr {
+	err := new(mainErrImpl)
+	err.kind = kind
+	err.message = fmt.Sprintf(format, a...)
 	return err
 }
 
@@ -189,6 +203,13 @@ func verifyConfig(config *configuration) error {
 	}
 	if config.strictref && !config.link {
 		return newMainErr(MAIN_ERR_KIND_STRICTREF_NEEDS_LINK)
+	}
+	// check roughly if tgt and dst are the same type (regular file or directory)
+	if filepath.Ext(config.tgt) == ".md" && filepath.Ext(config.dst) != ".md" {
+		return newMainErrf(MAIN_ERR_KIND_TARGET_IS_MARKDOWN_FILE_BUT_DESTINATION_IS_NOT, "%s is a markdown file but %s is not", config.tgt, config.dst)
+	}
+	if filepath.Ext(config.tgt) != ".md" && filepath.Ext(config.dst) == ".md" {
+		return newMainErrf(MAIN_ERR_KIND_DESTINATION_IS_MARKDOWN_FILE_BUT_TARGET_IS_NOT, "%s is a markdown file but %s is not", config.dst, config.tgt)
 	}
 	return nil
 }
