@@ -58,6 +58,7 @@ flag | meaning | \*
 `cmmt` | remove comment blocks. | optional
 `pub` | process only files with `publish: true` or `draft: false`. For files with `publish: true`, add `draft: false`. | optional
 `rmh1` | remove H1. | optional
+`remapkey` | remap keys in front matter. Use like `-remapkey=old1:new1,old2:new2,to-be-removed:`. | optional
 `strictref` | return error when ref target is not found. available only when `link` is on. | optional
 `obs` | = `-cptag -title -alias` | optional
 `std` | = `-cptag -title -alias -rmtag -link -cmmt -strictref` | optional
