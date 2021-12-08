@@ -93,6 +93,13 @@
 !testdata/run/tgt/dst/**
 !testdata/run/tgt/tgt
 !testdata/run/tgt/tgt/**
+!testdata/run/obs_remapkey
+!testdata/run/obs_remapkey/src
+!testdata/run/obs_remapkey/src/**
+!testdata/run/obs_remapkey/dst
+!testdata/run/obs_remapkey/dst/**
+!testdata/run/obs_remapkey/tgt
+!testdata/run/obs_remapkey/tgt/**
 
 !process
 !process/walk.go

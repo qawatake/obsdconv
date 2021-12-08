@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/qawatake/obsdconv/process"
 	"gopkg.in/yaml.v2"
@@ -26,14 +27,32 @@ type yamlConverterImpl struct {
 	synctag     bool
 	synctlal    bool
 	publishable bool
+	remap       map[string]string
 }
 
-func newYamlConverterImpl(synctag bool, synctlal bool, publishable bool) *yamlConverterImpl {
+func newYamlConverterImpl(synctag bool, synctlal bool, publishable bool, remap map[string]string) *yamlConverterImpl {
 	return &yamlConverterImpl{
 		synctag:     synctag,
 		synctlal:    synctlal,
 		publishable: publishable,
+		remap:       remap,
 	}
+}
+
+func parseRemap(input string) (remap map[string]string, err error) {
+	remap = make(map[string]string)
+	if input == "" {
+		return nil, nil
+	}
+	entries := strings.Split(input, ",")
+	for _, entry := range entries {
+		pair := strings.Split(entry, ":")
+		if len(pair) != 2 {
+			return nil, newMainErrf(MAIN_ERR_KIND_INVALID_REMAP_FORMAT, "invalid format of %s: \"%s\"", FLAG_REMAP_META_KEYS, input)
+		}
+		remap[pair[0]] = pair[1]
+	}
+	return remap, nil
 }
 
 func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (output []byte, err error) {
@@ -147,6 +166,21 @@ func (c *yamlConverterImpl) ConvertYAML(raw []byte, aux process.YamlConvAuxIn) (
 			} else {
 				m["draft"] = !publishable
 			}
+		}
+	}
+
+	// remap keys in front matter
+	if len(c.remap) > 0 {
+		for oldKey, newKey := range c.remap {
+			v, ok := m[oldKey]
+			if !ok {
+				continue
+			}
+			delete(m, oldKey)
+			if newKey == "" {
+				continue
+			}
+			m[newKey] = v
 		}
 	}
 

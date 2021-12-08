@@ -57,7 +57,11 @@ func newDefaultProcessor(config *configuration) (processor *processorImplWithErr
 	}
 
 	bc := newBodyConverterImpl(db, config.cptag || config.synctag, config.rmtag, config.cmmt, config.title || config.alias || config.synctlal, config.link, config.rmH1)
-	yc := newYamlConverterImpl(config.synctag, config.synctlal, config.publishable)
+	remap, err := parseRemap(config.remapkey)
+	if err != nil {
+		return nil, err
+	}
+	yc := newYamlConverterImpl(config.synctag, config.synctlal, config.publishable, remap)
 	passer := newArgPasserImpl(config.title || config.synctlal, config.alias || config.synctlal)
 	examinator := newYamlExaminatorImpl(config.publishable)
 	return newProcessorImplWithErrHandling(config.debug, process.NewProcessor(bc, yc, passer, examinator)), nil

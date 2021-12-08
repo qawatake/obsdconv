@@ -256,6 +256,7 @@ func TestConvertYAML(t *testing.T) {
 		synctag     bool
 		synctlal    bool
 		publishable bool
+		remap       map[string]string
 		raw         []byte
 		title       string
 		alias       string
@@ -556,10 +557,35 @@ tags:
 title: existing-title
 `,
 		},
+		{
+			name: "remap keys in front matter",
+			remap: map[string]string{
+				"aliases":  "xaliases",
+				"cssclass": "",
+			},
+			raw: []byte(`aliases:
+- existing-alias
+cssclass: index-page
+publish: true
+tags:
+- book
+title: existing-title
+`),
+			title: "211208",
+			alias: "today",
+			want: `publish: true
+tags:
+- book
+title: "211208"
+xaliases:
+- existing-alias
+- today
+`,
+		},
 	}
 
 	for _, tt := range cases {
-		yc := newYamlConverterImpl(tt.synctag, tt.synctlal, tt.publishable)
+		yc := newYamlConverterImpl(tt.synctag, tt.synctlal, tt.publishable, tt.remap)
 		auxinput := newYamlConvAuxInImpl(tt.title, tt.alias, tt.tags)
 		got, err := yc.ConvertYAML(tt.raw, auxinput)
 		if err != nil {
@@ -649,4 +675,69 @@ func TestPassArg(t *testing.T) {
 		}
 	}
 
+}
+
+func TestParseRemap(t *testing.T) {
+	cases := []struct {
+		input   string
+		want    map[string]string
+		wantErr mainErr
+	}{
+		{
+			input: "image:meta_image,aliases:xaliases",
+			want: map[string]string{
+				"image":   "meta_image",
+				"aliases": "xaliases",
+			},
+		},
+		{
+			input: "image:meta_image,aliases:",
+			want: map[string]string{
+				"image":   "meta_image",
+				"aliases": "",
+			},
+		},
+		{
+			input:   "this is a bad input",
+			wantErr: newMainErrf(MAIN_ERR_KIND_INVALID_REMAP_FORMAT, "invalid remap format"),
+		},
+		{
+			input: "",
+			want:  nil,
+		},
+	}
+
+	for _, tt := range cases {
+		got, gotErr := parseRemap(tt.input)
+		if gotErr != nil {
+			if tt.wantErr == nil {
+				t.Fatalf("[FATAL] unexpected error occurred: %v with input: %s", gotErr, tt.input)
+			}
+			if e, ok := gotErr.(mainErr); !ok {
+				t.Fatalf("[FATAL] unexpected error occurred: %v with input: %s", gotErr, tt.input)
+			} else if e.Kind() != tt.wantErr.Kind() {
+				t.Fatalf("[FATAL] unexpected error occurred: %v with input: %s", gotErr, tt.input)
+			}
+		} else if tt.wantErr != nil {
+			t.Errorf("[ERROR] expected error did not occurr: %v with input: %s", tt.wantErr, tt.input)
+		}
+
+		tobeskipped := false
+		for wantOldKey, wantNewKey := range tt.want {
+			if gotNewKey, ok := got[wantOldKey]; !ok {
+				t.Errorf("[ERROR] expected key %s missing for input %s", wantOldKey, tt.input)
+				tobeskipped = true
+				break
+			} else if gotNewKey != wantNewKey {
+				t.Errorf("[ERROR] new keys for %s are different. got: %s, want: %s for input: %s", wantOldKey, gotNewKey, wantNewKey, tt.input)
+			}
+			delete(got, wantOldKey)
+		}
+		if tobeskipped {
+			continue
+		}
+		if len(got) > 0 {
+			t.Errorf("[ERROR] unexpected keys found: %v", got)
+		}
+	}
 }
