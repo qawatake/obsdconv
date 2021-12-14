@@ -7,6 +7,10 @@ before:
 builds:
   - main: .
     binary: obsdconv
+    goos:
+      - linux
+      - darwin
+      - windows
     ldflags:
       - -s -w
       - -X main.Version={{.Version}}
