@@ -177,12 +177,22 @@ func TestRun(t *testing.T) {
 		{
 			name: "-obs -remapmkey",
 			cmdflags: map[string]string{
-				FLAG_SOURCE:         filepath.Join(testdataDir, "obs_remapkey", src),
-				FLAG_DESTINATION:    filepath.Join(testdataDir, "obs_remapkey", tmp),
-				FLAG_OBSIDIAN_USAGE: "1",
+				FLAG_SOURCE:          filepath.Join(testdataDir, "obs_remapkey", src),
+				FLAG_DESTINATION:     filepath.Join(testdataDir, "obs_remapkey", tmp),
+				FLAG_OBSIDIAN_USAGE:  "1",
 				FLAG_REMAP_META_KEYS: "aliases:xaliases,image:meta_image,x:",
 			},
 			wantDstDir: filepath.Join(testdataDir, "obs_remapkey", dst),
+		},
+		{
+			name: "-obs -filter",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "obs_filter", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "obs_filter", tmp),
+				FLAG_OBSIDIAN_USAGE: "1",
+				FLAG_FILTER:         "key1&&!key2||key3",
+			},
+			wantDstDir: filepath.Join(testdataDir, "obs_filter", dst),
 		},
 	}
 
