@@ -190,7 +190,7 @@ func TestRun(t *testing.T) {
 				FLAG_SOURCE:         filepath.Join(testdataDir, "obs_filter", src),
 				FLAG_DESTINATION:    filepath.Join(testdataDir, "obs_filter", tmp),
 				FLAG_OBSIDIAN_USAGE: "1",
-				FLAG_FILTER:         "key1&&!key2||key3",
+				FLAG_FILTER:         "(key1||!key2)&&key3",
 			},
 			wantDstDir: filepath.Join(testdataDir, "obs_filter", dst),
 		},
@@ -379,4 +379,85 @@ func compareDirContent(dir1, dir2 string) (msg string, err error) {
 		}
 	}
 	return "", nil
+}
+
+func TestCheckFilter(t *testing.T) {
+	cases := []struct {
+		fm     map[interface{}]interface{}
+		filter string
+		want   bool
+	}{
+		{
+			fm: map[interface{}]interface{}{
+				"key1": true,
+				"key2": true,
+			},
+			filter: "key1&&key2",
+			want:   true,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": true,
+				"key2": true,
+				"key3": false,
+			},
+			filter: "key1&&key2||key3",
+			want:   true,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": true,
+				"key2": false,
+				"key3": false,
+			},
+			filter: "key1&&key2||key3",
+			want:   false,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": false,
+				"key2": true,
+				"key3": false,
+			},
+			filter: "key1&&key2||key3",
+			want:   false,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": false,
+				"key2": false,
+				"key3": true,
+			},
+			filter: "key1&&key2||key3",
+			want:   true,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": true,
+				"key2": true,
+				"key3": false,
+			},
+			filter: "key1&&!key2||key3",
+			want:   false,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": false,
+				"key2": false,
+				"key3": true,
+			},
+			filter: "key1&&(key2||key3)",
+			want:   false,
+		},
+	}
+
+	for _, tt := range cases {
+		got, err := checkFilter(tt.fm, tt.filter)
+		if err != nil {
+			t.Fatalf("[FATAL] unexpected error occurred\n%v\nfm: %v\nfilter: %s", err, tt.fm, tt.filter)
+		}
+		if got != tt.want {
+			t.Errorf("[ERROR] filter: %s\nfm: %v", tt.filter, tt.fm)
+		}
+	}
 }

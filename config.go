@@ -65,6 +65,7 @@ const (
 	MAIN_ERR_KIND_TARGET_IS_MARKDOWN_FILE_BUT_DESTINATION_IS_NOT
 	MAIN_ERR_KIND_DESTINATION_IS_MARKDOWN_FILE_BUT_TARGET_IS_NOT
 	MAIN_ERR_KIND_INVALID_REMAP_FORMAT
+	MAIN_ERR_KIND_INVALID_FILTER_FORMAT
 )
 
 type mainErr interface {
@@ -102,6 +103,8 @@ func newMainErr(kind mainErrKind) mainErr {
 		err.message = fmt.Sprintf("%s is a markdown file but %s is not", FLAG_TARGET, FLAG_DESTINATION)
 	case MAIN_ERR_KIND_DESTINATION_IS_MARKDOWN_FILE_BUT_TARGET_IS_NOT:
 		err.message = fmt.Sprintf("%s is a markdown file but %s is not", FLAG_DESTINATION, FLAG_TARGET)
+	case MAIN_ERR_KIND_INVALID_FILTER_FORMAT:
+		err.message = fmt.Sprintf("%s has an invalid format", FLAG_FILTER)
 	default:
 		err.kind = MAIN_ERR_UNEXPECTED
 		err.message = "unexpected error"
@@ -134,7 +137,7 @@ func initFlags(flagset *flag.FlagSet, config *configuration) {
 	flagset.BoolVar(&config.rmH1, FLAG_REMOVE_H1, false, "remove H1")
 	flagset.BoolVar(&config.strictref, FLAG_STRICT_REF, false, fmt.Sprintf("return error when ref target is not found. available only when %s is on", FLAG_CONVERT_LINKS))
 	flagset.StringVar(&config.remapkey, FLAG_REMAP_META_KEYS, "", "remap keys in front matter. format: \"old1:new1,old2:new2\". If a new key is not specified (i.e., empty string), then the field will be removed.")
-	flagset.StringVar(&config.filter, FLAG_FILTER, "", "process only files with specified conditions. format: \"key1&&!key2||key3\". Each field must be boolean.")
+	flagset.StringVar(&config.filter, FLAG_FILTER, "", "process only files with specified conditions. format: \"(key1||!key2)&&key3\". Each field must be boolean and each key must match /[a-zA-Z-_]+/.")
 	flagset.BoolVar(&config.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
 	flagset.BoolVar(&config.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -strictref")
 	flagset.BoolVar(&config.ver, FLAG_VERSION, false, "display the version currently installed")
