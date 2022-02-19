@@ -449,6 +449,15 @@ func TestCheckFilter(t *testing.T) {
 			filter: "key1&&(key2||key3)",
 			want:   false,
 		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": false,
+				"key2": false,
+				"key3": true,
+			},
+			filter: "",
+			want:   true,
+		},
 	}
 
 	for _, tt := range cases {

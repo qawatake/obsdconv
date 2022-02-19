@@ -48,8 +48,9 @@ func checkFilter(fm map[interface{}]interface{}, filter string) (value bool, err
 	if err != nil {
 		return false, err
 	}
-	nd, token, err := parseTokens(token)
-	if err != nil || token.kind != TOKEN_EOS {
+
+	nd, _, err := parseTokens(token)
+	if err != nil {
 		return false, newMainErr(MAIN_ERR_KIND_INVALID_FILTER_FORMAT)
 	}
 
@@ -67,6 +68,8 @@ func evaluateNode(nd *nodeImpl, fm map[interface{}]interface{}) (value bool, err
 			return false, nil
 		}
 		return false, newMainErr(MAIN_ERR_KIND_INVALID_FILTER_FORMAT)
+	} else if nd.kind == NODE_TRUE {
+		return true, nil
 	} else if nd.kind == NODE_NOT {
 		if v, err := evaluateNode(nd.left, fm); err != nil {
 			return false, err
@@ -116,6 +119,7 @@ const (
 	NODE_AND
 	NODE_OR
 	NODE_NOT
+	NODE_TRUE
 )
 
 type nodeImpl struct {
@@ -130,7 +134,7 @@ func parseTokens(cur *tokenImpl) (nd *nodeImpl, next *tokenImpl, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	if cur.kind == TOKEN_OR {
+	if cur != nil && cur.kind == TOKEN_OR {
 		right, next, err := parseTokens(cur.next)
 		if err != nil {
 			return nil, nil, err
@@ -145,7 +149,7 @@ func andNode(cur *tokenImpl) (nd *nodeImpl, next *tokenImpl, err error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	if cur.kind == TOKEN_AND {
+	if cur != nil && cur.kind == TOKEN_AND {
 		right, next, err := andNode(cur.next)
 		if err != nil {
 			return nil, nil, err
@@ -187,6 +191,9 @@ func primaryNode(cur *tokenImpl) (nd *nodeImpl, next *tokenImpl, err error) {
 			next = cur.next
 			return nd, next, nil
 		}
+	}
+	if cur.kind == TOKEN_EOS {
+		return newParentNode(NODE_TRUE, nil, nil), nil, nil
 	}
 	return nil, nil, newMainErr(MAIN_ERR_KIND_INVALID_FILTER_FORMAT)
 }
