@@ -9,37 +9,52 @@ import (
 )
 
 type yamlExaminatorImpl struct {
+	filter      string
 	publishable bool
 }
 
-func newYamlExaminatorImpl(publishable bool) *yamlExaminatorImpl {
+func newYamlExaminatorImpl(filter string, publishable bool) *yamlExaminatorImpl {
 	return &yamlExaminatorImpl{
+		filter:      filter,
 		publishable: publishable,
 	}
 }
 
 func (examinator *yamlExaminatorImpl) ExamineYaml(yml []byte) (beProcessed bool, err error) {
-	if !examinator.publishable {
-		return true, nil
-	}
-
-	m := make(map[interface{}]interface{})
-	if err := yaml.Unmarshal(yml, m); err != nil {
+	fm := make(map[interface{}]interface{})
+	if err := yaml.Unmarshal(yml, fm); err != nil {
 		return false, errors.Wrap(err, "failed to unmarshal front matter")
 	}
 
-	if vdraft, ok := m["draft"]; ok {
-		if isdraft, ok := vdraft.(bool); ok && !isdraft {
-			return true, nil
+	if examinator.publishable {
+		if ok, err := checkPublishable(fm); err != nil {
+			return false, errors.Wrap(err, "failed to check publish or draft field in front matter")
+		} else if !ok {
+			return false, nil
 		}
 	}
 
-	if vpublishable, ok := m["publish"]; ok {
+	if examinator.filter != "" {
+		if ok, err := checkFilter(fm, examinator.filter); err != nil {
+			return false, errors.Wrap(err, "failed to check filter field in front matter")
+		} else if !ok {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+func checkPublishable(fm map[interface{}]interface{}) (ok bool, err error) {
+	if vdraft, ok := fm["draft"]; ok {
+		if isdraft, ok := vdraft.(bool); ok && !isdraft {
+			return true, nil
+		}
+	} else if vpublishable, ok := fm["publish"]; ok {
 		if ispublishable, ok := vpublishable.(bool); ok && ispublishable {
 			return true, nil
 		}
 	}
-
 	return false, nil
 }
 

@@ -52,7 +52,7 @@ draft: true`),
 	}
 
 	for _, tt := range cases {
-		got, err := newYamlExaminatorImpl(tt.publishable).ExamineYaml(tt.yml)
+		got, err := newYamlExaminatorImpl("", tt.publishable).ExamineYaml(tt.yml)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] ExamineYaml failed: %v", tt.name, err)
 		}

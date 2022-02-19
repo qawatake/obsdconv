@@ -63,7 +63,7 @@ func newDefaultProcessor(config *configuration) (processor *processorImplWithErr
 	}
 	yc := newYamlConverterImpl(config.synctag, config.synctlal, config.publishable, remap)
 	passer := newArgPasserImpl(config.title || config.synctlal, config.alias || config.synctlal)
-	examinator := newYamlExaminatorImpl(config.publishable)
+	examinator := newYamlExaminatorImpl(config.filter, config.publishable)
 	return newProcessorImplWithErrHandling(config.debug, process.NewProcessor(bc, yc, passer, examinator)), nil
 }
 
