@@ -19,16 +19,17 @@ func newBodyConvAuxOutImpl(title string, tags map[string]struct{}) *bodyConvAuxO
 }
 
 type bodyConverterImpl struct {
-	db    convert.PathDB
-	cptag bool
-	rmtag bool
-	cmmt  bool
-	title bool
-	link  bool
-	rmH1  bool
+	db      convert.PathDB
+	cptag   bool
+	rmtag   bool
+	cmmt    bool
+	title   bool
+	link    bool
+	rmH1    bool
+	baseUrl string
 }
 
-func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, title bool, link bool, rmH1 bool) *bodyConverterImpl {
+func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, title bool, link bool, rmH1 bool, baseUrl string) *bodyConverterImpl {
 	c := new(bodyConverterImpl)
 	c.db = db
 	c.cptag = cptag
@@ -37,10 +38,11 @@ func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, 
 	c.title = title
 	c.link = link
 	c.rmH1 = rmH1
+	c.baseUrl = baseUrl
 	return c
 }
 
-func (c *bodyConverterImpl) ConvertBody(raw []rune) (output []rune, aux process.BodyConvAuxOut, err error) {
+func (c *bodyConverterImpl) ConvertBody(raw []rune, selfRelativePath string) (output []rune, aux process.BodyConvAuxOut, err error) {
 	output = raw
 	title := ""
 	tags := make(map[string]struct{})
@@ -78,9 +80,18 @@ func (c *bodyConverterImpl) ConvertBody(raw []rune) (output []rune, aux process.
 		}
 	}
 	if c.link {
-		output, err = convert.NewLinkConverter(c.db).Convert(output)
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "LinkConverter failed")
+		if c.baseUrl == "" {
+			output, err = convert.NewLinkConverter(c.db).Convert(output)
+			if err != nil {
+				return nil, nil, errors.Wrap(err, "LinkConverter failed")
+			}
+		} else {
+			// fmt.Println(newpath)
+			db := convert.WrapForTrimmingSuffixMd(convert.WrapForSettingBaseUrl(c.baseUrl, convert.WrapForUsingSelfForEmptyFileId(selfRelativePath, c.db)))
+			output, err = convert.NewLinkConverter(db).Convert(output)
+			if err != nil {
+				return nil, nil, errors.Wrap(err, "LinkConverter failed")
+			}
 		}
 	}
 	if c.rmH1 {

@@ -12,7 +12,7 @@ import (
 )
 
 type Processor interface {
-	Process(orgpath, newpath string) (err error)
+	Process(relativePath, orgpath, newpath string) (err error)
 }
 
 type ProcessorImpl struct {
@@ -31,7 +31,7 @@ func NewProcessor(bc BodyConverter, yc YamlConverter, passer ArgPasser, examinat
 	}
 }
 
-func (p *ProcessorImpl) Process(orgpath, newpath string) error {
+func (p *ProcessorImpl) Process(relativePath, orgpath, newpath string) error {
 
 	if filepath.Ext(orgpath) != ".md" {
 		file, err := os.Open(orgpath)
@@ -66,7 +66,7 @@ func (p *ProcessorImpl) Process(orgpath, newpath string) error {
 		return nil
 	}
 
-	output, frombody, err := p.ConvertBody(body)
+	output, frombody, err := p.ConvertBody(body, relativePath)
 	if err != nil {
 		return errors.Wrap(err, "failed to convert body")
 	}

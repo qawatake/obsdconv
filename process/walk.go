@@ -49,7 +49,7 @@ func Walk(src, dst string, skipper Skipper, processor Processor) error {
 		case lock <- struct{}{}:
 			wg.Add(1)
 			go func() {
-				errs <- processor.Process(path, newpath)
+				errs <- processor.Process(rpath, path, newpath)
 				wg.Done()
 			}()
 		}

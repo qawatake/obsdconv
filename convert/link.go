@@ -95,6 +95,69 @@ func pathMatchScore(path string, filename string) int {
 	return lpp - cur
 }
 
+type pathDBWrapperImplUsingSelfForEmptyFileId struct {
+	selfPath string
+	original PathDB
+}
+
+func (w pathDBWrapperImplUsingSelfForEmptyFileId) Get(fileId string) (path string, err error) {
+	if fileId == "" {
+		fmt.Println(w.selfPath)
+		return w.selfPath, nil
+	} else {
+		if w.original == nil {
+			panic("original PathDB not set but used")
+		}
+		return w.original.Get(fileId)
+	}
+}
+
+func WrapForUsingSelfForEmptyFileId(selfPath string, original PathDB) PathDB {
+	return &pathDBWrapperImplUsingSelfForEmptyFileId{
+		selfPath: selfPath,
+		original: original,
+	}
+}
+
+type pathDBWrapperImplTrimmingSuffixMd struct {
+	original PathDB
+}
+
+func (w *pathDBWrapperImplTrimmingSuffixMd) Get(fileId string) (path string, err error) {
+	if w.original == nil {
+		panic("original PathDB not set but used")
+	}
+	path, err = w.original.Get(fileId)
+	pathSuffixTrimmed := strings.TrimSuffix(path, ".md")
+	return pathSuffixTrimmed, err
+}
+
+func WrapForTrimmingSuffixMd(original PathDB) PathDB {
+	return &pathDBWrapperImplTrimmingSuffixMd{
+		original: original,
+	}
+}
+
+type pathDBWrapperImplSettingBaseUrl struct {
+	baseUrl  string
+	original PathDB
+}
+
+func (w *pathDBWrapperImplSettingBaseUrl) Get(fileId string) (path string, err error) {
+	if w.original == nil {
+		panic("original PathDB not set but used")
+	}
+	path, err = w.original.Get(fileId)
+	return w.baseUrl + path, err
+}
+
+func WrapForSettingBaseUrl(baseUrl string, original PathDB) PathDB {
+	return &pathDBWrapperImplSettingBaseUrl{
+		baseUrl:  baseUrl,
+		original: original,
+	}
+}
+
 type pathDBWrapperImplReturningNotFoundPathError struct {
 	original PathDB
 }

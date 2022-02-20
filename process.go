@@ -22,8 +22,8 @@ func newProcessorImplWithErrHandling(debug bool, subprocessor process.Processor)
 	}
 }
 
-func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
-	err := p.sub.Process(orgpath, newpath)
+func (p *processorImplWithErrHandling) Process(relativePath, orgpath, newpath string) error {
+	err := p.sub.Process(relativePath, orgpath, newpath)
 
 	if err == nil {
 		return nil
@@ -56,7 +56,7 @@ func newDefaultProcessor(config *configuration) (processor *processorImplWithErr
 		db = convert.WrapForReturningNotFoundPathError(db)
 	}
 
-	bc := newBodyConverterImpl(db, config.cptag || config.synctag, config.rmtag, config.cmmt, config.title || config.alias || config.synctlal, config.link, config.rmH1)
+	bc := newBodyConverterImpl(db, config.cptag || config.synctag, config.rmtag, config.cmmt, config.title || config.alias || config.synctlal, config.link, config.rmH1, config.baseUrl)
 	remap, err := parseRemap(config.remapkey)
 	if err != nil {
 		return nil, err

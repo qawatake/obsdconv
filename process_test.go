@@ -77,6 +77,7 @@ func TestConvertBody(t *testing.T) {
 		title        bool
 		link         bool
 		rmH1         bool
+		baseUrl      string
 		wantTitle    string
 		wantTags     []string
 		wantFileName string
@@ -167,7 +168,7 @@ func TestConvertBody(t *testing.T) {
 	for _, tt := range cases {
 		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
 		db := convert.NewPathDB(vault)
-		c := newBodyConverterImpl(db, tt.cptag, tt.rmtag, tt.cmmt, tt.title, tt.link, tt.rmH1)
+		c := newBodyConverterImpl(db, tt.cptag, tt.rmtag, tt.cmmt, tt.title, tt.link, tt.rmH1, tt.baseUrl)
 
 		srcFileName := filepath.Join(vault, tt.rawFileName)
 		srcFile, err := os.Open(srcFileName)
@@ -181,7 +182,7 @@ func TestConvertBody(t *testing.T) {
 		srcFile.Close()
 
 		// output, gotTitle, gotTags, err := c.ConvertBody([]rune(string(raw)))
-		output, aux, err := c.ConvertBody([]rune(string(raw)))
+		output, aux, err := c.ConvertBody([]rune(string(raw)), tt.rawFileName)
 		if err != nil {
 			t.Fatalf("[FATAL | %s] unexpected error occurred: %v", tt.name, err)
 		}

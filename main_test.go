@@ -194,6 +194,16 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(testdataDir, "obs_filter", dst),
 		},
+		{
+			name: "-std -baseUrl",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "std_baseUrl", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "std_baseUrl", tmp),
+				FLAG_STANDARD_USAGE: "1",
+				FLAG_BASE_URL:       "https://example.com/",
+			},
+			wantDstDir: filepath.Join(testdataDir, "std_baseUrl", dst),
+		},
 	}
 
 	for _, tt := range cases {
