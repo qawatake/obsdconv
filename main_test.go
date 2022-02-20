@@ -197,12 +197,23 @@ func TestRun(t *testing.T) {
 		{
 			name: "-std -baseUrl",
 			cmdflags: map[string]string{
-				FLAG_SOURCE:         filepath.Join(testdataDir, "std_baseUrl", src),
-				FLAG_DESTINATION:    filepath.Join(testdataDir, "std_baseUrl", tmp),
-				FLAG_STANDARD_USAGE: "1",
-				FLAG_BASE_URL:       "https://example.com/",
+				FLAG_SOURCE:            filepath.Join(testdataDir, "std_baseUrl", src),
+				FLAG_DESTINATION:       filepath.Join(testdataDir, "std_baseUrl", tmp),
+				FLAG_STANDARD_USAGE:    "1",
+				FLAG_FORMAT_LINK:       "1",
+				FLAG_REMAP_PATH_PREFIX: ">https://example.com/",
 			},
 			wantDstDir: filepath.Join(testdataDir, "std_baseUrl", dst),
+		},
+		{
+			name: "-link -remapPathPrefix",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:            filepath.Join(testdataDir, "link_remapPathPrefix", src),
+				FLAG_DESTINATION:       filepath.Join(testdataDir, "link_remapPathPrefix", tmp),
+				FLAG_CONVERT_LINKS:     "1",
+				FLAG_REMAP_PATH_PREFIX: "notes/>posts/|static/>images/",
+			},
+			wantDstDir: filepath.Join(testdataDir, "link_remapPathPrefix", dst),
 		},
 	}
 

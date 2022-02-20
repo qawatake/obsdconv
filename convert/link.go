@@ -102,7 +102,6 @@ type pathDBWrapperImplUsingSelfForEmptyFileId struct {
 
 func (w pathDBWrapperImplUsingSelfForEmptyFileId) Get(fileId string) (path string, err error) {
 	if fileId == "" {
-		fmt.Println(w.selfPath)
 		return w.selfPath, nil
 	} else {
 		if w.original == nil {
@@ -138,25 +137,57 @@ func WrapForTrimmingSuffixMd(original PathDB) PathDB {
 	}
 }
 
-type pathDBWrapperImplSettingBaseUrl struct {
-	baseUrl  string
+type pathDBWrapperImplRemappingPathPrefix struct {
+	remap    map[string]string
 	original PathDB
 }
 
-func (w *pathDBWrapperImplSettingBaseUrl) Get(fileId string) (path string, err error) {
+func (w *pathDBWrapperImplRemappingPathPrefix) Get(fileId string) (path string, err error) {
 	if w.original == nil {
 		panic("original PathDB not set but used")
 	}
+	if w.remap == nil {
+		panic("pathPrefixRemap not set")
+	}
 	path, err = w.original.Get(fileId)
-	return w.baseUrl + path, err
+	if err != nil {
+		return "", err
+	}
+	for oldPrefix, newPrefix := range w.remap {
+		if strings.HasPrefix(path, oldPrefix) {
+			newPath := strings.Replace(path, oldPrefix, newPrefix, 1)
+			return newPath, nil
+		}
+	}
+	return path, nil
 }
 
-func WrapForSettingBaseUrl(baseUrl string, original PathDB) PathDB {
-	return &pathDBWrapperImplSettingBaseUrl{
-		baseUrl:  baseUrl,
+func WrapForRemappingPathPrefix(pathPrefixRemap map[string]string, original PathDB) PathDB {
+	return &pathDBWrapperImplRemappingPathPrefix{
+		remap:    pathPrefixRemap,
 		original: original,
 	}
 }
+
+// type pathDBWrapperImplSettingBaseUrl struct {
+// 	baseUrl  string
+// 	original PathDB
+// }
+
+// func (w *pathDBWrapperImplSettingBaseUrl) Get(fileId string) (path string, err error) {
+// 	if w.original == nil {
+// 		panic("original PathDB not set but used")
+// 	}
+// 	path, err = w.original.Get(fileId)
+// 	return w.baseUrl + path, err
+// }
+
+// func WrapForSettingBaseUrl(baseUrl string, original PathDB) PathDB {
+// 	return &pathDBWrapperImplSettingBaseUrl{
+// 		baseUrl:  baseUrl,
+// 		original: original,
+// 	}
+// }
 
 type pathDBWrapperImplReturningNotFoundPathError struct {
 	original PathDB

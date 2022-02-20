@@ -110,6 +110,11 @@
 !testdata/run/std_baseUrl/src/**
 !testdata/run/std_baseUrl/dst
 !testdata/run/std_baseUrl/dst/**
+!testdata/run/link_remapPathPrefix
+!testdata/run/link_remapPathPrefix/src
+!testdata/run/link_remapPathPrefix/src/**
+!testdata/run/link_remapPathPrefix/dst
+!testdata/run/link_remapPathPrefix/dst/**
 
 !process
 !process/walk.go
