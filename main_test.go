@@ -177,12 +177,43 @@ func TestRun(t *testing.T) {
 		{
 			name: "-obs -remapmkey",
 			cmdflags: map[string]string{
-				FLAG_SOURCE:         filepath.Join(testdataDir, "obs_remapkey", src),
-				FLAG_DESTINATION:    filepath.Join(testdataDir, "obs_remapkey", tmp),
-				FLAG_OBSIDIAN_USAGE: "1",
+				FLAG_SOURCE:          filepath.Join(testdataDir, "obs_remapkey", src),
+				FLAG_DESTINATION:     filepath.Join(testdataDir, "obs_remapkey", tmp),
+				FLAG_OBSIDIAN_USAGE:  "1",
 				FLAG_REMAP_META_KEYS: "aliases:xaliases,image:meta_image,x:",
 			},
 			wantDstDir: filepath.Join(testdataDir, "obs_remapkey", dst),
+		},
+		{
+			name: "-obs -filter",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:         filepath.Join(testdataDir, "obs_filter", src),
+				FLAG_DESTINATION:    filepath.Join(testdataDir, "obs_filter", tmp),
+				FLAG_OBSIDIAN_USAGE: "1",
+				FLAG_FILTER:         "(key1||!key2)&&key3",
+			},
+			wantDstDir: filepath.Join(testdataDir, "obs_filter", dst),
+		},
+		{
+			name: "-std -baseUrl",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:            filepath.Join(testdataDir, "std_baseUrl", src),
+				FLAG_DESTINATION:       filepath.Join(testdataDir, "std_baseUrl", tmp),
+				FLAG_STANDARD_USAGE:    "1",
+				FLAG_FORMAT_LINK:       "1",
+				FLAG_REMAP_PATH_PREFIX: ">https://example.com/",
+			},
+			wantDstDir: filepath.Join(testdataDir, "std_baseUrl", dst),
+		},
+		{
+			name: "-link -remapPathPrefix",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:            filepath.Join(testdataDir, "link_remapPathPrefix", src),
+				FLAG_DESTINATION:       filepath.Join(testdataDir, "link_remapPathPrefix", tmp),
+				FLAG_CONVERT_LINKS:     "1",
+				FLAG_REMAP_PATH_PREFIX: "notes/>posts/|static/>images/",
+			},
+			wantDstDir: filepath.Join(testdataDir, "link_remapPathPrefix", dst),
 		},
 	}
 
@@ -369,4 +400,94 @@ func compareDirContent(dir1, dir2 string) (msg string, err error) {
 		}
 	}
 	return "", nil
+}
+
+func TestCheckFilter(t *testing.T) {
+	cases := []struct {
+		fm     map[interface{}]interface{}
+		filter string
+		want   bool
+	}{
+		{
+			fm: map[interface{}]interface{}{
+				"key1": true,
+				"key2": true,
+			},
+			filter: "key1&&key2",
+			want:   true,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": true,
+				"key2": true,
+				"key3": false,
+			},
+			filter: "key1&&key2||key3",
+			want:   true,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": true,
+				"key2": false,
+				"key3": false,
+			},
+			filter: "key1&&key2||key3",
+			want:   false,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": false,
+				"key2": true,
+				"key3": false,
+			},
+			filter: "key1&&key2||key3",
+			want:   false,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": false,
+				"key2": false,
+				"key3": true,
+			},
+			filter: "key1&&key2||key3",
+			want:   true,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": true,
+				"key2": true,
+				"key3": false,
+			},
+			filter: "key1&&!key2||key3",
+			want:   false,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": false,
+				"key2": false,
+				"key3": true,
+			},
+			filter: "key1&&(key2||key3)",
+			want:   false,
+		},
+		{
+			fm: map[interface{}]interface{}{
+				"key1": false,
+				"key2": false,
+				"key3": true,
+			},
+			filter: "",
+			want:   true,
+		},
+	}
+
+	for _, tt := range cases {
+		got, err := checkFilter(tt.fm, tt.filter)
+		if err != nil {
+			t.Fatalf("[FATAL] unexpected error occurred\n%v\nfm: %v\nfilter: %s", err, tt.fm, tt.filter)
+		}
+		if got != tt.want {
+			t.Errorf("[ERROR] filter: %s\nfm: %v", tt.filter, tt.fm)
+		}
+	}
 }

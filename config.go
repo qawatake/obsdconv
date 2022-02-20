@@ -22,11 +22,15 @@ const (
 	FLAG_PUBLISHABLE        = "pub"
 	FLAG_REMOVE_H1          = "rmh1"
 	FLAG_REMAP_META_KEYS    = "remapkey"
-	FLAG_STRICT_REF         = "strictref"
-	FLAG_OBSIDIAN_USAGE     = "obs"
-	FLAG_STANDARD_USAGE     = "std"
-	FLAG_VERSION            = "version"
-	FLAG_DEBUG              = "debug"
+	FLAG_FILTER             = "filter"
+	// FLAG_BASE_URL           = "baseUrl"
+	FLAG_REMAP_PATH_PREFIX = "remapPathPrefix"
+	FLAG_FORMAT_LINK       = "formatLink"
+	FLAG_STRICT_REF        = "strictref"
+	FLAG_OBSIDIAN_USAGE    = "obs"
+	FLAG_STANDARD_USAGE    = "std"
+	FLAG_VERSION           = "version"
+	FLAG_DEBUG             = "debug"
 )
 
 type configuration struct {
@@ -45,10 +49,14 @@ type configuration struct {
 	rmH1        bool
 	strictref   bool
 	remapkey    string
-	obs         bool
-	std         bool
-	ver         bool
-	debug       bool
+	filter      string
+	// baseUrl         string
+	remapPathPrefix string
+	formatLink      bool
+	obs             bool
+	std             bool
+	ver             bool
+	debug           bool
 }
 
 type mainErrKind int
@@ -63,6 +71,11 @@ const (
 	MAIN_ERR_KIND_TARGET_IS_MARKDOWN_FILE_BUT_DESTINATION_IS_NOT
 	MAIN_ERR_KIND_DESTINATION_IS_MARKDOWN_FILE_BUT_TARGET_IS_NOT
 	MAIN_ERR_KIND_INVALID_REMAP_FORMAT
+	MAIN_ERR_KIND_INVALID_FILTER_FORMAT
+	MAIN_ERR_KIND_FORMAT_LINK_NEEDS_LINK
+	MAIN_ERR_KIND_REMAP_PATH_PREFIX_NEEDS_LINK
+	MAIN_ERR_KIND_INVALID_REMAP_PATH_PREFIX_FORMAT
+	// MAIN_ERR_KIND_BASE_URL_NEEDS_LINK
 )
 
 type mainErr interface {
@@ -100,6 +113,14 @@ func newMainErr(kind mainErrKind) mainErr {
 		err.message = fmt.Sprintf("%s is a markdown file but %s is not", FLAG_TARGET, FLAG_DESTINATION)
 	case MAIN_ERR_KIND_DESTINATION_IS_MARKDOWN_FILE_BUT_TARGET_IS_NOT:
 		err.message = fmt.Sprintf("%s is a markdown file but %s is not", FLAG_DESTINATION, FLAG_TARGET)
+	case MAIN_ERR_KIND_INVALID_FILTER_FORMAT:
+		err.message = fmt.Sprintf("%s has an invalid format", FLAG_FILTER)
+	// case MAIN_ERR_KIND_BASE_URL_NEEDS_LINK:
+	// 	err.message = fmt.Sprintf("%s set but not %s", FLAG_BASE_URL, FLAG_CONVERT_LINKS)
+	case MAIN_ERR_KIND_FORMAT_LINK_NEEDS_LINK:
+		err.message = fmt.Sprintf("%s set but not %s", FLAG_FORMAT_LINK, FLAG_CONVERT_LINKS)
+	case MAIN_ERR_KIND_REMAP_PATH_PREFIX_NEEDS_LINK:
+		err.message = fmt.Sprintf("%s set but not %s", FLAG_REMAP_PATH_PREFIX, FLAG_CONVERT_LINKS)
 	default:
 		err.kind = MAIN_ERR_UNEXPECTED
 		err.message = "unexpected error"
@@ -132,6 +153,10 @@ func initFlags(flagset *flag.FlagSet, config *configuration) {
 	flagset.BoolVar(&config.rmH1, FLAG_REMOVE_H1, false, "remove H1")
 	flagset.BoolVar(&config.strictref, FLAG_STRICT_REF, false, fmt.Sprintf("return error when ref target is not found. available only when %s is on", FLAG_CONVERT_LINKS))
 	flagset.StringVar(&config.remapkey, FLAG_REMAP_META_KEYS, "", "remap keys in front matter. format: \"old1:new1,old2:new2\". If a new key is not specified (i.e., empty string), then the field will be removed.")
+	flagset.StringVar(&config.filter, FLAG_FILTER, "", "process only files with specified conditions. Example: -filter=\"(key1||!key2)&&key3\". Each field must be boolean and each key must match /[a-zA-Z-_]+/.")
+	// flagset.StringVar(&config.baseUrl, FLAG_BASE_URL, "", "prefix resolved internal links and format it. Example (-baseUrl=https://example.com/): sample -> https://example.com/sample")
+	flagset.StringVar(&config.remapPathPrefix, FLAG_REMAP_PATH_PREFIX, "", "remap prefixes in paths. Example (-remapPrefix=static/>images/|notes/>posts/): static/sample.png -> images/sample.png, notes/sample.md -> posts/sample.md")
+	flagset.BoolVar(&config.formatLink, FLAG_FORMAT_LINK, false, "trim suffix .md and complete link. Example: #section -> path/to/sample#section")
 	flagset.BoolVar(&config.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
 	flagset.BoolVar(&config.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -strictref")
 	flagset.BoolVar(&config.ver, FLAG_VERSION, false, "display the version currently installed")
@@ -207,6 +232,15 @@ func verifyConfig(config *configuration) error {
 	}
 	if config.strictref && !config.link {
 		return newMainErr(MAIN_ERR_KIND_STRICTREF_NEEDS_LINK)
+	}
+	// if config.baseUrl != "" && !config.link {
+	// 	return newMainErr(MAIN_ERR_KIND_BASE_URL_NEEDS_LINK)
+	// }
+	if config.remapPathPrefix != "" && !config.link {
+		return newMainErr(MAIN_ERR_KIND_INVALID_REMAP_FORMAT)
+	}
+	if config.formatLink && !config.link {
+		return newMainErr(MAIN_ERR_KIND_FORMAT_LINK_NEEDS_LINK)
 	}
 	// check roughly if tgt and dst are the same type (regular file or directory)
 	if filepath.Ext(config.tgt) == ".md" && filepath.Ext(config.dst) != ".md" {

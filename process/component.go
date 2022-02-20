@@ -3,7 +3,7 @@ package process
 type BodyConvAuxOut interface{}
 
 type BodyConverter interface {
-	ConvertBody(raw []rune) (output []rune, aux BodyConvAuxOut, err error)
+	ConvertBody(raw []rune, selfRelativePath string) (output []rune, aux BodyConvAuxOut, err error)
 }
 
 type YamlConvAuxIn interface{}

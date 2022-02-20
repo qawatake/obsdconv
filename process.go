@@ -22,8 +22,8 @@ func newProcessorImplWithErrHandling(debug bool, subprocessor process.Processor)
 	}
 }
 
-func (p *processorImplWithErrHandling) Process(orgpath, newpath string) error {
-	err := p.sub.Process(orgpath, newpath)
+func (p *processorImplWithErrHandling) Process(relativePath, orgpath, newpath string) error {
+	err := p.sub.Process(relativePath, orgpath, newpath)
 
 	if err == nil {
 		return nil
@@ -56,14 +56,18 @@ func newDefaultProcessor(config *configuration) (processor *processorImplWithErr
 		db = convert.WrapForReturningNotFoundPathError(db)
 	}
 
-	bc := newBodyConverterImpl(db, config.cptag || config.synctag, config.rmtag, config.cmmt, config.title || config.alias || config.synctlal, config.link, config.rmH1)
-	remap, err := parseRemap(config.remapkey)
+	pathPrefixRemap, err := parsePathPrefixRemap(config.remapPathPrefix)
 	if err != nil {
 		return nil, err
 	}
-	yc := newYamlConverterImpl(config.synctag, config.synctlal, config.publishable, remap)
+	bc := newBodyConverterImpl(db, config.cptag || config.synctag, config.rmtag, config.cmmt, config.title || config.alias || config.synctlal, config.link, config.rmH1, config.formatLink, pathPrefixRemap)
+	metaKeyRemap, err := parseRemap(config.remapkey)
+	if err != nil {
+		return nil, err
+	}
+	yc := newYamlConverterImpl(config.synctag, config.synctlal, config.publishable, metaKeyRemap)
 	passer := newArgPasserImpl(config.title || config.synctlal, config.alias || config.synctlal)
-	examinator := newYamlExaminatorImpl(config.publishable)
+	examinator := newYamlExaminatorImpl(config.filter, config.publishable)
 	return newProcessorImplWithErrHandling(config.debug, process.NewProcessor(bc, yc, passer, examinator)), nil
 }
 
