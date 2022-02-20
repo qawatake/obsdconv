@@ -105,8 +105,11 @@
 !testdata/run/obs_filter/src/**
 !testdata/run/obs_filter/dst
 !testdata/run/obs_filter/dst/**
-!testdata/run/obs_filter/tgt
-!testdata/run/obs_filter/tgt/**
+!testdata/run/std_baseUrl
+!testdata/run/std_baseUrl/src
+!testdata/run/std_baseUrl/src/**
+!testdata/run/std_baseUrl/dst
+!testdata/run/std_baseUrl/dst/**
 
 !process
 !process/walk.go
