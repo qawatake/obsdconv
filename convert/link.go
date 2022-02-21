@@ -3,6 +3,7 @@ package convert
 import (
 	"fmt"
 	"io/fs"
+	"net/url"
 	"path/filepath"
 	"strings"
 
@@ -95,18 +96,46 @@ func pathMatchScore(path string, filename string) int {
 	return lpp - cur
 }
 
+type pathDBWrapperImplEncodingPaths struct {
+	original PathDB
+}
+
+func (w pathDBWrapperImplEncodingPaths) Get(fileId string) (path string, err error) {
+	if w.original == nil {
+		panic("original PathDB not set but used")
+	}
+	path, err = w.original.Get(fileId)
+	if err != nil {
+		return "", err
+	}
+	segments := make([]string, 0)
+	for _, segment := range strings.Split(path, "/") {
+		segments = append(segments, url.QueryEscape(segment))
+	}
+	return strings.Join(segments, "/"), nil
+}
+
+func WrapForEncodingPaths(original PathDB) PathDB {
+	return &pathDBWrapperImplEncodingPaths{
+		original: original,
+	}
+}
+
 type pathDBWrapperImplUsingSelfForEmptyFileId struct {
 	selfPath string
 	original PathDB
 }
 
 func (w pathDBWrapperImplUsingSelfForEmptyFileId) Get(fileId string) (path string, err error) {
+	if w.original == nil {
+		panic("original PathDB not set but used")
+	}
+	if w.selfPath == "" {
+		panic("selfPath not set but used")
+	}
 	if fileId == "" {
 		return w.selfPath, nil
 	} else {
-		if w.original == nil {
-			panic("original PathDB not set but used")
-		}
 		return w.original.Get(fileId)
 	}
 }

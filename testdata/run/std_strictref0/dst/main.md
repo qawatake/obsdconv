@@ -50,6 +50,9 @@ $#inline-math$
 #### only fragments
 [section](#section)
 
+#### with fragments with special characters
+[blank > Obsidian はいいよ😗](blank.md#obsidian-はいいよ)
+
 ### External Link
 #### tag in display name
 [tag in display name](https://example.com)

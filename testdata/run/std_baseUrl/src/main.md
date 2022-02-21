@@ -46,6 +46,9 @@ $#inline-math$
 #### only fragments
 [[#section]]
 
+#### japanese file name
+[[おかしな ファイル名]]
+
 ### External Link
 #### tag in display name
 [tag in display name #tag_in_display_name_of_external_link](https://example.com)
