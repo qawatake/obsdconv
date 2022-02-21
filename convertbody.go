@@ -88,6 +88,7 @@ func (c *bodyConverterImpl) ConvertBody(raw []rune, selfRelativePath string) (ou
 		if c.formatLink {
 			db = convert.WrapForUsingSelfForEmptyFileId(selfRelativePath, db)
 			db = convert.WrapForTrimmingSuffixMd(db)
+			db = convert.WrapForEncodingPaths(db)
 		}
 		if c.pathPrefixRemap != nil {
 			db = convert.WrapForRemappingPathPrefix(c.pathPrefixRemap, db)
