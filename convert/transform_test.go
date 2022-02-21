@@ -102,3 +102,49 @@ func TestCurrentLine(t *testing.T) {
 		}
 	}
 }
+
+func TestFormatAnchor(t *testing.T) {
+	cases := []struct {
+		rawAnchor   string
+		wanttAnchor string
+	}{
+		{
+			rawAnchor:   "英字の大文字ABCは小文字abcで",
+			wanttAnchor: "英字の大文字abcは小文字abcで",
+		},
+		{
+			rawAnchor:   "空白  はハイフン-で",
+			wanttAnchor: "空白--はハイフン-で",
+		},
+		{
+			rawAnchor:   "半角記号!@#$%^&*()+|~=\\`[]{};':\",./<>?は省略",
+			wanttAnchor: "半角記号は省略",
+		},
+		{
+			rawAnchor:   "英字の大文字ＡＢＣは小文字ａｂｃで",
+			wanttAnchor: "英字の大文字ａｂｃは小文字ａｂｃで",
+		},
+		{
+			rawAnchor:   "空白　は省略",
+			wanttAnchor: "空白は省略",
+		},
+		{
+			rawAnchor:   "全角記号！＠＃＄％＾＆＊（）＋｜〜＝￥｀「」｛｝；’：”、。・＜＞？は省略",
+			wanttAnchor: "全角記号は省略",
+		},
+		{
+			rawAnchor:   "全角括弧類【】『』《》〔〕［］‹›«»〘〙〚〛は省略",
+			wanttAnchor: "全角括弧類は省略",
+		},
+		{
+			rawAnchor:   "絵文字😗😞🙄🙂👍😢👨➕✅👀🤗😮🏪は省略",
+			wanttAnchor: "絵文字は省略",
+		},
+	}
+
+	for _, tt := range cases {
+		if gotAnchor := formatAnchor(tt.rawAnchor); gotAnchor != tt.wanttAnchor {
+			t.Errorf("[ERROR] got: %v, want: %v", gotAnchor, tt.wanttAnchor)
+		}
+	}
+}
