@@ -136,7 +136,7 @@ func (t *InternalLinkTransformerImpl) TransformInternalLink(content string) (ext
 	if fragments == nil {
 		ref = path
 	} else {
-		ref = path + "#" + formatAnchor(fragments[len(fragments)-1])
+		ref = path + "#" + formatAnchorByZennRule(fragments[len(fragments)-1])
 	}
 
 	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
@@ -176,7 +176,7 @@ func (t *EmbedsTransformerImpl) TransformEmbeds(content string) (emnbeddedLink s
 	if fragments == nil {
 		ref = path
 	} else {
-		ref = path + "#" + formatAnchor(fragments[len(fragments)-1])
+		ref = path + "#" + formatAnchorByZennRule(fragments[len(fragments)-1])
 	}
 
 	return fmt.Sprintf("![%s](%s)", linktext, ref), nil
@@ -297,13 +297,36 @@ func formatAnchor(rawAnchor string) (anchor string) {
 	return string(runes)
 }
 
+func formatAnchorByZennRule(rawAnchor string) (anchor string) {
+	loweredAnchor := strings.ToLower(rawAnchor)
+	rawRunes := []rune(loweredAnchor)
+	runes := make([]rune, 0, len(rawRunes))
+	for _, r := range rawRunes {
+		if r == ' ' {
+			runes = append(runes, '-')
+			continue
+		}
+		if emojis.in(r) {
+			continue
+		}
+		if r == '(' || r == ')' {
+			runes = append(runes, r)
+		}
+		if isSymbolToBeIgnored(r) {
+			continue
+		}
+		runes = append(runes, r)
+	}
+	return string(runes)
+}
+
 func isSymbolToBeIgnored(r rune) bool {
-	for _, symbol := range []rune("!@#$%^&*()+|~=\\`[]{};':\",./<>?") {
+	for _, symbol := range "!@#$%^&*()+|~=\\`[]{};':\",./<>?" {
 		if r == symbol {
 			return true
 		}
 	}
-	for _, zenkaku := range []rune("！＠＃＄％＾＆＊（）＋｜〜＝￥｀「」｛｝；’：”、。・＜＞？　【】『』《》〔〕［］‹›«»〘〙〚〛") {
+	for _, zenkaku := range "！＠＃＄％＾＆＊（）＋｜〜＝￥｀「」｛｝；’：”、。・＜＞？　【】『』《》〔〕［］‹›«»〘〙〚〛" {
 		if r == zenkaku {
 			return true
 		}
