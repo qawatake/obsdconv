@@ -78,6 +78,7 @@ func TestConvertBody(t *testing.T) {
 		link            bool
 		rmH1            bool
 		formatLink      bool
+		formatAnchor    string
 		pathPrefixRemap map[string]string
 		wantTitle       string
 		wantTags        []string
@@ -129,6 +130,7 @@ func TestConvertBody(t *testing.T) {
 			cptag:        true,
 			cmmt:         true,
 			link:         true,
+			formatAnchor: convert.FORMAT_ANCHOR_HUGO,
 			wantTitle:    "test source file <<  >>",
 			wantTags:     []string{"obsidian", "test"},
 			wantFileName: "want.md",
@@ -169,7 +171,7 @@ func TestConvertBody(t *testing.T) {
 	for _, tt := range cases {
 		vault := filepath.Join(test_CONVERT_BODY_DIR, tt.rootDir, tt.srcDir)
 		db := convert.NewPathDB(vault)
-		c := newBodyConverterImpl(db, tt.cptag, tt.rmtag, tt.cmmt, tt.title, tt.link, tt.rmH1, tt.formatLink, nil)
+		c := newBodyConverterImpl(db, tt.cptag, tt.rmtag, tt.cmmt, tt.title, tt.link, tt.rmH1, tt.formatLink, tt.formatAnchor, nil)
 
 		srcFileName := filepath.Join(vault, tt.rawFileName)
 		srcFile, err := os.Open(srcFileName)

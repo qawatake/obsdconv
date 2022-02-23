@@ -247,8 +247,8 @@ func newLinkConverter(internal, embeds, external TransformerFunc) *Converter {
 	return c
 }
 
-func NewLinkConverter(db PathDB) *Converter {
-	internal := defaultTransformInternalLinkFunc(db)
+func NewLinkConverter(db PathDB, anchorFormattingStyle string) *Converter {
+	internal := defaultTransformInternalLinkFunc(db, anchorFormattingStyle)
 	embeds := defaultTransformEmbedsFunc(db)
 	external := defaultTransformExternalLinkFunc(db)
 	return newLinkConverter(internal, embeds, external)

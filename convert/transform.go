@@ -3,6 +3,7 @@ package convert
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -31,8 +32,8 @@ func TransformInternalLinkFunc(t InternalLinkTransformer) TransformerFunc {
 	}
 }
 
-func defaultTransformInternalLinkFunc(db PathDB) TransformerFunc {
-	return TransformInternalLinkFunc(newInternalLinkTransformerImpl(db))
+func defaultTransformInternalLinkFunc(db PathDB, anchorFormattingStyle string) TransformerFunc {
+	return TransformInternalLinkFunc(newInternalLinkTransformerImpl(db, anchorFormattingStyle))
 }
 
 func TransformEmnbedsFunc(t EmbedsTransformer) TransformerFunc {
@@ -108,13 +109,30 @@ type InternalLinkTransformer interface {
 
 type InternalLinkTransformerImpl struct {
 	PathDB
+	anchorFormattingStyle string
 }
 
-func newInternalLinkTransformerImpl(db PathDB) *InternalLinkTransformerImpl {
+func newInternalLinkTransformerImpl(db PathDB, anchorFormattingStyle string) *InternalLinkTransformerImpl {
+	var validAnchorFormattingStyle bool
+	if anchorFormattingStyle == FORMAT_ANCHOR_HUGO {
+		validAnchorFormattingStyle = true
+	} else if anchorFormattingStyle == FORMAT_ANCHOR_MARKDOWN_IT {
+		validAnchorFormattingStyle = true
+	}
+
+	if !validAnchorFormattingStyle {
+		panic("invalid anchorFormattingStyle is passed to newInternalLinkTransformerImpl")
+	}
 	return &InternalLinkTransformerImpl{
-		PathDB: db,
+		PathDB:                db,
+		anchorFormattingStyle: anchorFormattingStyle,
 	}
 }
+
+const FORMAT_ANCHOR_HUGO = "hugo"
+const FORMAT_ANCHOR_MARKDOWN_IT = "markdownit"
+
+var ANCHOR_FORMATTING_STYLES = []string{FORMAT_ANCHOR_HUGO, FORMAT_ANCHOR_MARKDOWN_IT}
 
 func (t *InternalLinkTransformerImpl) TransformInternalLink(content string) (externalLink string, err error) {
 	if content == "" {
@@ -136,7 +154,13 @@ func (t *InternalLinkTransformerImpl) TransformInternalLink(content string) (ext
 	if fragments == nil {
 		ref = path
 	} else {
-		ref = path + "#" + formatAnchorByZennRule(fragments[len(fragments)-1])
+		var anchor string
+		if t.anchorFormattingStyle == FORMAT_ANCHOR_HUGO {
+			anchor = formatAnchor(fragments[len(fragments)-1])
+		} else if t.anchorFormattingStyle == FORMAT_ANCHOR_MARKDOWN_IT {
+			anchor = formatAnchorByMarkdownItAnchorRule(fragments[len(fragments)-1])
+		}
+		ref = path + "#" + anchor
 	}
 
 	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
@@ -176,7 +200,7 @@ func (t *EmbedsTransformerImpl) TransformEmbeds(content string) (emnbeddedLink s
 	if fragments == nil {
 		ref = path
 	} else {
-		ref = path + "#" + formatAnchorByZennRule(fragments[len(fragments)-1])
+		ref = path + "#" + formatAnchor(fragments[len(fragments)-1])
 	}
 
 	return fmt.Sprintf("![%s](%s)", linktext, ref), nil
@@ -297,28 +321,13 @@ func formatAnchor(rawAnchor string) (anchor string) {
 	return string(runes)
 }
 
-func formatAnchorByZennRule(rawAnchor string) (anchor string) {
-	loweredAnchor := strings.ToLower(rawAnchor)
-	rawRunes := []rune(loweredAnchor)
-	runes := make([]rune, 0, len(rawRunes))
-	for _, r := range rawRunes {
-		if r == ' ' {
-			runes = append(runes, '-')
-			continue
-		}
-		if emojis.in(r) {
-			continue
-		}
-		if r == '(' || r == ')' {
-			runes = append(runes, r)
-		}
-		if isSymbolToBeIgnored(r) {
-			continue
-		}
-		runes = append(runes, r)
-	}
-	return string(runes)
+// https://github.com/valeriangalliat/markdown-it-anchor/blob/fa2a896f0864fdbdfb677cae776b6edf6d511e91/index.js#L3
+func formatAnchorByMarkdownItAnchorRule(rawAnchor string) (anchor string) {
+	lowerCase := strings.ToLower(rawAnchor)
+	return spacesToHyphen.ReplaceAllString(lowerCase, "-")
 }
+
+var spacesToHyphen = regexp.MustCompile(`(\s|　)+`)
 
 func isSymbolToBeIgnored(r rune) bool {
 	for _, symbol := range "!@#$%^&*()+|~=\\`[]{};':\",./<>?" {
