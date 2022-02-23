@@ -110,7 +110,7 @@ func (w pathDBWrapperImplEncodingPaths) Get(fileId string) (path string, err err
 	}
 	segments := make([]string, 0)
 	for _, segment := range strings.Split(path, "/") {
-		segments = append(segments, url.QueryEscape(segment))
+		segments = append(segments, url.PathEscape(segment))
 	}
 	return strings.Join(segments, "/"), nil
 }

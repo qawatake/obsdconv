@@ -51,7 +51,7 @@ $#inline-math$
 [section](https://example.com/main#section)
 
 #### japanese file name
-[おかしな ファイル名](https://example.com/%E6%97%A5%E6%9C%AC%E8%AA%9E/%E3%81%8A%E3%81%8B%E3%81%97%E3%81%AA+%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E5%90%8D)
+[おかしな ファイル名](https://example.com/%E6%97%A5%E6%9C%AC%E8%AA%9E/%E3%81%8A%E3%81%8B%E3%81%97%E3%81%AA%20%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E5%90%8D)
 
 ### External Link
 #### tag in display name
