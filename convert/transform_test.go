@@ -149,51 +149,31 @@ func TestFormatAnchor(t *testing.T) {
 	}
 }
 
-func TestFormatAnchorByZennRule(t *testing.T) {
+func TestFormatAnchorByMarkdownItAnchorRule(t *testing.T) {
 	cases := []struct {
 		rawAnchor   string
 		wanttAnchor string
 	}{
 		{
-			rawAnchor:   "Zennでは()は省略しない",
-			wanttAnchor: "zennでは()は省略しない",
-		},
-		{
 			rawAnchor:   "英字の大文字ABCは小文字abcで",
 			wanttAnchor: "英字の大文字abcは小文字abcで",
 		},
 		{
-			rawAnchor:   "空白  はハイフン-で",
-			wanttAnchor: "空白--はハイフン-で",
+			rawAnchor: "連続する空白とタブ 	　はひとつのハイフン-で",
+			wanttAnchor: "連続する空白とタブ-はひとつのハイフン-で",
 		},
 		{
-			rawAnchor:   "Zennでは半角記号!@#$%^&*+|~=\\`[]{};':\",./<>?は省略",
-			wanttAnchor: "zennでは半角記号は省略",
+			rawAnchor:   "-_.!~*'()\"はそのまま",
+			wanttAnchor: "-_.!~*'()\"はそのまま",
 		},
 		{
 			rawAnchor:   "英字の大文字ＡＢＣは小文字ａｂｃで",
 			wanttAnchor: "英字の大文字ａｂｃは小文字ａｂｃで",
 		},
-		{
-			rawAnchor:   "空白　は省略",
-			wanttAnchor: "空白は省略",
-		},
-		{
-			rawAnchor:   "全角記号！＠＃＄％＾＆＊（）＋｜〜＝￥｀「」｛｝；’：”、。・＜＞？は省略",
-			wanttAnchor: "全角記号は省略",
-		},
-		{
-			rawAnchor:   "全角括弧類【】『』《》〔〕［］‹›«»〘〙〚〛は省略",
-			wanttAnchor: "全角括弧類は省略",
-		},
-		{
-			rawAnchor:   "絵文字😗😞🙄🙂👍😢👨➕✅👀🤗😮🏪は省略",
-			wanttAnchor: "絵文字は省略",
-		},
 	}
 
 	for _, tt := range cases {
-		if gotAnchor := formatAnchorByZennRule(tt.rawAnchor); gotAnchor != tt.wanttAnchor {
+		if gotAnchor := formatAnchorByMarkdownItAnchorRule(tt.rawAnchor); gotAnchor != tt.wanttAnchor {
 			t.Errorf("[ERROR] got: %v, want: %v", gotAnchor, tt.wanttAnchor)
 		}
 	}
