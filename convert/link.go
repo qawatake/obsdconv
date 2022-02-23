@@ -134,7 +134,8 @@ func (w pathDBWrapperImplUsingSelfForEmptyFileId) Get(fileId string) (path strin
 		panic("selfPath not set but used")
 	}
 	if fileId == "" {
-		return w.selfPath, nil
+		selfFileId := strings.TrimSuffix(filepath.Base(w.selfPath), filepath.Ext(w.selfPath))
+		return w.original.Get(selfFileId)
 	} else {
 		return w.original.Get(fileId)
 	}

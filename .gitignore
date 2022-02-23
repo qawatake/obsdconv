@@ -115,6 +115,11 @@
 !testdata/run/link_remapPathPrefix/src/**
 !testdata/run/link_remapPathPrefix/dst
 !testdata/run/link_remapPathPrefix/dst/**
+!testdata/run/tgt_remapPathPrefix
+!testdata/run/tgt_remapPathPrefix/src
+!testdata/run/tgt_remapPathPrefix/src/**
+!testdata/run/tgt_remapPathPrefix/dst
+!testdata/run/tgt_remapPathPrefix/dst/**
 
 !process
 !process/walk.go

@@ -215,6 +215,18 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(testdataDir, "link_remapPathPrefix", dst),
 		},
+		{
+			name: "-tgt -link -remapPathPrefix -formatLink",
+			cmdflags: map[string]string{
+				FLAG_SOURCE:            filepath.Join(testdataDir, "tgt_remapPathPrefix", src),
+				FLAG_TARGET:            filepath.Join(testdataDir, "tgt_remapPathPrefix", src, tgt),
+				FLAG_DESTINATION:       filepath.Join(testdataDir, "tgt_remapPathPrefix", tmp),
+				FLAG_CONVERT_LINKS:     "1",
+				FLAG_FORMAT_LINK:       "1",
+				FLAG_REMAP_PATH_PREFIX: "tgt/>posts/",
+			},
+			wantDstDir: filepath.Join(testdataDir, "tgt_remapPathPrefix", dst),
+		},
 	}
 
 	for _, tt := range cases {
