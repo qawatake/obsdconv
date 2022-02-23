@@ -125,6 +125,11 @@
 !testdata/run/formatAnchorHugo/src/**
 !testdata/run/formatAnchorHugo/dst
 !testdata/run/formatAnchorHugo/dst/**
+!testdata/run/formatAnchorMarkdownIt
+!testdata/run/formatAnchorMarkdownIt/src
+!testdata/run/formatAnchorMarkdownIt/src/**
+!testdata/run/formatAnchorMarkdownIt/dst
+!testdata/run/formatAnchorMarkdownIt/dst/**
 
 !process
 !process/walk.go

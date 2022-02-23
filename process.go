@@ -60,7 +60,7 @@ func newDefaultProcessor(config *configuration) (processor *processorImplWithErr
 	if err != nil {
 		return nil, err
 	}
-	bc := newBodyConverterImpl(db, config.cptag || config.synctag, config.rmtag, config.cmmt, config.title || config.alias || config.synctlal, config.link, config.rmH1, config.formatLink, pathPrefixRemap)
+	bc := newBodyConverterImpl(db, config.cptag || config.synctag, config.rmtag, config.cmmt, config.title || config.alias || config.synctlal, config.link, config.rmH1, config.formatLink, config.formatAnchor, pathPrefixRemap)
 	metaKeyRemap, err := parseRemap(config.remapkey)
 	if err != nil {
 		return nil, err

@@ -21,18 +21,19 @@ func newBodyConvAuxOutImpl(title string, tags map[string]struct{}) *bodyConvAuxO
 }
 
 type bodyConverterImpl struct {
-	db              convert.PathDB
-	cptag           bool
-	rmtag           bool
-	cmmt            bool
-	title           bool
-	link            bool
-	rmH1            bool
-	formatLink      bool
-	pathPrefixRemap map[string]string
+	db                    convert.PathDB
+	cptag                 bool
+	rmtag                 bool
+	cmmt                  bool
+	title                 bool
+	link                  bool
+	rmH1                  bool
+	formatLink            bool
+	anchorFormattingStyle string
+	pathPrefixRemap       map[string]string
 }
 
-func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, title bool, link bool, rmH1 bool, formatLink bool, pathPrefixRemap map[string]string) *bodyConverterImpl {
+func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, title bool, link bool, rmH1 bool, formatLink bool, anchorFormattingStyle string, pathPrefixRemap map[string]string) *bodyConverterImpl {
 	c := new(bodyConverterImpl)
 	c.db = db
 	c.cptag = cptag
@@ -42,6 +43,7 @@ func newBodyConverterImpl(db convert.PathDB, cptag bool, rmtag bool, cmmt bool, 
 	c.link = link
 	c.rmH1 = rmH1
 	c.formatLink = formatLink
+	c.anchorFormattingStyle = anchorFormattingStyle
 	c.pathPrefixRemap = pathPrefixRemap
 	return c
 }
@@ -93,7 +95,7 @@ func (c *bodyConverterImpl) ConvertBody(raw []rune, selfRelativePath string) (ou
 		if c.pathPrefixRemap != nil {
 			db = convert.WrapForRemappingPathPrefix(c.pathPrefixRemap, db)
 		}
-		output, err = convert.NewLinkConverter(db).Convert(output)
+		output, err = convert.NewLinkConverter(db, c.anchorFormattingStyle).Convert(output)
 		if err != nil {
 			return nil, nil, errors.Wrap(err, "LinkConverter failed")
 		}

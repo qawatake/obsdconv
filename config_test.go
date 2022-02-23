@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"testing"
+
+	"github.com/qawatake/obsdconv/convert"
 )
 
 func TestSetConfig(t *testing.T) {
@@ -27,7 +29,7 @@ func TestSetConfig(t *testing.T) {
 				alias:        true,
 				obs:          true,
 				tgt:          "src",
-				formatAnchor: FORMAT_ANCHOR_HUGO,
+				formatAnchor: convert.FORMAT_ANCHOR_HUGO,
 			},
 		},
 		{
@@ -49,7 +51,7 @@ func TestSetConfig(t *testing.T) {
 				cmmt:         true,
 				std:          true,
 				tgt:          "src",
-				formatAnchor: FORMAT_ANCHOR_HUGO,
+				formatAnchor: convert.FORMAT_ANCHOR_HUGO,
 			},
 		},
 		{
@@ -74,7 +76,7 @@ func TestSetConfig(t *testing.T) {
 				obs:          false,
 				std:          true,
 				tgt:          "src",
-				formatAnchor: FORMAT_ANCHOR_HUGO,
+				formatAnchor: convert.FORMAT_ANCHOR_HUGO,
 			},
 		},
 		{
@@ -88,7 +90,7 @@ func TestSetConfig(t *testing.T) {
 				src:          "src",
 				dst:          "dst",
 				tgt:          "tgt",
-				formatAnchor: FORMAT_ANCHOR_HUGO,
+				formatAnchor: convert.FORMAT_ANCHOR_HUGO,
 			},
 		},
 	}

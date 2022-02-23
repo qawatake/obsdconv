@@ -32,8 +32,8 @@ func TransformInternalLinkFunc(t InternalLinkTransformer) TransformerFunc {
 	}
 }
 
-func defaultTransformInternalLinkFunc(db PathDB) TransformerFunc {
-	return TransformInternalLinkFunc(newInternalLinkTransformerImpl(db))
+func defaultTransformInternalLinkFunc(db PathDB, anchorFormattingStyle string) TransformerFunc {
+	return TransformInternalLinkFunc(newInternalLinkTransformerImpl(db, anchorFormattingStyle))
 }
 
 func TransformEmnbedsFunc(t EmbedsTransformer) TransformerFunc {
@@ -109,13 +109,30 @@ type InternalLinkTransformer interface {
 
 type InternalLinkTransformerImpl struct {
 	PathDB
+	anchorFormattingStyle string
 }
 
-func newInternalLinkTransformerImpl(db PathDB) *InternalLinkTransformerImpl {
+func newInternalLinkTransformerImpl(db PathDB, anchorFormattingStyle string) *InternalLinkTransformerImpl {
+	var validAnchorFormattingStyle bool
+	if anchorFormattingStyle == FORMAT_ANCHOR_HUGO {
+		validAnchorFormattingStyle = true
+	} else if anchorFormattingStyle == FORMAT_ANCHOR_MARKDOWN_IT {
+		validAnchorFormattingStyle = true
+	}
+
+	if !validAnchorFormattingStyle {
+		panic("invalid anchorFormattingStyle is passed to newInternalLinkTransformerImpl")
+	}
 	return &InternalLinkTransformerImpl{
-		PathDB: db,
+		PathDB:                db,
+		anchorFormattingStyle: anchorFormattingStyle,
 	}
 }
+
+const FORMAT_ANCHOR_HUGO = "hugo"
+const FORMAT_ANCHOR_MARKDOWN_IT = "markdownit"
+
+var ANCHOR_FORMATTING_STYLES = []string{FORMAT_ANCHOR_HUGO, FORMAT_ANCHOR_MARKDOWN_IT}
 
 func (t *InternalLinkTransformerImpl) TransformInternalLink(content string) (externalLink string, err error) {
 	if content == "" {
@@ -137,7 +154,13 @@ func (t *InternalLinkTransformerImpl) TransformInternalLink(content string) (ext
 	if fragments == nil {
 		ref = path
 	} else {
-		ref = path + "#" + formatAnchor(fragments[len(fragments)-1])
+		var anchor string
+		if t.anchorFormattingStyle == FORMAT_ANCHOR_HUGO {
+			anchor = formatAnchor(fragments[len(fragments)-1])
+		} else if t.anchorFormattingStyle == FORMAT_ANCHOR_MARKDOWN_IT {
+			anchor = formatAnchorByMarkdownItAnchorRule(fragments[len(fragments)-1])
+		}
+		ref = path + "#" + anchor
 	}
 
 	return fmt.Sprintf("[%s](%s)", linktext, ref), nil
