@@ -77,6 +77,7 @@ const (
 	MAIN_ERR_KIND_INVALID_REMAP_FORMAT
 	MAIN_ERR_KIND_INVALID_FILTER_FORMAT
 	MAIN_ERR_KIND_FORMAT_LINK_NEEDS_LINK
+	MAIN_ERR_KIND_INVALID_ANCHOR_FORMATTING_STYLE
 	MAIN_ERR_KIND_REMAP_PATH_PREFIX_NEEDS_LINK
 	MAIN_ERR_KIND_INVALID_REMAP_PATH_PREFIX_FORMAT
 	// MAIN_ERR_KIND_BASE_URL_NEEDS_LINK
@@ -119,6 +120,8 @@ func newMainErr(kind mainErrKind) mainErr {
 		err.message = fmt.Sprintf("%s is a markdown file but %s is not", FLAG_DESTINATION, FLAG_TARGET)
 	case MAIN_ERR_KIND_INVALID_FILTER_FORMAT:
 		err.message = fmt.Sprintf("%s has an invalid format", FLAG_FILTER)
+	case MAIN_ERR_KIND_INVALID_ANCHOR_FORMATTING_STYLE:
+		err.message = fmt.Sprintf("%s is invalid. must choose from %s", FLAG_FORMAT_ANCHOR, strings.Join(convert.ANCHOR_FORMATTING_STYLES, ", "))
 	// case MAIN_ERR_KIND_BASE_URL_NEEDS_LINK:
 	// 	err.message = fmt.Sprintf("%s set but not %s", FLAG_BASE_URL, FLAG_CONVERT_LINKS)
 	case MAIN_ERR_KIND_FORMAT_LINK_NEEDS_LINK:
@@ -246,6 +249,17 @@ func verifyConfig(config *configuration) error {
 	// if config.baseUrl != "" && !config.link {
 	// 	return newMainErr(MAIN_ERR_KIND_BASE_URL_NEEDS_LINK)
 	// }
+	var validAnchorFormattingStyle bool
+	for _, style := range convert.ANCHOR_FORMATTING_STYLES {
+		if config.formatAnchor == style {
+			validAnchorFormattingStyle = true
+			break
+		}
+	}
+	if !validAnchorFormattingStyle {
+		return newMainErr(MAIN_ERR_KIND_INVALID_ANCHOR_FORMATTING_STYLE)
+	}
+
 	if config.remapPathPrefix != "" && !config.link {
 		return newMainErr(MAIN_ERR_KIND_INVALID_REMAP_FORMAT)
 	}
