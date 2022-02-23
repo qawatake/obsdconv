@@ -26,6 +26,7 @@ const (
 	// FLAG_BASE_URL           = "baseUrl"
 	FLAG_REMAP_PATH_PREFIX = "remapPathPrefix"
 	FLAG_FORMAT_LINK       = "formatLink"
+	FLAG_FORMAT_ANCHOR     = "formatAnchor"
 	FLAG_STRICT_REF        = "strictref"
 	FLAG_OBSIDIAN_USAGE    = "obs"
 	FLAG_STANDARD_USAGE    = "std"
@@ -53,6 +54,7 @@ type configuration struct {
 	// baseUrl         string
 	remapPathPrefix string
 	formatLink      bool
+	formatAnchor    string
 	obs             bool
 	std             bool
 	ver             bool
@@ -157,11 +159,17 @@ func initFlags(flagset *flag.FlagSet, config *configuration) {
 	// flagset.StringVar(&config.baseUrl, FLAG_BASE_URL, "", "prefix resolved internal links and format it. Example (-baseUrl=https://example.com/): sample -> https://example.com/sample")
 	flagset.StringVar(&config.remapPathPrefix, FLAG_REMAP_PATH_PREFIX, "", "remap prefixes in paths. Example (-remapPrefix=static/>images/|notes/>posts/): static/sample.png -> images/sample.png, notes/sample.md -> posts/sample.md")
 	flagset.BoolVar(&config.formatLink, FLAG_FORMAT_LINK, false, "trim suffix .md and complete link. Example: #section -> path/to/sample#section")
+	flagset.StringVar(&config.formatAnchor, FLAG_FORMAT_ANCHOR, FORMAT_ANCHOR_HUGO, fmt.Sprintf("anchor formatting style. Available styles: %s", strings.Join(ANCHOR_FORMATTING_STYLES, ", ")))
 	flagset.BoolVar(&config.obs, FLAG_OBSIDIAN_USAGE, false, "alias of -cptag -title -alias")
 	flagset.BoolVar(&config.std, FLAG_STANDARD_USAGE, false, "alias of -cptag -rmtag -title -alias -link -cmmt -strictref")
 	flagset.BoolVar(&config.ver, FLAG_VERSION, false, "display the version currently installed")
 	flagset.BoolVar(&config.debug, FLAG_DEBUG, false, "display error message for developers")
 }
+
+const FORMAT_ANCHOR_HUGO = "hugo"
+const FORMAT_ANCHOR_MARKDOWN_IT = "markdownit"
+
+var ANCHOR_FORMATTING_STYLES = []string{FORMAT_ANCHOR_HUGO, FORMAT_ANCHOR_MARKDOWN_IT}
 
 // 実行前に↓が必要
 // 1. initFlags(flagset, flags)

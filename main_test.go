@@ -227,6 +227,15 @@ func TestRun(t *testing.T) {
 			},
 			wantDstDir: filepath.Join(testdataDir, "tgt_remapPathPrefix", dst),
 		},
+		{
+			name: fmt.Sprintf("-link -formatAnchor=%s", FORMAT_ANCHOR_MARKDOWN_IT),
+			cmdflags: map[string]string{
+				FLAG_SOURCE:        filepath.Join(testdataDir, "formatAnchorHugo", src),
+				FLAG_DESTINATION:   filepath.Join(testdataDir, "formatAnchorHugo", tmp),
+				FLAG_CONVERT_LINKS: "1",
+			},
+			wantDstDir: filepath.Join(testdataDir, "formatAnchorHugo", dst),
+		},
 	}
 
 	for _, tt := range cases {
