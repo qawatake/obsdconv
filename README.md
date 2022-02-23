@@ -62,6 +62,7 @@ flag | meaning | \*
 `filter` | process only files with specified conditions. Example: `-filter="(key1\|\|!key2)&&key3"`. Each field must be boolean and each key must match `/[0-9a-zA-Z-_]+/`. | optional
 `remapPathPrefix` | remap prefixes in paths in links. Example (`-remapPrefix=static/>images/\|notes/>posts/`): `![image](static/sample.png)` -> `![image](images/sample.png)`, `[[sample]] -> [sample](posts/sample.md)`, where `sample.md` lies in directory `notes`. Note that the output directory structure will not change. | optional
 `formatLink` | trim suffix `.md` and complete links. Example: `[example](#section)` -> `[example](path/to/sample#section)`, where the targe file is `path/to/sample.md`. | optional
+`formatAnchor` | anchor formatting style. Available styles: `hugo`, `markdownit`. | optional
 `strictref` | return error when ref target is not found. available only when `link` is on. | optional
 `obs` | = `-cptag -title -alias` | optional
 `std` | = `-cptag -title -alias -rmtag -link -cmmt -strictref` | optional
