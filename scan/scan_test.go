@@ -909,7 +909,7 @@ func TestScanNormalComment(t *testing.T) {
 	for _, tt := range cases {
 		gotAdvance := ScanNormalComment(tt.raw, tt.ptr)
 		if gotAdvance != tt.wantAdvance {
-			t.Errorf("[ERROR | %s] got: %q, want: %q with input: %q", tt.name, gotAdvance, tt.wantAdvance, tt.raw)
+			t.Errorf("[ERROR | %s] got: %d, want: %d with input: %q", tt.name, gotAdvance, tt.wantAdvance, tt.raw)
 		}
 	}
 }
