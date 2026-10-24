@@ -1,6 +1,6 @@
 module github.com/qawatake/obsdconv
 
-go 1.16
+go 1.27.3
 
 require (
 	github.com/pkg/errors v0.9.1
