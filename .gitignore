@@ -6,6 +6,7 @@
 !.github/workflows
 !.github/workflows/test.yml
 !.github/workflows/release.yml
+!.github/dependabot.yml
 !.goreleaser.yml
 
 !sample
