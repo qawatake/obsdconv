@@ -31,6 +31,7 @@
 !sample/std_pub/dst/**
 
 !go.mod
+!go.sum
 !main.go
 !config.go
 !process.go
